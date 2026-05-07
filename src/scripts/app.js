@@ -408,10 +408,11 @@ function renderDefinitions(definitions) {
 function findTemplateTranslation(text) {
   const normalized = normalizeText(text);
   if (!normalized) return "";
+  const allowLooseMatch = normalized.length >= 4;
 
   for (const item of PHRASEBOOK) {
     const cn = normalizeText(item.cn);
-    if (cn && (normalized === cn || cn.includes(normalized) || normalized.includes(cn))) {
+    if (cn && (normalized === cn || (allowLooseMatch && (cn.includes(normalized) || normalized.includes(cn))))) {
       return item.en;
     }
   }
@@ -420,7 +421,7 @@ function findTemplateTranslation(text) {
   for (const group of TEMPLATES) {
     for (const [en, cn] of group.items) {
       const plainCn = normalizeText(cn);
-      if (normalized === plainCn || plainCn.includes(normalized) || normalized.includes(plainCn)) {
+      if (normalized === plainCn || (allowLooseMatch && (plainCn.includes(normalized) || normalized.includes(plainCn)))) {
         return en;
       }
     }
@@ -467,12 +468,18 @@ function setSentenceSpeakLabel(label) {
   if (textNode) textNode.textContent = " " + label;
 }
 
+function isCurrentAnalyzeRun(runId) {
+  return runId == null || runId === analyzeRunId;
+}
+
 async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
   const w = String(word).toLowerCase().trim();
   if (!w) return;
+  const runId = options.runId;
 
   const cached = getCachedOnlineWord(w);
   if (cached) {
+    if (!isCurrentAnalyzeRun(runId)) return;
     if (cached.phonetic && phoneticEl) phoneticEl.textContent = cached.phonetic;
     if (options.fillMeaning) {
       cnEl.innerHTML = renderDefinitions(cached.definitions);
@@ -490,6 +497,7 @@ async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
 
   try {
     const data = await lookupOnlineData(w);
+    if (!isCurrentAnalyzeRun(runId)) return;
     if (!data) {
       if (options.fillMeaning) {
         cnEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">未找到中文释义</span>';
@@ -503,6 +511,7 @@ async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
       setCardMeaning(card, data.meaning);
     }
   } catch(e) {
+    if (!isCurrentAnalyzeRun(runId)) return;
     if (options.fillMeaning) {
       cnEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">网络错误，暂时无法查询</span>';
     }
@@ -511,13 +520,15 @@ async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
 }
 
 /* ====== Word Card builder ====== */
-function buildWordCard(word, idx, meaning, container) {
+function buildWordCard(word, idx, meaning, container, options = {}) {
   const key = word.toLowerCase();
+  const skipOnlineLookup = !meaning && STOP_WORDS.has(key);
+  const displayMeaning = skipOnlineLookup ? "常用功能词，帮助句子表达语法关系" : meaning;
   const card = document.createElement("div");
   card.className = "word-card";
   card.style.animationDelay = (idx * 0.05) + "s";
   card.dataset.word = key;
-  setCardMeaning(card, meaning || "");
+  setCardMeaning(card, displayMeaning || "");
 
   const num = document.createElement("div");
   num.className = "word-num";
@@ -536,8 +547,8 @@ function buildWordCard(word, idx, meaning, container) {
 
   const cn = document.createElement("div");
   cn.className = "word-cn";
-  if (meaning) {
-    cn.textContent = meaning;
+  if (displayMeaning) {
+    cn.textContent = displayMeaning;
   } else {
     cn.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">正在查询中文释义…</span>';
   }
@@ -554,7 +565,7 @@ function buildWordCard(word, idx, meaning, container) {
   star.className = "btn-star" + (starred ? " active" : "");
   star.innerHTML = starred ? STAR_SVG : STAR_OUTLINE;
   star.setAttribute("aria-label", "收藏");
-  if (!meaning) {
+  if (!displayMeaning) {
     star.disabled = true;
     star.setAttribute("aria-label", "释义加载后可收藏");
   }
@@ -584,16 +595,17 @@ function buildWordCard(word, idx, meaning, container) {
 
   card.addEventListener("click", () => speakWordN(word, card));
   container.appendChild(card);
-  if (meaning || !STOP_WORDS.has(key)) {
-    hydrateOnlineWord(word, cn, ph, card, { fillMeaning: !meaning });
+  if (!skipOnlineLookup) {
+    hydrateOnlineWord(word, cn, ph, card, { fillMeaning: !meaning, runId: options.runId });
   }
 }
 
 /* ====== Home — Analyze ====== */
 async function analyzeSentence() {
-  const runId = ++analyzeRunId;
   const raw = document.getElementById("sentence-input").value.trim();
   if (!raw) return;
+  if (document.getElementById("go-btn")?.disabled) return;
+  const runId = ++analyzeRunId;
   const bar = document.getElementById("sentence-bar");
   const list = document.getElementById("word-list");
 
@@ -650,7 +662,7 @@ async function analyzeSentence() {
     }
 
     for (let i = 0; i < uniqWords.length; i++) {
-      buildWordCard(uniqWords[i], i, lookup(uniqWords[i]), list);
+      buildWordCard(uniqWords[i], i, lookup(uniqWords[i]), list, { runId });
     }
   } finally {
     if (runId === analyzeRunId) setAnalyzeBusy(false);
