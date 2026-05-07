@@ -66,6 +66,7 @@
 html {
   font-size: 17px;
   -webkit-tap-highlight-color: transparent;
+  min-height: 100%;
 }
 
 body {
@@ -73,8 +74,10 @@ body {
   background: var(--paper);
   color: var(--ink-text);
   min-height: 100vh;
+  min-height: 100dvh;
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 32px);
   overflow-x: hidden;
+  overscroll-behavior-x: none;
   -webkit-font-smoothing: antialiased;
   position: relative;
   /* paper texture */
@@ -99,6 +102,8 @@ button, textarea { touch-action: manipulation; }
   padding: 20px 18px 0;
   position: relative;
   z-index: 1;
+  min-height: calc(100vh - var(--nav-h));
+  min-height: calc(100dvh - var(--nav-h));
 }
 
 .page { display: none; }
@@ -1017,6 +1022,7 @@ textarea#sentence-input::placeholder {
 .nav {
   position: fixed;
   left: 0; right: 0; bottom: 0;
+  width: 100%;
   min-height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   background: var(--cream);
   border-top: 2px solid var(--line);
@@ -1026,6 +1032,8 @@ textarea#sentence-input::placeholder {
   padding: 4px 8px env(safe-area-inset-bottom, 0px);
   z-index: 100;
   box-shadow: 0 -4px 24px -8px rgba(43,38,32,.1);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .nav-item {
@@ -1073,11 +1081,28 @@ textarea#sentence-input::placeholder {
 
 @media (max-width: 560px) {
   :root { --nav-h: 72px; }
-  html { font-size: 16px; }
-  body {
-    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
+  html {
+    font-size: 16px;
+    height: 100%;
+    overflow: hidden;
   }
-  .app { padding: 14px 12px 0; }
+  body {
+    height: 100%;
+    min-height: 100%;
+    padding-bottom: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  .app {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 12px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
+  }
 
   .brand {
     gap: 10px;
