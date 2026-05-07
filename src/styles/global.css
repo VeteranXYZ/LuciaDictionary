@@ -73,7 +73,7 @@ body {
   background: var(--paper);
   color: var(--ink-text);
   min-height: 100vh;
-  padding-bottom: calc(var(--nav-h) + 32px);
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 32px);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   position: relative;
@@ -87,6 +87,7 @@ body {
 button { font-family: inherit; }
 input, textarea { font-family: inherit; }
 a { color: inherit; }
+button, textarea { touch-action: manipulation; }
 
 /* ============================================================
    Layout
@@ -347,6 +348,7 @@ textarea#sentence-input::placeholder {
   line-height: 1.5;
   color: var(--ink-text);
   margin-bottom: 10px;
+  overflow-wrap: anywhere;
 }
 .sentence-bar .speak-btn {
   display: inline-flex;
@@ -441,6 +443,8 @@ textarea#sentence-input::placeholder {
   margin: 0 -4px;
   border-radius: 6px;
   transition: background .15s, transform .2s var(--bounce);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .word-card.sentence-active {
   border-color: var(--honey);
@@ -466,6 +470,7 @@ textarea#sentence-input::placeholder {
   font-weight: 600;
   margin-top: 4px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 .word-cn .lookup-link {
   color: var(--ink);
@@ -798,6 +803,7 @@ textarea#sentence-input::placeholder {
   color: var(--ink);
   margin-bottom: 4px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 .tpl-item .cn {
   font-size: 0.85rem;
@@ -1008,13 +1014,13 @@ textarea#sentence-input::placeholder {
 .nav {
   position: fixed;
   left: 0; right: 0; bottom: 0;
-  height: var(--nav-h);
+  min-height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   background: var(--cream);
   border-top: 2px solid var(--line);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding: 4px 8px env(safe-area-inset-bottom, 0px);
   z-index: 100;
   box-shadow: 0 -4px 24px -8px rgba(43,38,32,.1);
 }
@@ -1035,6 +1041,7 @@ textarea#sentence-input::placeholder {
   transition: color .2s;
   position: relative;
   min-width: 60px;
+  min-height: 58px;
 }
 
 .nav-item .icon-wrap {
@@ -1061,16 +1068,237 @@ textarea#sentence-input::placeholder {
    Mobile tweaks
    ============================================================ */
 
-@media (max-width: 480px) {
+@media (max-width: 560px) {
+  :root { --nav-h: 72px; }
   html { font-size: 16px; }
-  .app { padding: 18px 14px 0; }
-  .word-card { padding: 14px 14px; gap: 10px; }
-  .word-en { font-size: 1.35rem; }
-  .hero-mascot { width: 150px; height: 150px; }
-  .hero-title { font-size: 1.35rem; }
-  .brand-title { font-size: 1.3rem; }
-  .btn-go { width: 60px; height: 60px; }
-  textarea#sentence-input { height: 60px; font-size: 1rem; }
+  body {
+    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
+  }
+  .app { padding: 14px 12px 0; }
+
+  .brand {
+    gap: 10px;
+    padding: 6px 2px 14px;
+  }
+  .brand-logo {
+    width: 46px;
+    height: 46px;
+    border-width: 2px;
+  }
+  .brand-title {
+    font-size: 1.15rem;
+    line-height: 1.08;
+  }
+  .brand-sub {
+    font-size: 0.74rem;
+    line-height: 1.25;
+  }
+  .brand-streak {
+    padding: 6px 9px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+
+  .hero {
+    padding: 8px 4px 16px;
+  }
+  .hero-mascot {
+    width: 118px;
+    height: 118px;
+    margin-bottom: 12px;
+  }
+  .hero-mascot::before {
+    width: 88px;
+  }
+  .hero-title {
+    font-size: 1.24rem;
+    line-height: 1.25;
+  }
+  .hero-sub {
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .input-card {
+    padding: 12px;
+    margin: 6px 0 14px;
+    border-radius: var(--r-md);
+  }
+  .input-row {
+    gap: 8px;
+  }
+  textarea#sentence-input {
+    min-width: 0;
+    height: 58px;
+    padding: 11px 12px;
+    font-size: 0.96rem;
+    line-height: 1.35;
+  }
+  .btn-go {
+    width: 54px;
+    height: 58px;
+    border-radius: 16px;
+  }
+  .btn-go svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  .sentence-bar {
+    padding: 12px 13px;
+    margin-bottom: 12px;
+    border-radius: var(--r-sm);
+  }
+  .sentence-bar .text {
+    font-size: 0.94rem;
+    line-height: 1.45;
+  }
+  .sentence-bar .speak-btn {
+    min-height: 40px;
+    padding: 8px 13px;
+  }
+
+  .word-list {
+    gap: 10px;
+  }
+  .word-card {
+    grid-template-columns: 28px minmax(0, 1fr) 42px;
+    gap: 9px;
+    padding: 13px 12px;
+    border-radius: var(--r-md);
+    align-items: start;
+  }
+  .word-card:hover {
+    transform: none;
+  }
+  .word-num {
+    width: 28px;
+    height: 28px;
+    font-size: 0.72rem;
+    margin-top: 2px;
+  }
+  .word-en {
+    font-size: 1.26rem;
+    line-height: 1.15;
+  }
+  .word-phonetic {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+  .word-cn {
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .word-actions {
+    gap: 7px;
+  }
+  .btn-star {
+    width: 36px;
+    height: 36px;
+  }
+  .btn-speak {
+    width: 40px;
+    height: 40px;
+  }
+
+  .empty {
+    padding: 28px 16px;
+    border-radius: var(--r-md);
+  }
+  .empty-mascot {
+    width: 72px;
+    height: 72px;
+  }
+  .tip {
+    margin-top: 14px;
+    padding: 11px 13px;
+    font-size: 0.78rem;
+  }
+
+  .wb-actions,
+  .tpl-item .actions {
+    gap: 8px;
+  }
+  .btn-action {
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+  .tpl-tabs {
+    margin-left: -12px;
+    margin-right: -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .tpl-tab {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  .tpl-item {
+    padding: 13px 12px;
+    border-radius: var(--r-sm);
+  }
+
+  .set-card,
+  .about {
+    border-radius: var(--r-md);
+    padding: 15px;
+  }
+
+  .nav {
+    justify-content: space-between;
+  }
+  .nav-item {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 2px;
+    font-size: 0.66rem;
+  }
+  .nav-item .icon-wrap {
+    width: 34px;
+    height: 34px;
+  }
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 380px) {
+  .app { padding-left: 10px; padding-right: 10px; }
+  .brand-title { font-size: 1.04rem; }
+  .brand-sub { font-size: 0.68rem; }
+  .brand-streak span { display: none; }
+  .hero-mascot {
+    width: 104px;
+    height: 104px;
+  }
+  .hero-title { font-size: 1.14rem; }
+  .input-row {
+    flex-direction: column;
+  }
+  textarea#sentence-input {
+    width: 100%;
+    height: 76px;
+  }
+  .btn-go {
+    width: 100%;
+    height: 48px;
+  }
+  .word-card {
+    grid-template-columns: minmax(0, 1fr) 42px;
+  }
+  .word-num {
+    display: none;
+  }
+  .tpl-item .actions,
+  .wb-actions {
+    flex-direction: column;
+  }
+  .nav-item {
+    font-size: 0.62rem;
+  }
 }
 
 @media (min-width: 768px) {
