@@ -1,0 +1,171 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+---
+
+<MainLayout>
+  <div class="app">
+    <header class="brand">
+      <div class="brand-logo"><img src="assets/logo-placeholder.jpeg" alt="Lucia" /></div>
+      <div class="brand-text">
+        <div class="brand-title">Lucia's Dictionary</div>
+        <div class="brand-sub">露西亚的英语字典 · 四年级版</div>
+      </div>
+      <div class="brand-streak" title="今日学习">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14a8 8 0 0 0 16 0C20 9.91 18.04 6.27 14.91 3.79L13.5.67z"></path></svg>
+        <span>Day 1</span>
+      </div>
+    </header>
+
+    <div class="page active" id="pg-home">
+      <section class="hero">
+        <div class="hero-mascot"><img src="assets/logo-placeholder.jpeg" alt="吉祥物" /></div>
+        <h1 class="hero-title">把英语句子变成单词卡 ✨</h1>
+        <p class="hero-sub">粘贴老师布置的句子，<br />我帮你认识里面的每一个单词</p>
+      </section>
+
+      <div class="input-card">
+        <div class="input-row">
+          <textarea id="sentence-input" placeholder="在这里输入或粘贴英语句子…" rows="2"></textarea>
+          <button class="btn-go" id="go-btn" title="开始学习" aria-label="开始">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="sentence-bar" id="sentence-bar">
+        <div class="label">原句</div>
+        <div class="text" id="sentence-text"></div>
+        <button class="speak-btn" id="speak-sentence-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          朗读整句
+        </button>
+      </div>
+
+      <div class="word-list" id="word-list">
+        <div class="empty">
+          <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt="" /></div>
+          <p>把老师布置的句子粘贴上去吧～<br /><strong>我会帮你拆出每一个单词</strong></p>
+        </div>
+      </div>
+
+      <div class="tip">
+        <div class="tip-icon">i</div>
+        <div>
+          <span class="hl">小提示：</span>
+          点击单词卡片就能听到发音，点 <strong>☆</strong> 把不认识的单词收藏到生词本，下次再复习。
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="pg-wordbook">
+      <section class="hero" style="padding-top:0">
+        <h1 class="hero-title">我的生词本</h1>
+        <p class="hero-sub">把不熟的单词都收在这里，<br />常常翻翻就记住啦</p>
+      </section>
+
+      <div class="wb-stats" id="wb-stats" style="display:none"></div>
+
+      <div class="wb-actions" id="wb-actions" style="display:none">
+        <button class="btn-action moss" id="review-all-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+          <span>全部朗读</span>
+        </button>
+        <button class="btn-action danger" id="clear-wb-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+          <span>清空</span>
+        </button>
+      </div>
+
+      <div class="word-list" id="wb-list"></div>
+    </div>
+
+    <div class="page" id="pg-templates">
+      <section class="hero" style="padding-top:0">
+        <h1 class="hero-title">老师常说的话</h1>
+        <p class="hero-sub">美国小学课堂里最常听到的指令<br />遇到了不慌张</p>
+      </section>
+
+      <div class="tpl-tabs" id="tpl-tabs"></div>
+      <div class="tpl-list" id="tpl-list"></div>
+    </div>
+
+    <div class="page" id="pg-settings">
+      <section class="hero" style="padding-top:0">
+        <h1 class="hero-title">设置</h1>
+        <p class="hero-sub">调一调，更顺手</p>
+      </section>
+
+      <div class="set-card">
+        <div class="set-group">
+          <div class="set-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            朗读速度
+          </div>
+          <div class="set-info">单词朗读快慢，慢速适合初学</div>
+          <div class="set-options" id="speed-options"></div>
+        </div>
+
+        <div class="set-group">
+          <div class="set-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15A9 9 0 1 1 18 5.34"></path></svg>
+            朗读次数
+          </div>
+          <div class="set-info">点单词时连续朗读几遍</div>
+          <div class="set-options" id="repeat-options"></div>
+        </div>
+      </div>
+
+      <div class="about">
+        <div class="about-mascot"><img src="assets/logo-placeholder.jpeg" alt="" /></div>
+        <div class="about-ver">v2.0 · 2026</div>
+        <div class="about-name">Lucia's Dictionary</div>
+        <div class="about-tag">For Lucia's elementary school studies</div>
+
+        <div class="about-stats">
+          <div class="about-stat">
+            <div class="v" id="dict-count">0</div>
+            <div class="l">收录单词</div>
+          </div>
+          <div class="about-stat">
+            <div class="v" id="about-wb-count">0</div>
+            <div class="l">已收藏</div>
+          </div>
+        </div>
+
+        <div class="about-divider"></div>
+
+        <div class="about-foot">
+          <p>© 2026 <strong>Lucia &amp; Rayna</strong> · Powered by <strong>HIEI</strong></p>
+          <p style="margin-top:4px"><a href="mailto:hello@luciaandrayna.com">hello@luciaandrayna.com</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-item active" data-pg="home">
+      <span class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </span>
+      首页
+    </button>
+    <button class="nav-item" data-pg="wordbook">
+      <span class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      </span>
+      生词本
+    </button>
+    <button class="nav-item" data-pg="templates">
+      <span class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      </span>
+      常用句
+    </button>
+    <button class="nav-item" data-pg="settings">
+      <span class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </span>
+      设置
+    </button>
+  </nav>
+</MainLayout>

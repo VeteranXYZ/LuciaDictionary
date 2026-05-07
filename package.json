@@ -1,0 +1,16 @@
+{
+  "name": "lucia-dictionary",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^6.2.1",
+    "terser": "^5.46.2"
+  },
+  "devDependencies": {}
+}

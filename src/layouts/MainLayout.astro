@@ -1,0 +1,28 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "Lucia's Dictionary · 露西亚的英语字典" } = Astro.props;
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+SC:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <slot />
+    <script>
+      import "../scripts/app.js";
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/global.css";
+</style>
