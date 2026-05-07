@@ -309,6 +309,12 @@ textarea#sentence-input::placeholder {
 }
 .btn-go:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--ink-deep); }
 .btn-go:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--ink-deep); }
+.btn-go:disabled {
+  opacity: .55;
+  cursor: wait;
+  transform: none;
+  box-shadow: 0 2px 0 var(--ink-deep);
+}
 .btn-go svg { width: 26px; height: 26px; }
 
 /* ============================================================

@@ -14,36 +14,9 @@ const CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
 const CACHE_MAX_ITEMS = 240;
 const NETWORK_CONCURRENCY = 3;
 const STOP_WORDS = new Set(["a","an","the","and","or","but","to","of","in","on","at","for","with","by","from","is","am","are","was","were","be","been","being","do","does","did","it","this","that","these","those","i","you","he","she","we","they","my","your","his","her","our","their"]);
-const LOCAL_PHONETICS = {
-  a: "/ə/",
-  about: "/əˈbaʊt/",
-  answer: "/ˈænsər/",
-  ask: "/æsk/",
-  book: "/bʊk/",
-  classroom: "/ˈklæsruːm/",
-  complete: "/kəmˈpliːt/",
-  desk: "/desk/",
-  do: "/duː/",
-  finish: "/ˈfɪnɪʃ/",
-  hand: "/hænd/",
-  homework: "/ˈhoʊmwɜːrk/",
-  line: "/laɪn/",
-  listen: "/ˈlɪsən/",
-  name: "/neɪm/",
-  notebook: "/ˈnoʊtbʊk/",
-  page: "/peɪdʒ/",
-  paragraph: "/ˈpærəɡræf/",
-  passage: "/ˈpæsɪdʒ/",
-  quietly: "/ˈkwaɪətli/",
-  read: "/riːd/",
-  sentence: "/ˈsentəns/",
-  show: "/ʃoʊ/",
-  teacher: "/ˈtiːtʃər/",
-  turn: "/tɜːrn/",
-  worksheet: "/ˈwɜːrksiːt/",
-  write: "/raɪt/",
-  your: "/jʊr/"
-};
+let LOCAL_PHONETICS = {};
+let PHRASEBOOK = [];
+let analyzeRunId = 0;
 const POS_CN = {
   noun: "名词",
   verb: "动词",
@@ -137,6 +110,31 @@ function escapeHtml(text) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function normalizeText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[，。！？、,.!?;；:："'“”‘’()（）]/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+}
+
+function setAnalyzeBusy(isBusy) {
+  const btn = document.getElementById("go-btn");
+  const input = document.getElementById("sentence-input");
+  if (btn) btn.disabled = isBusy;
+  if (input) input.disabled = isBusy;
+}
+
+async function loadJsonAsset(path, fallback) {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) return fallback;
+    return await res.json();
+  } catch(e) {
+    return fallback;
+  }
 }
 
 function enqueueNetwork(task) {
@@ -408,11 +406,20 @@ function renderDefinitions(definitions) {
 }
 
 function findTemplateTranslation(text) {
-  const normalized = String(text).replace(/[，。！？、,.!?]/g, "").trim();
-  if (!normalized || typeof TEMPLATES === "undefined") return "";
+  const normalized = normalizeText(text);
+  if (!normalized) return "";
+
+  for (const item of PHRASEBOOK) {
+    const cn = normalizeText(item.cn);
+    if (cn && (normalized === cn || cn.includes(normalized) || normalized.includes(cn))) {
+      return item.en;
+    }
+  }
+
+  if (typeof TEMPLATES === "undefined") return "";
   for (const group of TEMPLATES) {
     for (const [en, cn] of group.items) {
-      const plainCn = cn.replace(/[，。！？、,.!?]/g, "").trim();
+      const plainCn = normalizeText(cn);
       if (normalized === plainCn || plainCn.includes(normalized) || normalized.includes(plainCn)) {
         return en;
       }
@@ -584,61 +591,69 @@ function buildWordCard(word, idx, meaning, container) {
 
 /* ====== Home — Analyze ====== */
 async function analyzeSentence() {
+  const runId = ++analyzeRunId;
   const raw = document.getElementById("sentence-input").value.trim();
   if (!raw) return;
   const bar = document.getElementById("sentence-bar");
   const list = document.getElementById("word-list");
 
   let sentence = raw;
+  setAnalyzeBusy(true);
   bar.classList.add("visible");
   document.getElementById("sentence-text").textContent = raw;
   setSentenceSpeakLabel("朗读整句");
 
-  if (CHINESE_RE.test(raw)) {
-    list.innerHTML = `
-      <div class="empty">
-        <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
-        <p>正在把中文翻译成英文<br><strong>然后生成单词卡</strong></p>
-      </div>`;
-    try {
-      const resolved = await resolveChineseInput(raw);
-      sentence = resolved.sentence;
-      const sourceLabel = resolved.source === "template" ? "本地课堂短句" : resolved.source === "local-words" ? "本地词库" : "在线翻译";
-      document.getElementById("sentence-text").textContent = `${raw} → ${sentence}（${sourceLabel}）`;
-      setSentenceSpeakLabel("朗读英文句子");
-    } catch(e) {
+  try {
+    if (CHINESE_RE.test(raw)) {
       list.innerHTML = `
         <div class="empty">
           <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
-          <p>中文翻译暂时不可用<br><strong>请检查网络，或先输入英文句子</strong></p>
+          <p>正在识别中文句子<br><strong>优先使用本地短句和词库</strong></p>
+        </div>`;
+      try {
+        const resolved = await resolveChineseInput(raw);
+        if (runId !== analyzeRunId) return;
+        sentence = resolved.sentence;
+        const sourceLabel = resolved.source === "template" ? "本地课堂短句" : resolved.source === "local-words" ? "本地词库" : "在线翻译";
+        document.getElementById("sentence-text").textContent = `${raw} → ${sentence}（${sourceLabel}）`;
+        setSentenceSpeakLabel("朗读英文句子");
+      } catch(e) {
+        if (runId !== analyzeRunId) return;
+        list.innerHTML = `
+          <div class="empty">
+            <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+            <p>中文识别暂时不可用<br><strong>请检查网络，或先输入英文句子</strong></p>
+          </div>`;
+        return;
+      }
+    }
+
+    if (runId !== analyzeRunId) return;
+    curSentence = sentence;
+    const words = sentence.match(/[a-zA-Z']+/g) || [];
+    list.innerHTML = "";
+
+    if (!words.length) {
+      list.innerHTML = `
+        <div class="empty">
+          <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+          <p>没有发现英文单词哦<br><strong>试试粘贴一句完整的英语吧～</strong></p>
         </div>`;
       return;
     }
-  }
 
-  curSentence = sentence;
-  const words = sentence.match(/[a-zA-Z']+/g) || [];
-  list.innerHTML = "";
+    const seen = new Set();
+    const uniqWords = [];
+    for (const w of words) {
+      const key = w.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); uniqWords.push(w); }
+    }
 
-  if (!words.length) {
-    list.innerHTML = `
-      <div class="empty">
-        <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
-        <p>没有发现英文单词哦<br><strong>试试粘贴一句完整的英语吧～</strong></p>
-      </div>`;
-    return;
-  }
-
-  // dedupe but keep order
-  const seen = new Set();
-  const uniqWords = [];
-  for (const w of words) {
-    const key = w.toLowerCase();
-    if (!seen.has(key)) { seen.add(key); uniqWords.push(w); }
-  }
-
-  for (let i = 0; i < uniqWords.length; i++) {
-    buildWordCard(uniqWords[i], i, lookup(uniqWords[i]), list);
+    for (let i = 0; i < uniqWords.length; i++) {
+      buildWordCard(uniqWords[i], i, lookup(uniqWords[i]), list);
+    }
+  } finally {
+    if (runId === analyzeRunId) setAnalyzeBusy(false);
   }
 }
 
@@ -917,14 +932,11 @@ function navTo(pg, opts) {
 
 /* ====== Init ====== */
 async function init() {
-  // load dictionary
-  try {
-    const res = await fetch("assets/dict.json");
-    DICT = await res.json();
-  } catch (e) {
-    console.error("Dict load failed", e);
-    DICT = {};
-  }
+  [DICT, LOCAL_PHONETICS, PHRASEBOOK] = await Promise.all([
+    loadJsonAsset("assets/dict.json", {}),
+    loadJsonAsset("assets/phonetics.json", {}),
+    loadJsonAsset("assets/phrasebook.json", [])
+  ]);
 
   // nav buttons
   document.querySelectorAll(".nav-item").forEach(b =>
