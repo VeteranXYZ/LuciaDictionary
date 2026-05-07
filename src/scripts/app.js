@@ -10,6 +10,40 @@ const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const CHINESE_RE = /[\u3400-\u9fff]/;
 const ONLINE_DICT_CACHE = "lucia-online-dict-v1";
 const TRANSLATE_CACHE = "lucia-translate-v1";
+const CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
+const CACHE_MAX_ITEMS = 240;
+const NETWORK_CONCURRENCY = 3;
+const STOP_WORDS = new Set(["a","an","the","and","or","but","to","of","in","on","at","for","with","by","from","is","am","are","was","were","be","been","being","do","does","did","it","this","that","these","those","i","you","he","she","we","they","my","your","his","her","our","their"]);
+const LOCAL_PHONETICS = {
+  a: "/ə/",
+  about: "/əˈbaʊt/",
+  answer: "/ˈænsər/",
+  ask: "/æsk/",
+  book: "/bʊk/",
+  classroom: "/ˈklæsruːm/",
+  complete: "/kəmˈpliːt/",
+  desk: "/desk/",
+  do: "/duː/",
+  finish: "/ˈfɪnɪʃ/",
+  hand: "/hænd/",
+  homework: "/ˈhoʊmwɜːrk/",
+  line: "/laɪn/",
+  listen: "/ˈlɪsən/",
+  name: "/neɪm/",
+  notebook: "/ˈnoʊtbʊk/",
+  page: "/peɪdʒ/",
+  paragraph: "/ˈpærəɡræf/",
+  passage: "/ˈpæsɪdʒ/",
+  quietly: "/ˈkwaɪətli/",
+  read: "/riːd/",
+  sentence: "/ˈsentəns/",
+  show: "/ʃoʊ/",
+  teacher: "/ˈtiːtʃər/",
+  turn: "/tɜːrn/",
+  worksheet: "/ˈwɜːrksiːt/",
+  write: "/raɪt/",
+  your: "/jʊr/"
+};
 const POS_CN = {
   noun: "名词",
   verb: "动词",
@@ -20,6 +54,8 @@ const POS_CN = {
   conjunction: "连词",
   interjection: "感叹词"
 };
+let activeNetworkRequests = 0;
+const networkQueue = [];
 
 /* ====== Settings ====== */
 const DEFAULTS = { speed: "normal", repeat: 3 };
@@ -27,11 +63,35 @@ const getSet = k => { try { const v = localStorage.getItem("lucia-" + k); return
 const setSet = (k,v) => { try { localStorage.setItem("lucia-" + k, JSON.stringify(v)); } catch(e){} };
 
 function readCache(key) {
-  try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch(e) { return {}; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) || "{}");
+    const now = Date.now();
+    let changed = false;
+    for (const [cacheKey, value] of Object.entries(raw)) {
+      const cachedAt = value && typeof value === "object" ? value.cachedAt : 0;
+      if (cachedAt && now - cachedAt > CACHE_TTL) {
+        delete raw[cacheKey];
+        changed = true;
+      }
+    }
+    if (changed) writeCache(key, raw);
+    return raw;
+  } catch(e) {
+    return {};
+  }
 }
 
 function writeCache(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+  try {
+    const entries = Object.entries(value)
+      .sort((a, b) => {
+        const at = a[1] && typeof a[1] === "object" ? a[1].cachedAt || 0 : 0;
+        const bt = b[1] && typeof b[1] === "object" ? b[1].cachedAt || 0 : 0;
+        return bt - at;
+      })
+      .slice(0, CACHE_MAX_ITEMS);
+    localStorage.setItem(key, JSON.stringify(Object.fromEntries(entries)));
+  } catch(e) {}
 }
 
 function getMeaningValue(entry) {
@@ -57,7 +117,14 @@ function setCachedOnlineWord(word, value) {
 }
 
 function setCardMeaning(card, meaning) {
-  if (meaning) card.dataset.meaning = meaning;
+  if (!meaning) return;
+  card.dataset.meaning = meaning;
+  updateStarredMeaning(card.dataset.word, meaning);
+  const star = card.querySelector(".btn-star");
+  if (star) {
+    star.disabled = false;
+    star.setAttribute("aria-label", "收藏");
+  }
 }
 
 function getCardMeaning(card) {
@@ -72,10 +139,40 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
+function enqueueNetwork(task) {
+  return new Promise((resolve, reject) => {
+    networkQueue.push({ task, resolve, reject });
+    runNetworkQueue();
+  });
+}
+
+function runNetworkQueue() {
+  while (activeNetworkRequests < NETWORK_CONCURRENCY && networkQueue.length) {
+    const item = networkQueue.shift();
+    activeNetworkRequests++;
+    Promise.resolve()
+      .then(item.task)
+      .then(item.resolve, item.reject)
+      .finally(() => {
+        activeNetworkRequests--;
+        runNetworkQueue();
+      });
+  }
+}
+
 /* ====== Wordbook ====== */
 const getWB = () => { try { return JSON.parse(localStorage.getItem("lucia-wordbook") || "[]"); } catch(e){ return []; } };
 const saveWB = wb => { try { localStorage.setItem("lucia-wordbook", JSON.stringify(wb)); } catch(e){} };
 const isStarred = w => getWB().some(x => x.w === w);
+function updateStarredMeaning(w, m) {
+  if (!w || !m) return;
+  const wb = getWB();
+  const item = wb.find(x => x.w === w && !x.m);
+  if (item) {
+    item.m = m;
+    saveWB(wb);
+  }
+}
 function toggleStar(w, m) {
   const wb = getWB();
   const i = wb.findIndex(x => x.w === w);
@@ -104,6 +201,7 @@ function lookup(word) {
 function lookupLocalPhonetic(word) {
   const w = word.toLowerCase();
   if (DICT[w]) return getPhoneticValue(DICT[w]);
+  if (LOCAL_PHONETICS[w]) return LOCAL_PHONETICS[w];
   return "";
 }
 
@@ -216,14 +314,26 @@ async function translateText(text, from, to) {
 
   const key = `${from}:${to}:${value}`;
   const cache = readCache(TRANSLATE_CACHE);
-  if (cache[key]) return cache[key];
+  if (cache[key]?.text) return cache[key].text;
+
+  if ("Translator" in window && typeof window.Translator?.create === "function") {
+    try {
+      const translator = await window.Translator.create({ sourceLanguage: from, targetLanguage: to });
+      const translated = String(await translator.translate(value)).trim();
+      if (translated) {
+        cache[key] = { text: translated, cachedAt: Date.now(), source: "browser" };
+        writeCache(TRANSLATE_CACHE, cache);
+        return translated;
+      }
+    } catch(e) {}
+  }
 
   const url = "https://translate.googleapis.com/translate_a/single?client=gtx"
     + "&dt=t"
     + "&sl=" + encodeURIComponent(from)
     + "&tl=" + encodeURIComponent(to)
     + "&q=" + encodeURIComponent(value);
-  const res = await fetch(url);
+  const res = await enqueueNetwork(() => fetch(url));
   if (!res.ok) throw new Error("Translate request failed");
   const data = await res.json();
   const translated = Array.isArray(data?.[0])
@@ -231,7 +341,7 @@ async function translateText(text, from, to) {
     : "";
   if (!translated) throw new Error("Translate response was empty");
 
-  cache[key] = translated;
+  cache[key] = { text: translated, cachedAt: Date.now(), source: "online-fallback" };
   writeCache(TRANSLATE_CACHE, cache);
   return translated;
 }
@@ -252,7 +362,7 @@ async function lookupOnlineData(word) {
   const cached = getCachedOnlineWord(w);
   if (cached) return cached;
 
-  const res = await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(w));
+  const res = await enqueueNetwork(() => fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(w)));
   const data = await res.json();
   if (!res.ok || !Array.isArray(data) || data.title) return null;
 
@@ -297,6 +407,59 @@ function renderDefinitions(definitions) {
   ).join("");
 }
 
+function findTemplateTranslation(text) {
+  const normalized = String(text).replace(/[，。！？、,.!?]/g, "").trim();
+  if (!normalized || typeof TEMPLATES === "undefined") return "";
+  for (const group of TEMPLATES) {
+    for (const [en, cn] of group.items) {
+      const plainCn = cn.replace(/[，。！？、,.!?]/g, "").trim();
+      if (normalized === plainCn || plainCn.includes(normalized) || normalized.includes(plainCn)) {
+        return en;
+      }
+    }
+  }
+  return "";
+}
+
+function reverseLookupChineseWords(text) {
+  const hits = [];
+  const seen = new Set();
+  const source = String(text).replace(/\s+/g, "");
+  for (const [word, entry] of Object.entries(DICT)) {
+    if (STOP_WORDS.has(word)) continue;
+    const meaning = getMeaningValue(entry);
+    if (!meaning || meaning.length < 2) continue;
+    const candidates = meaning.split(/[;；,，、/]/).map(item => item.trim()).filter(Boolean);
+    if (candidates.some(item => source.includes(item)) && !seen.has(word)) {
+      seen.add(word);
+      hits.push(word);
+      if (hits.length >= 12) break;
+    }
+  }
+  return hits.join(" ");
+}
+
+async function resolveChineseInput(raw) {
+  const localTemplate = findTemplateTranslation(raw);
+  if (localTemplate) return { sentence: localTemplate, source: "template" };
+
+  const localWords = reverseLookupChineseWords(raw);
+  try {
+    const sentence = await translateText(raw, "zh-CN", "en");
+    return { sentence, source: "online" };
+  } catch(e) {
+    if (localWords) return { sentence: localWords, source: "local-words" };
+    throw e;
+  }
+}
+
+function setSentenceSpeakLabel(label) {
+  const btn = document.getElementById("speak-sentence-btn");
+  if (!btn) return;
+  const textNode = Array.from(btn.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+  if (textNode) textNode.textContent = " " + label;
+}
+
 async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
   const w = String(word).toLowerCase().trim();
   if (!w) return;
@@ -304,7 +467,7 @@ async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
   const cached = getCachedOnlineWord(w);
   if (cached) {
     if (cached.phonetic && phoneticEl) phoneticEl.textContent = cached.phonetic;
-    if (options.fillMeaning && cached.definitions?.length) {
+    if (options.fillMeaning) {
       cnEl.innerHTML = renderDefinitions(cached.definitions);
       setCardMeaning(card, cached.meaning);
     }
@@ -342,9 +505,11 @@ async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
 
 /* ====== Word Card builder ====== */
 function buildWordCard(word, idx, meaning, container) {
+  const key = word.toLowerCase();
   const card = document.createElement("div");
   card.className = "word-card";
   card.style.animationDelay = (idx * 0.05) + "s";
+  card.dataset.word = key;
   setCardMeaning(card, meaning || "");
 
   const num = document.createElement("div");
@@ -378,13 +543,18 @@ function buildWordCard(word, idx, meaning, container) {
   actions.className = "word-actions";
 
   const star = document.createElement("button");
-  const starred = isStarred(word.toLowerCase());
+  const starred = isStarred(key);
   star.className = "btn-star" + (starred ? " active" : "");
   star.innerHTML = starred ? STAR_SVG : STAR_OUTLINE;
   star.setAttribute("aria-label", "收藏");
+  if (!meaning) {
+    star.disabled = true;
+    star.setAttribute("aria-label", "释义加载后可收藏");
+  }
   star.addEventListener("click", e => {
     e.stopPropagation();
-    const added = toggleStar(word.toLowerCase(), getCardMeaning(card));
+    if (star.disabled) return;
+    const added = toggleStar(key, getCardMeaning(card));
     star.className = "btn-star" + (added ? " active" : "");
     star.innerHTML = added ? STAR_SVG : STAR_OUTLINE;
   });
@@ -407,7 +577,9 @@ function buildWordCard(word, idx, meaning, container) {
 
   card.addEventListener("click", () => speakWordN(word, card));
   container.appendChild(card);
-  hydrateOnlineWord(word, cn, ph, card, { fillMeaning: !meaning });
+  if (meaning || !STOP_WORDS.has(key)) {
+    hydrateOnlineWord(word, cn, ph, card, { fillMeaning: !meaning });
+  }
 }
 
 /* ====== Home — Analyze ====== */
@@ -420,6 +592,7 @@ async function analyzeSentence() {
   let sentence = raw;
   bar.classList.add("visible");
   document.getElementById("sentence-text").textContent = raw;
+  setSentenceSpeakLabel("朗读整句");
 
   if (CHINESE_RE.test(raw)) {
     list.innerHTML = `
@@ -428,8 +601,11 @@ async function analyzeSentence() {
         <p>正在把中文翻译成英文<br><strong>然后生成单词卡</strong></p>
       </div>`;
     try {
-      sentence = await translateText(raw, "zh-CN", "en");
-      document.getElementById("sentence-text").textContent = `${raw} → ${sentence}`;
+      const resolved = await resolveChineseInput(raw);
+      sentence = resolved.sentence;
+      const sourceLabel = resolved.source === "template" ? "本地课堂短句" : resolved.source === "local-words" ? "本地词库" : "在线翻译";
+      document.getElementById("sentence-text").textContent = `${raw} → ${sentence}（${sourceLabel}）`;
+      setSentenceSpeakLabel("朗读英文句子");
     } catch(e) {
       list.innerHTML = `
         <div class="empty">
@@ -713,6 +889,15 @@ function renderSettings() {
 
   document.querySelectorAll("[data-speed]").forEach(b => b.addEventListener("click", () => { setSet("speed", b.dataset.speed); renderSettings(); }));
   document.querySelectorAll("[data-repeat]").forEach(b => b.addEventListener("click", () => { setSet("repeat", parseInt(b.dataset.repeat)); renderSettings(); }));
+  const clearCacheBtn = document.getElementById("clear-cache-btn");
+  if (clearCacheBtn) {
+    clearCacheBtn.addEventListener("click", () => {
+      localStorage.removeItem(ONLINE_DICT_CACHE);
+      localStorage.removeItem(TRANSLATE_CACHE);
+      clearCacheBtn.textContent = "已清除";
+      setTimeout(() => { clearCacheBtn.textContent = "清除查询缓存"; }, 1200);
+    });
+  }
 
   document.getElementById("dict-count").textContent = Object.keys(DICT).length.toLocaleString();
   const wbCountEl = document.getElementById("about-wb-count");

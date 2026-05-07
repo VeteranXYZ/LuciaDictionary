@@ -506,6 +506,11 @@ textarea#sentence-input::placeholder {
   padding: 0;
 }
 .btn-star:hover { transform: scale(1.12); border-color: var(--honey); }
+.btn-star:disabled {
+  opacity: .45;
+  cursor: wait;
+  transform: none;
+}
 .btn-star.active {
   background: var(--honey);
   border-color: var(--honey);
@@ -841,6 +846,10 @@ textarea#sentence-input::placeholder {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+.cache-clear-btn {
+  margin-top: 12px;
+  width: 100%;
 }
 
 .set-btn {
