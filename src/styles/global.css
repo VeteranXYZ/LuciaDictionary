@@ -931,11 +931,11 @@ textarea#sentence-input::placeholder {
   margin-bottom: 2px;
 }
 .about-tag {
-  font-size: 0.78rem;
-  color: var(--mute);
+  font-size: 0.72rem;
+  color: var(--whisper);
   font-weight: 600;
   margin-bottom: 14px;
-  font-style: italic;
+  font-style: normal;
 }
 .about-stats {
   display: flex;
@@ -987,11 +987,14 @@ textarea#sentence-input::placeholder {
   font-weight: 600;
   line-height: 1.7;
 }
-.about-foot strong { color: var(--ink); }
+.about-foot strong {
+  color: var(--whisper);
+  font-weight: 600;
+}
 .about-foot a {
-  color: var(--moss);
+  color: var(--whisper);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 600;
 }
 .about-foot a:hover { text-decoration: underline; }
 .about-ver {
