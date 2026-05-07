@@ -19,13 +19,13 @@ import MainLayout from "../layouts/MainLayout.astro";
     <div class="page active" id="pg-home">
       <section class="hero">
         <div class="hero-mascot"><img src="assets/logo-placeholder.jpeg" alt="吉祥物" /></div>
-        <h1 class="hero-title">把英语句子变成单词卡 ✨</h1>
-        <p class="hero-sub">粘贴老师布置的句子，<br />我帮你认识里面的每一个单词</p>
+        <h1 class="hero-title">把句子变成单词卡 ✨</h1>
+        <p class="hero-sub">输入中文或英文句子，<br />我帮你认识里面的每一个英文单词</p>
       </section>
 
       <div class="input-card">
         <div class="input-row">
-          <textarea id="sentence-input" placeholder="在这里输入或粘贴英语句子…" rows="2"></textarea>
+          <textarea id="sentence-input" placeholder="在这里输入中文或英文句子…" rows="2"></textarea>
           <button class="btn-go" id="go-btn" title="开始学习" aria-label="开始">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
           </button>
@@ -44,7 +44,7 @@ import MainLayout from "../layouts/MainLayout.astro";
       <div class="word-list" id="word-list">
         <div class="empty">
           <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt="" /></div>
-          <p>把老师布置的句子粘贴上去吧～<br /><strong>我会帮你拆出每一个单词</strong></p>
+          <p>把老师布置的中文或英文句子粘贴上去吧～<br /><strong>我会帮你拆出每一个英文单词</strong></p>
         </div>
       </div>
 

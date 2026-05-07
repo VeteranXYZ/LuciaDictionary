@@ -7,11 +7,70 @@ let bestVoice = null;
 const SPEAKER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
 const STAR_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
 const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+const CHINESE_RE = /[\u3400-\u9fff]/;
+const ONLINE_DICT_CACHE = "lucia-online-dict-v1";
+const TRANSLATE_CACHE = "lucia-translate-v1";
+const POS_CN = {
+  noun: "名词",
+  verb: "动词",
+  adjective: "形容词",
+  adverb: "副词",
+  pronoun: "代词",
+  preposition: "介词",
+  conjunction: "连词",
+  interjection: "感叹词"
+};
 
 /* ====== Settings ====== */
 const DEFAULTS = { speed: "normal", repeat: 3 };
 const getSet = k => { try { const v = localStorage.getItem("lucia-" + k); return v !== null ? JSON.parse(v) : DEFAULTS[k]; } catch(e){ return DEFAULTS[k]; } };
 const setSet = (k,v) => { try { localStorage.setItem("lucia-" + k, JSON.stringify(v)); } catch(e){} };
+
+function readCache(key) {
+  try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch(e) { return {}; }
+}
+
+function writeCache(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+}
+
+function getMeaningValue(entry) {
+  if (!entry) return null;
+  if (typeof entry === "string") return entry;
+  return entry.cn || entry.meaning || null;
+}
+
+function getPhoneticValue(entry) {
+  if (!entry || typeof entry === "string") return "";
+  return entry.phonetic || entry.us || entry.uk || "";
+}
+
+function getCachedOnlineWord(word) {
+  const cache = readCache(ONLINE_DICT_CACHE);
+  return cache[word.toLowerCase()] || null;
+}
+
+function setCachedOnlineWord(word, value) {
+  const cache = readCache(ONLINE_DICT_CACHE);
+  cache[word.toLowerCase()] = { ...value, cachedAt: Date.now() };
+  writeCache(ONLINE_DICT_CACHE, cache);
+}
+
+function setCardMeaning(card, meaning) {
+  if (meaning) card.dataset.meaning = meaning;
+}
+
+function getCardMeaning(card) {
+  return card.dataset.meaning || "";
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 /* ====== Wordbook ====== */
 const getWB = () => { try { return JSON.parse(localStorage.getItem("lucia-wordbook") || "[]"); } catch(e){ return []; } };
@@ -28,27 +87,24 @@ function toggleStar(w, m) {
 /* ====== Dictionary lookup with morphology ====== */
 function lookup(word) {
   const w = word.toLowerCase();
-  if (DICT[w]) return DICT[w];
-  if (w.length > 2 && w.endsWith('ly') && DICT[w.slice(0,-2)]) return DICT[w.slice(0,-2)] + '地';
-  if (w.length > 3 && w.endsWith('ies') && DICT[w.slice(0,-3) + 'y']) return DICT[w.slice(0,-3) + 'y'];
-  if (w.length > 2 && w.endsWith('es') && DICT[w.slice(0,-2)]) return DICT[w.slice(0,-2)];
-  if (w.length > 1 && w.endsWith('s') && DICT[w.slice(0,-1)]) return DICT[w.slice(0,-1)];
-  if (w.length > 2 && w.endsWith('ed') && DICT[w.slice(0,-2)]) return DICT[w.slice(0,-2)] + '(过去式)';
-  if (w.length > 2 && w.endsWith('ed') && DICT[w.slice(0,-1)]) return DICT[w.slice(0,-1)] + '(过去式)';
-  if (w.length > 2 && w.endsWith('er') && DICT[w.slice(0,-2)]) return '更' + DICT[w.slice(0,-2)];
-  if (w.length > 3 && w.endsWith('est') && DICT[w.slice(0,-3)]) return '最' + DICT[w.slice(0,-3)];
-  if (w.length > 3 && w.endsWith('ing') && DICT[w.slice(0,-3)]) return '正在' + DICT[w.slice(0,-3)];
-  if (w.length > 3 && w.endsWith('ing') && DICT[w.slice(0,-3) + 'e']) return '正在' + DICT[w.slice(0,-3) + 'e'];
+  if (DICT[w]) return getMeaningValue(DICT[w]);
+  if (w.length > 2 && w.endsWith('ly') && DICT[w.slice(0,-2)]) return getMeaningValue(DICT[w.slice(0,-2)]) + '地';
+  if (w.length > 3 && w.endsWith('ies') && DICT[w.slice(0,-3) + 'y']) return getMeaningValue(DICT[w.slice(0,-3) + 'y']);
+  if (w.length > 2 && w.endsWith('es') && DICT[w.slice(0,-2)]) return getMeaningValue(DICT[w.slice(0,-2)]);
+  if (w.length > 1 && w.endsWith('s') && DICT[w.slice(0,-1)]) return getMeaningValue(DICT[w.slice(0,-1)]);
+  if (w.length > 2 && w.endsWith('ed') && DICT[w.slice(0,-2)]) return getMeaningValue(DICT[w.slice(0,-2)]) + '(过去式)';
+  if (w.length > 2 && w.endsWith('ed') && DICT[w.slice(0,-1)]) return getMeaningValue(DICT[w.slice(0,-1)]) + '(过去式)';
+  if (w.length > 2 && w.endsWith('er') && DICT[w.slice(0,-2)]) return '更' + getMeaningValue(DICT[w.slice(0,-2)]);
+  if (w.length > 3 && w.endsWith('est') && DICT[w.slice(0,-3)]) return '最' + getMeaningValue(DICT[w.slice(0,-3)]);
+  if (w.length > 3 && w.endsWith('ing') && DICT[w.slice(0,-3)]) return '正在' + getMeaningValue(DICT[w.slice(0,-3)]);
+  if (w.length > 3 && w.endsWith('ing') && DICT[w.slice(0,-3) + 'e']) return '正在' + getMeaningValue(DICT[w.slice(0,-3) + 'e']);
   return null;
 }
 
-/* ====== Phonetic — heuristic from spelling ====== */
-/* Used as a placeholder; real phonetic comes from online API on click. */
-function approxPhonetic(word) {
-  // very simple heuristic — show /word/ format with stress mark
+function lookupLocalPhonetic(word) {
   const w = word.toLowerCase();
-  if (w.length < 2) return '';
-  return '/' + w + '/';
+  if (DICT[w]) return getPhoneticValue(DICT[w]);
+  return "";
 }
 
 /* ====== TTS ====== */
@@ -154,36 +210,134 @@ function speakWordN(word, el) {
   go();
 }
 
-/* ====== Online lookup (Free Dictionary API) ====== */
-function lookupOnline(word, mountEl, phoneticEl) {
+async function translateText(text, from, to) {
+  const value = String(text || "").trim();
+  if (!value) return "";
+
+  const key = `${from}:${to}:${value}`;
+  const cache = readCache(TRANSLATE_CACHE);
+  if (cache[key]) return cache[key];
+
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx"
+    + "&dt=t"
+    + "&sl=" + encodeURIComponent(from)
+    + "&tl=" + encodeURIComponent(to)
+    + "&q=" + encodeURIComponent(value);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Translate request failed");
+  const data = await res.json();
+  const translated = Array.isArray(data?.[0])
+    ? data[0].map(part => part?.[0] || "").join("").trim()
+    : "";
+  if (!translated) throw new Error("Translate response was empty");
+
+  cache[key] = translated;
+  writeCache(TRANSLATE_CACHE, cache);
+  return translated;
+}
+
+function pickPhonetic(entry) {
+  const candidates = [];
+  if (entry?.phonetic) candidates.push(entry.phonetic);
+  for (const item of entry?.phonetics || []) {
+    if (item?.text) candidates.push(item.text);
+  }
+  return candidates.find(Boolean) || "";
+}
+
+async function lookupOnlineData(word) {
+  const w = String(word).toLowerCase().trim();
+  if (!w) return null;
+
+  const cached = getCachedOnlineWord(w);
+  if (cached) return cached;
+
+  const res = await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(w));
+  const data = await res.json();
+  if (!res.ok || !Array.isArray(data) || data.title) return null;
+
+  const entry = data[0];
+  const phonetic = pickPhonetic(entry);
+  const definitions = [];
+  for (const meaning of entry.meanings || []) {
+    if (definitions.length >= 2) break;
+    const definition = meaning.definitions?.[0]?.definition;
+    if (definition) {
+      definitions.push({
+        pos: POS_CN[meaning.partOfSpeech] || meaning.partOfSpeech || "释义",
+        en: definition
+      });
+    }
+  }
+
+  const translated = [];
+  for (const item of definitions) {
+    try {
+      translated.push({ pos: item.pos, cn: await translateText(item.en, "en", "zh-CN") });
+    } catch(e) {
+      translated.push({ pos: item.pos, cn: "中文释义暂时不可用" });
+    }
+  }
+
+  const result = {
+    phonetic,
+    definitions: translated,
+    meaning: translated.map(item => `${item.pos}：${item.cn}`).join("；")
+  };
+  setCachedOnlineWord(w, result);
+  return result;
+}
+
+function renderDefinitions(definitions) {
+  if (!definitions?.length) {
+    return '<span style="color:var(--whisper);font-size:.85rem">未找到中文释义</span>';
+  }
+  return definitions.map(item =>
+    `<div style="margin-top:3px"><span class="pos-tag">${escapeHtml(item.pos)}</span>${escapeHtml(item.cn)}</div>`
+  ).join("");
+}
+
+async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options = {}) {
   const w = String(word).toLowerCase().trim();
   if (!w) return;
-  mountEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">⏳ 查询中…</span>';
-  fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(w))
-    .then(r => r.json())
-    .then(data => {
-      if (!data || data.title || !Array.isArray(data)) {
-        mountEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">未找到释义</span>';
-        return;
+
+  const cached = getCachedOnlineWord(w);
+  if (cached) {
+    if (cached.phonetic && phoneticEl) phoneticEl.textContent = cached.phonetic;
+    if (options.fillMeaning && cached.definitions?.length) {
+      cnEl.innerHTML = renderDefinitions(cached.definitions);
+      setCardMeaning(card, cached.meaning);
+    }
+    return;
+  }
+
+  if (options.fillMeaning) {
+    cnEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">正在查询中文释义…</span>';
+  }
+  if (phoneticEl && !phoneticEl.textContent.trim()) {
+    phoneticEl.textContent = "音标查询中…";
+  }
+
+  try {
+    const data = await lookupOnlineData(w);
+    if (!data) {
+      if (options.fillMeaning) {
+        cnEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">未找到中文释义</span>';
       }
-      const entry = data[0];
-      if (entry.phonetic && phoneticEl) phoneticEl.textContent = entry.phonetic;
-      const meanings = entry.meanings || [];
-      let html = '';
-      let count = 0;
-      for (const mg of meanings) {
-        if (count >= 2) break;
-        const defs = mg.definitions || [];
-        if (defs.length) {
-          html += '<div style="margin-top:3px"><span class="pos-tag">' + (mg.partOfSpeech || '') + '</span>' + defs[0].definition + '</div>';
-          count++;
-        }
-      }
-      mountEl.innerHTML = html || '<span style="color:var(--whisper);font-size:.85rem">未找到释义</span>';
-    })
-    .catch(() => {
-      mountEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">网络错误，请重试</span>';
-    });
+      if (phoneticEl && phoneticEl.textContent === "音标查询中…") phoneticEl.textContent = "暂无音标";
+      return;
+    }
+    if (data.phonetic && phoneticEl) phoneticEl.textContent = data.phonetic;
+    if (options.fillMeaning) {
+      cnEl.innerHTML = renderDefinitions(data.definitions);
+      setCardMeaning(card, data.meaning);
+    }
+  } catch(e) {
+    if (options.fillMeaning) {
+      cnEl.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">网络错误，暂时无法查询</span>';
+    }
+    if (phoneticEl && phoneticEl.textContent === "音标查询中…") phoneticEl.textContent = "暂无音标";
+  }
 }
 
 /* ====== Word Card builder ====== */
@@ -191,6 +345,7 @@ function buildWordCard(word, idx, meaning, container) {
   const card = document.createElement("div");
   card.className = "word-card";
   card.style.animationDelay = (idx * 0.05) + "s";
+  setCardMeaning(card, meaning || "");
 
   const num = document.createElement("div");
   num.className = "word-num";
@@ -205,21 +360,14 @@ function buildWordCard(word, idx, meaning, container) {
 
   const ph = document.createElement("div");
   ph.className = "word-phonetic";
-  ph.textContent = approxPhonetic(word);
+  ph.textContent = lookupLocalPhonetic(word);
 
   const cn = document.createElement("div");
   cn.className = "word-cn";
   if (meaning) {
     cn.textContent = meaning;
   } else {
-    const link = document.createElement("a");
-    link.className = "lookup-link";
-    link.textContent = "点击查询英文释义";
-    link.addEventListener("click", e => {
-      e.preventDefault(); e.stopPropagation();
-      lookupOnline(word, cn, ph);
-    });
-    cn.appendChild(link);
+    cn.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">正在查询中文释义…</span>';
   }
 
   body.appendChild(en);
@@ -236,7 +384,7 @@ function buildWordCard(word, idx, meaning, container) {
   star.setAttribute("aria-label", "收藏");
   star.addEventListener("click", e => {
     e.stopPropagation();
-    const added = toggleStar(word.toLowerCase(), meaning || "");
+    const added = toggleStar(word.toLowerCase(), getCardMeaning(card));
     star.className = "btn-star" + (added ? " active" : "");
     star.innerHTML = added ? STAR_SVG : STAR_OUTLINE;
   });
@@ -259,19 +407,41 @@ function buildWordCard(word, idx, meaning, container) {
 
   card.addEventListener("click", () => speakWordN(word, card));
   container.appendChild(card);
+  hydrateOnlineWord(word, cn, ph, card, { fillMeaning: !meaning });
 }
 
 /* ====== Home — Analyze ====== */
-function analyzeSentence() {
+async function analyzeSentence() {
   const raw = document.getElementById("sentence-input").value.trim();
   if (!raw) return;
-  curSentence = raw;
   const bar = document.getElementById("sentence-bar");
+  const list = document.getElementById("word-list");
+
+  let sentence = raw;
   bar.classList.add("visible");
   document.getElementById("sentence-text").textContent = raw;
 
-  const words = raw.match(/[a-zA-Z']+/g) || [];
-  const list = document.getElementById("word-list");
+  if (CHINESE_RE.test(raw)) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+        <p>正在把中文翻译成英文<br><strong>然后生成单词卡</strong></p>
+      </div>`;
+    try {
+      sentence = await translateText(raw, "zh-CN", "en");
+      document.getElementById("sentence-text").textContent = `${raw} → ${sentence}`;
+    } catch(e) {
+      list.innerHTML = `
+        <div class="empty">
+          <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+          <p>中文翻译暂时不可用<br><strong>请检查网络，或先输入英文句子</strong></p>
+        </div>`;
+      return;
+    }
+  }
+
+  curSentence = sentence;
+  const words = sentence.match(/[a-zA-Z']+/g) || [];
   list.innerHTML = "";
 
   if (!words.length) {
@@ -341,17 +511,13 @@ function renderWordbook() {
     en.textContent = entry.w;
     const ph = document.createElement("div");
     ph.className = "word-phonetic";
-    ph.textContent = approxPhonetic(entry.w);
+    ph.textContent = lookupLocalPhonetic(entry.w);
     const cn = document.createElement("div");
     cn.className = "word-cn";
     if (entry.m) {
       cn.textContent = entry.m;
     } else {
-      const link = document.createElement("a");
-      link.className = "lookup-link";
-      link.textContent = "点击查询英文释义";
-      link.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); lookupOnline(entry.w, cn, ph); });
-      cn.appendChild(link);
+      cn.innerHTML = '<span style="color:var(--whisper);font-size:.85rem">正在查询中文释义…</span>';
     }
     body.appendChild(en); body.appendChild(ph); body.appendChild(cn);
 
@@ -374,8 +540,10 @@ function renderWordbook() {
 
     acts.appendChild(star); acts.appendChild(speakBtn);
     card.appendChild(num); card.appendChild(body); card.appendChild(acts);
+    setCardMeaning(card, entry.m || "");
     card.addEventListener("click", () => speakWordN(entry.w, card));
     list.appendChild(card);
+    hydrateOnlineWord(entry.w, cn, ph, card, { fillMeaning: !entry.m });
   }
 }
 
