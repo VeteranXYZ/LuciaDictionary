@@ -137,10 +137,10 @@ button, textarea { touch-action: manipulation; }
 }
 .brand-logo:hover { transform: rotate(2deg) scale(1.05); }
 .brand-logo img {
-  width: 130%;
-  height: 130%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: 25% 50%; /* 取猴子部分 */
+  object-position: center;
 }
 
 .brand-text { flex: 1; min-width: 0; }
@@ -211,7 +211,7 @@ button, textarea { touch-action: manipulation; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 25% 50%;
+  object-position: center;
   border-radius: 50%;
   border: 5px solid var(--cream);
   box-shadow: 0 8px 0 rgba(43,38,32,.06), 0 16px 36px -8px rgba(139,92,184,.3);
@@ -590,10 +590,10 @@ textarea#sentence-input::placeholder {
   transform: rotate(-4deg);
 }
 .empty-mascot img {
-  width: 130%;
-  height: 130%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: 25% 50%;
+  object-position: center;
   opacity: 0.85;
 }
 .empty p {
@@ -927,7 +927,7 @@ textarea#sentence-input::placeholder {
   box-shadow: 0 3px 0 rgba(43,38,32,.06), var(--shadow-purple-soft);
   transform: rotate(-3deg);
 }
-.about-mascot img { width: 130%; height: 130%; object-fit: cover; object-position: 25% 50%; }
+.about-mascot img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .about-name {
   font-size: 1.1rem;
   font-weight: 900;

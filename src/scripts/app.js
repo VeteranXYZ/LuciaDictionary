@@ -619,7 +619,7 @@ async function analyzeSentence() {
     if (CHINESE_RE.test(raw)) {
       list.innerHTML = `
         <div class="empty">
-          <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+          <div class="empty-mascot"><img src="assets/monkey.png" alt=""></div>
           <p>正在识别中文句子<br><strong>优先使用本地短句和词库</strong></p>
         </div>`;
       try {
@@ -633,7 +633,7 @@ async function analyzeSentence() {
         if (runId !== analyzeRunId) return;
         list.innerHTML = `
           <div class="empty">
-            <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+            <div class="empty-mascot"><img src="assets/monkey.png" alt=""></div>
             <p>中文识别暂时不可用<br><strong>请检查网络，或先输入英文句子</strong></p>
           </div>`;
         return;
@@ -648,7 +648,7 @@ async function analyzeSentence() {
     if (!words.length) {
       list.innerHTML = `
         <div class="empty">
-          <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+          <div class="empty-mascot"><img src="assets/monkey.png" alt=""></div>
           <p>没有发现英文单词哦<br><strong>试试粘贴一句完整的英语吧～</strong></p>
         </div>`;
       return;
@@ -681,7 +681,7 @@ function renderWordbook() {
     actions.style.display = "none";
     list.innerHTML = `
       <div class="empty">
-        <div class="empty-mascot"><img src="assets/logo-placeholder.jpeg" alt=""></div>
+        <div class="empty-mascot"><img src="assets/monkey.png" alt=""></div>
         <p>生词本还是空的<br><strong>在首页点 ☆ 把单词收藏到这里吧</strong></p>
       </div>`;
     return;
