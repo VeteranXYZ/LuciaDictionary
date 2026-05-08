@@ -8,7 +8,7 @@ import MainLayout from "../layouts/MainLayout.astro";
       <div class="brand-logo"><img src="assets/logo.png" alt="Lucia's Dictionary" /></div>
       <div class="brand-text">
         <div class="brand-title">Lucia's Dictionary</div>
-        <div class="brand-sub">露西亚的英语字典 · 四年级版</div>
+        <div class="brand-sub">Lucia 的小学英语学习伙伴</div>
       </div>
       <div class="brand-streak" title="今日学习">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14a8 8 0 0 0 16 0C20 9.91 18.04 6.27 14.91 3.79L13.5.67z"></path></svg>
@@ -48,12 +48,13 @@ import MainLayout from "../layouts/MainLayout.astro";
         </div>
       </div>
 
-      <div class="tip">
+      <div class="tip" id="learning-tip">
         <div class="tip-icon">i</div>
-        <div>
+        <div class="tip-text">
           <span class="hl">小提示：</span>
           点击单词卡片就能听到发音，点 <strong>☆</strong> 把不认识的单词收藏到生词本，下次再复习。
         </div>
+        <button class="tip-close" id="tip-close-btn" type="button" aria-label="关闭小提示">×</button>
       </div>
     </div>
 
@@ -120,7 +121,7 @@ import MainLayout from "../layouts/MainLayout.astro";
             查询缓存
           </div>
           <div class="set-info">清除自动音标、在线释义和中文翻译缓存</div>
-          <button class="btn-action danger cache-clear-btn" id="clear-cache-btn" type="button">清除查询缓存</button>
+          <button class="set-btn cache-clear-btn" id="clear-cache-btn" type="button">清除查询缓存</button>
         </div>
       </div>
 

@@ -10,6 +10,7 @@ const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const CHINESE_RE = /[\u3400-\u9fff]/;
 const ONLINE_DICT_CACHE = "lucia-online-dict-v1";
 const TRANSLATE_CACHE = "lucia-translate-v1";
+const TIP_DISMISSED_KEY = "lucia-learning-tip-dismissed";
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
 const CACHE_MAX_ITEMS = 240;
 const NETWORK_CONCURRENCY = 3;
@@ -931,6 +932,20 @@ function renderSettings() {
   if (wbCountEl) wbCountEl.textContent = getWB().length.toLocaleString();
 }
 
+function setupLearningTip() {
+  const tip = document.getElementById("learning-tip");
+  const closeBtn = document.getElementById("tip-close-btn");
+  if (!tip || !closeBtn) return;
+  if (localStorage.getItem(TIP_DISMISSED_KEY) === "1") {
+    tip.hidden = true;
+    return;
+  }
+  closeBtn.addEventListener("click", () => {
+    tip.hidden = true;
+    try { localStorage.setItem(TIP_DISMISSED_KEY, "1"); } catch(e) {}
+  });
+}
+
 /* ====== Nav ====== */
 function navTo(pg, opts) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
@@ -973,6 +988,7 @@ async function init() {
   setTimeout(() => { speechSynthesis.getVoices(); pickVoice(); }, 100);
 
   renderSettings();
+  setupLearningTip();
 }
 
 document.addEventListener("DOMContentLoaded", init);

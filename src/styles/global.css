@@ -610,12 +610,12 @@ textarea#sentence-input::placeholder {
 
 .tip {
   margin-top: 20px;
-  background: var(--sakura-soft);
-  border: 2px solid var(--cream);
+  background: var(--ink-50);
+  border: 2px solid var(--ink-soft);
   border-radius: var(--r-md);
-  padding: 12px 16px;
+  padding: 12px 46px 12px 14px;
   font-size: 0.82rem;
-  color: var(--ink-text);
+  color: var(--mute);
   font-weight: 600;
   display: flex;
   gap: 10px;
@@ -623,11 +623,12 @@ textarea#sentence-input::placeholder {
   position: relative;
   line-height: 1.55;
 }
+.tip[hidden] { display: none; }
 .tip-icon {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--sakura);
+  background: var(--ink);
   color: var(--cream);
   display: flex;
   align-items: center;
@@ -636,7 +637,34 @@ textarea#sentence-input::placeholder {
   font-weight: 900;
   font-size: 0.85rem;
 }
-.tip span.hl { color: var(--ink); font-weight: 800; }
+.tip-text { min-width: 0; }
+.tip span.hl,
+.tip strong { color: var(--ink); font-weight: 800; }
+.tip-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: var(--cream);
+  color: var(--mute);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  line-height: 1;
+  font-weight: 900;
+  transition: background .15s, border-color .15s, color .15s, transform .15s;
+}
+.tip-close:hover {
+  background: var(--ink-soft);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.tip-close:active { transform: scale(.94); }
 
 /* ============================================================
    Wordbook Page
@@ -865,8 +893,16 @@ textarea#sentence-input::placeholder {
   flex-wrap: wrap;
 }
 .cache-clear-btn {
-  margin-top: 12px;
-  width: 100%;
+  margin-top: 2px;
+  width: auto;
+  min-height: 40px;
+  color: var(--brick);
+  border-color: #E8C8BE;
+  background: #FFF7F3;
+}
+.cache-clear-btn:hover {
+  border-color: var(--brick);
+  color: var(--brick);
 }
 
 .set-btn {
