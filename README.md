@@ -1,57 +1,38 @@
 # Lucia's Dictionary
 
-## Overview
-
 Lucia's Dictionary is a mobile-first English sentence learning tool for Chinese-speaking families.
 
-The app is built around a real homework workflow: a child receives an English classroom sentence, reading instruction, math prompt, or teacher note, and needs to understand the whole sentence quickly. The problem is not only "what does this word mean?" It is also "how do I read this sentence, which words should I remember, and how can I practice them later?"
+It is built around a simple homework problem: a child receives an English classroom sentence, reading instruction, math prompt, or teacher note, and needs to understand the whole sentence quickly. The app helps turn that sentence into readable, speakable, reviewable word cards.
 
-Lucia's Dictionary turns that workflow into a small learning product:
+## What It Does
 
-- paste or type a Chinese or English sentence
-- identify the English sentence to study
-- split it into word cards
-- show Chinese definitions and phonetics
-- read words and full sentences aloud
-- highlight words during sentence playback
-- save unfamiliar words to a local wordbook
-- review common classroom phrases
-
-Technically, it is an Astro static app with a client-side JavaScript learning engine, local JSON dictionary assets, phrasebook data, phonetic data, browser speech synthesis, localStorage persistence, and online fallback paths for missing definitions or translation.
-
-## Portfolio Summary
-
-This project is best read as an AI-assisted frontend and product-building case study.
-
-It began as an AI-generated single-file HTML prototype. That prototype established the rough idea and visual direction, but it was not a maintainable application. The project was then rebuilt into an Astro app and expanded through multiple product, data, interaction, reliability, and mobile-polish passes.
-
-The portfolio value is in the evolution:
-
-- an AI-generated HTML prototype became a structured Astro application
-- a simple dictionary idea became a sentence-first learning workflow
-- static page content became local JSON learning data
-- lookup behavior was hardened with local-first data, online fallbacks, bounded cache, and async safeguards
-- mobile interaction, speech, wordbook persistence, phrasebook study, settings, and branding were iterated into a complete tool
-
-The main skill demonstrated here is not prompting AI to generate a page. It is repeatedly turning AI output into a coherent, testable, maintainable product for a real user.
+- accepts Chinese or English sentence input
+- matches known classroom phrases before using online translation fallback
+- extracts English words from the sentence
+- generates word cards with Chinese definitions and phonetics
+- reads individual words aloud
+- reads the full sentence aloud with word-card highlighting
+- saves unfamiliar words to a local wordbook
+- provides a phrasebook of common US elementary classroom instructions
+- stores settings, cache, and wordbook data in the browser
 
 ## Why This Exists
 
 Traditional dictionaries are usually word-first. Lucia's homework problem was sentence-first.
 
-For a young learner, a classroom instruction such as "Circle the correct answer and explain your thinking" is not just a vocabulary problem. The child needs to hear the sentence, see it broken into understandable parts, identify unknown words, and return to those words later.
+For a young learner, a sentence like "Circle the correct answer and explain your thinking" is not just a vocabulary lookup. The child needs to hear the sentence, see it broken into parts, identify unfamiliar words, and return to those words later.
 
-Lucia's Dictionary focuses on that learning loop instead of trying to become a general dictionary:
+Lucia's Dictionary focuses on that learning loop:
 
-- understand the sentence
-- learn the words inside it
-- hear pronunciation repeatedly
-- save unfamiliar words
-- revisit classroom phrases
+1. Start with the sentence.
+2. Break it into words.
+3. Show simple Chinese meanings and phonetics.
+4. Practice pronunciation.
+5. Save words that need review.
 
-The product is intentionally local-first and low-friction. It should still be useful when network fallbacks are slow, unavailable, or inconsistent.
+The app is intentionally local-first and low-friction. Common words and classroom phrases should work without relying on network calls, while online services remain available as a fallback for missing data.
 
-## Architecture
+## How It Works
 
 ```mermaid
 flowchart TD
@@ -76,120 +57,64 @@ flowchart TD
   O[Astro static shell] --> K
 ```
 
-## Product Decisions
+## Features
 
-- Sentence-first, not search-first: the core unit is the homework sentence, because that is how the child meets the problem.
-- Local dictionary first: the app ships with roughly 8,600 common English entries so common lookups do not depend on network calls.
-- Known classroom phrases first: Chinese input checks local phrasebook data before trying online translation.
-- Speech as a learning primitive: word reading, repeat count, speed control, and sentence playback are central, not decorative.
-- Browser storage over accounts: the wordbook, settings, and cache stay in localStorage to keep the app simple and private.
-- Mobile-first interaction: the interface is optimized for parent-child use on a phone, including bottom navigation, large touch targets, and safe-area handling.
-- AI-assisted, human-directed: AI helped generate and iterate code, copy, layout, and debugging ideas, but the product scope, learning workflow, fallback rules, and acceptance decisions were human-led.
+### Sentence Input
 
-## Product Surface
+The main input accepts either English or Chinese. English input is analyzed directly. Chinese input first checks the local classroom phrasebook, then falls back to translation when no local match is found.
 
-The current app includes:
+### Word Cards
 
-- Home input flow for Chinese or English sentences
-- sentence analysis and English word extraction
-- word cards with Chinese definitions, phonetics, favorite state, and speech controls
-- full-sentence playback with word-card highlighting
-- local wordbook stored in the browser
-- phrasebook for common US elementary classroom instructions
-- settings for speech speed, repeat count, and cache clearing
-- mobile navigation across Home, Wordbook, Phrasebook, and Settings
+The app extracts English words, removes duplicates, and renders each word as a card with definition, phonetics, speech controls, and a save button.
 
-Key data and assets:
+### Local-First Dictionary
 
-- `public/assets/dict.json`: local dictionary entries
-- `public/assets/phonetics.json`: local phonetic data
-- `public/assets/phrasebook.json`: classroom phrase data
-- `public/assets/lucia.png`, `monkey.png`, `logo.png`: app branding assets
+The app ships with roughly 8,600 local English entries in `public/assets/dict.json`, plus phonetic data in `public/assets/phonetics.json`. Local data is used first to reduce network dependency and keep common lookups fast.
 
-## Key Features
+### Online Fallbacks
 
-### Sentence Analysis
-
-Problem: A child often receives a full sentence, not an isolated word. Starting with a blank dictionary search box adds friction.
-
-Decision: Make the input sentence the center of the workflow.
-
-Implementation: The app extracts English words from the input, deduplicates them, and turns them into learning cards. If the input is Chinese, the app first checks the local phrasebook and then falls back to translation when needed.
-
-### Local-First Dictionary Lookup
-
-Problem: Network lookups can be slow, unreliable, or too inconsistent for a child-facing learning flow.
-
-Decision: Prefer local data for common words and use online sources only as a fallback.
-
-Implementation: The app checks `dict.json` first, uses local phonetic data when available, and only calls public dictionary/translation fallbacks for missing entries. Online results are cached locally with bounds and expiry behavior.
+When a word is missing locally, the app can use `dictionaryapi.dev` and translation fallback paths. Results are cached in localStorage with bounded cache behavior so repeated lookups are faster and storage does not grow without control.
 
 ### Speech and Follow-Along Reading
 
-Problem: For early English learners, pronunciation is as important as meaning.
-
-Decision: Treat speech as part of the core learning loop.
-
-Implementation: Browser `SpeechSynthesisUtterance` powers word reading and sentence playback. Settings allow speech speed and repeat count control, while sentence playback highlights the current word card to connect sound, text, and meaning.
+Word reading and full-sentence playback use the browser `SpeechSynthesisUtterance` API. During sentence playback, the current word card is highlighted so the child can connect sound, spelling, and meaning.
 
 ### Wordbook
 
-Problem: Words checked once are easy to forget.
+Saved words are stored locally in the browser. The Wordbook view lets the child or parent return to unfamiliar words for later reading and review.
 
-Decision: Let the child or parent save unfamiliar words immediately.
+### Phrasebook
 
-Implementation: Favorite words are stored in localStorage and shown in a dedicated Wordbook view for later reading and review.
+The phrasebook contains common US elementary classroom instructions across homework, reading, writing, math, science, and classroom behavior. It also improves Chinese input handling by matching known phrases before online translation.
 
-### Classroom Phrasebook
+### Mobile Layout
 
-Problem: Many school tasks use repeated instruction patterns that are more useful as phrases than as isolated vocabulary.
+The interface is designed for phone use: bottom navigation, card-based layout, large touch targets, compact controls, and safe-area spacing.
 
-Decision: Include a local classroom phrase library.
+## Product Decisions
 
-Implementation: The phrasebook covers common reading, writing, math, science, homework, and classroom behavior instructions. It also improves Chinese input handling by matching known phrases before falling back to online translation.
+- Sentence-first instead of search-first: the sentence is the learning unit because that is how homework arrives.
+- Local-first instead of API-first: common words and classroom phrases should work even when the network is slow or unavailable.
+- Browser storage instead of accounts: wordbook, settings, and cache stay private and local.
+- Speech as core behavior: pronunciation and follow-along reading are part of the learning flow, not extra decoration.
+- Mobile-first interface: the expected use case is a parent and child working together on a phone.
 
-### Mobile-First Product Polish
+## Development Notes
 
-Problem: The app is likely to be used by a parent and child together on a phone.
+The first prototype was generated as a single HTML file with AI. The current version was rebuilt as an Astro app and refined around Lucia's real homework workflow.
 
-Decision: Optimize layout and interaction for mobile use rather than treating mobile as a smaller desktop.
+Major development passes included:
 
-Implementation: The UI uses bottom navigation, card-based learning blocks, larger touch targets, safe-area spacing, scroll-aware navigation behavior, and compact settings.
+- rebuilding the base app in Astro
+- separating page structure, styles, and client-side behavior
+- adding phonetics and Chinese input handling
+- adding local dictionary and classroom phrase data
+- hardening lookup, cache, fallback, and async behavior
+- improving mobile layout, bottom navigation, branding, favicon, and metadata
 
-## Development Approach
+AI was used during development for implementation drafts, copy alternatives, debugging ideas, and iteration support. The final behavior, learning flow, fallback rules, and product decisions were reviewed and directed manually.
 
-Lucia's Dictionary was developed through iterative AI-assisted work, not a single prompt.
-
-The project path:
-
-1. Start from an AI-generated single-file HTML prototype.
-2. Rebuild the base application in Astro with separated page structure, styles, and client-side behavior.
-3. Add phonetics, Chinese input handling, and sentence-level analysis.
-4. Add local learning resources, including classroom phrase data.
-5. Harden dictionary lookup, cache behavior, network fallback, and async state handling.
-6. Improve mobile layout, bottom navigation, visual branding, favicon, metadata, and production polish.
-7. Rewrite the README as a portfolio artifact explaining both the product and the AI-assisted development process.
-
-AI was useful for:
-
-- decomposing the broad idea into buildable slices
-- drafting Astro, JavaScript, and CSS implementations
-- proposing copy and child-friendly UI states
-- finding edge cases around async lookup, cache growth, and network failure
-- iterating mobile layout and interaction details
-
-Human judgment remained responsible for:
-
-- defining the real learning problem
-- choosing sentence-first behavior over a generic word-search tool
-- deciding local-first fallback rules
-- validating generated behavior in the running app
-- rejecting changes that made the flow less clear or less child-friendly
-- shaping the product into a small complete workflow rather than a feature pile
-
-## Engineering Notes
-
-### Stack
+## Tech Stack
 
 - Framework: Astro static site
 - Language: JavaScript, Astro, CSS
@@ -200,7 +125,7 @@ Human judgment remained responsible for:
 - Translation fallback: Google Translate public endpoint and browser Translator API when available
 - Build: Vite through Astro
 
-### Project Structure
+## Project Structure
 
 ```text
 src/
@@ -223,7 +148,7 @@ public/
     monkey.png
 ```
 
-### Key Files
+## Key Files
 
 - `src/pages/index.astro`: application shell and page structure
 - `src/scripts/app.js`: dictionary lookup, translation fallback, cache, speech, wordbook, settings, and UI interactions
@@ -232,7 +157,21 @@ public/
 - `public/assets/phrasebook.json`: local classroom phrase data
 - `public/assets/phonetics.json`: local phonetic data
 
-### Validation
+## Running Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Build and preview:
+
+```bash
+npm run build
+npm run preview
+```
+
+## Validation
 
 Current project check:
 
@@ -244,66 +183,32 @@ Manual validation used for the current flow:
 
 - enter an English classroom sentence
 - generate word cards
-- trigger pronunciation
+- trigger word pronunciation
 - play the full sentence
 - save a word to the wordbook
 - navigate between Home, Wordbook, Phrasebook, and Settings
-- build production assets
-
-## Running Locally
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-Build for production:
-
-```bash
-npm run build
-```
-
-Preview the production build:
-
-```bash
-npm run preview
-```
 
 ## Limitations
 
-This is not yet a runtime AI learning application. AI was used in development, but the app does not currently call an LLM to generate child-friendly explanations or adaptive lessons.
-
-Current limitations:
-
-- no backend account system; wordbook data only lives in the current browser through localStorage
-- online dictionary and translation fallbacks depend on public endpoints that may fail or change behavior
-- online definitions are not yet controlled by grade level
-- no formal test suite yet for lookup, cache, wordbook, or phrase matching logic
-- speech quality varies by browser, operating system, and installed voices
-- no learning progress model, mastery state, review history, or spaced repetition
+- No backend account system; wordbook data only lives in the current browser through localStorage.
+- Online dictionary and translation fallbacks depend on public endpoints that may fail or change behavior.
+- Online definitions are not yet controlled by grade level.
+- There is no formal test suite yet for lookup, cache, wordbook, or phrase matching logic.
+- Speech quality varies by browser, operating system, and installed voices.
+- The app does not yet track mastery, review history, or spaced repetition.
+- AI was used during development, but the app does not currently call an LLM at runtime.
 
 ## Future Work
 
-The strongest next step is a small model-backed explanation layer that stays child-friendly and bounded by the learning context.
-
-Possible directions:
-
-- OpenAI-powered short definitions written for elementary learners
-- grade-level example sentences
-- review mode with "know / unsure / forgot" feedback
-- spaced repetition for saved words
-- spelling practice and listening dictation
-- module split for `dictionary`, `speech`, `cache`, `wordbook`, and `phrasebook`
-- unit tests for morphology lookup, Chinese fallback, cache expiry, and wordbook persistence
-- export/import or lightweight sync so a parent can preserve the child's wordbook across devices
-- accessibility review for keyboard navigation, reduced motion, and screen reader labels
+- Add child-friendly model-backed explanations for difficult words.
+- Add grade-level example sentences.
+- Add review feedback such as "know", "unsure", and "forgot".
+- Add spaced repetition for saved words.
+- Add spelling practice and listening dictation.
+- Split `src/scripts/app.js` into smaller modules such as `dictionary`, `speech`, `cache`, `wordbook`, and `phrasebook`.
+- Add unit tests for morphology lookup, Chinese fallback, cache expiry, and wordbook persistence.
+- Add export/import or lightweight sync so a parent can preserve the child's wordbook across devices.
+- Review accessibility for keyboard navigation, reduced motion, and screen reader labels.
 
 ## Author
 
