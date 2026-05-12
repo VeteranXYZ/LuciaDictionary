@@ -2,3 +2,20 @@
 node_modules/
 dist/
 .astro/
+
+# Security-sensitive local files
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+backup*
