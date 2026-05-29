@@ -43,6 +43,8 @@ import {
 const NETWORK_CONCURRENCY = 3;
 
 let dictData = {};
+let coreLexicon = {};
+let phraseLexicon = {};
 let phonetics = {};
 let phrasebook = [];
 let curSentence = "";
@@ -155,7 +157,7 @@ async function analyzeSentence() {
     if (runId !== analyzeRunId) return;
     curSentence = sentence;
     renderSentenceExplanation(explanationEl, explanation);
-    const words = sentence.match(/[a-zA-Z']+/g) || [];
+    const words = dictService.extractLookupTerms(sentence);
     list.replaceChildren();
 
     if (!words.length) {
@@ -468,7 +470,7 @@ function renderSettings() {
   }
 
   const dictCount = document.getElementById("dict-count");
-  if (dictCount) dictCount.textContent = Object.keys(dictData).length.toLocaleString();
+  if (dictCount) dictCount.textContent = (Object.keys(dictData).length + Object.keys(coreLexicon).length).toLocaleString();
   const wbCount = document.getElementById("about-wb-count");
   if (wbCount) wbCount.textContent = getWordbook().length.toLocaleString();
 }
@@ -515,14 +517,18 @@ function navTo(page, opts) {
 }
 
 async function init() {
-  [dictData, phonetics, phrasebook] = await Promise.all([
+  [dictData, coreLexicon, phraseLexicon, phonetics, phrasebook] = await Promise.all([
     loadJsonAsset("assets/dict.json", {}),
+    loadJsonAsset("assets/core-lexicon.json", {}),
+    loadJsonAsset("assets/phrase-lexicon.json", {}),
     loadJsonAsset("assets/phonetics.json", {}),
     loadJsonAsset("assets/phrasebook.json", [])
   ]);
 
   dictService = createDictionaryService({
     dict: dictData,
+    coreLexicon,
+    phraseLexicon,
     phonetics,
     translateText: (...args) => translationService.translateText(...args),
     enqueueNetwork,

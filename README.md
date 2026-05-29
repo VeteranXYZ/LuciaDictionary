@@ -70,7 +70,16 @@ The app extracts English words, removes duplicates, and renders each word as a c
 
 ### Local-First Dictionary
 
-The app ships with roughly 8,600 local English entries in `public/assets/dict.json`, plus phonetic data in `public/assets/phonetics.json`. Local data is used first to reduce network dependency and keep common lookups fast.
+The app keeps the original roughly 8,600-entry `public/assets/dict.json`, then adds a higher-priority lexicon layer for common school, daily-life, OCR, form, website, and academic foundation words.
+
+Lookup priority is:
+
+1. `public/assets/phrase-lexicon.json`
+2. `public/assets/core-lexicon.json`
+3. `public/assets/dict.json`
+4. online dictionary fallback
+
+`core-lexicon.json` also carries word forms such as `activities -> activity` and `resources -> resource`, so common OCR/plural forms stay local-first.
 
 ### Online Fallbacks
 
@@ -154,6 +163,8 @@ src/
 public/
   assets/
     dict.json
+    core-lexicon.json
+    phrase-lexicon.json
     phonetics.json
     phrasebook.json
     logo.png
@@ -175,6 +186,8 @@ workers/
 - `src/scripts/app.js`: dictionary lookup, translation fallback, cache, speech, wordbook, settings, and UI interactions
 - `src/styles/global.css`: mobile-first visual system and responsive layout
 - `public/assets/dict.json`: local dictionary data
+- `public/assets/core-lexicon.json`: higher-priority local lexicon for common school, OCR, website, and academic words
+- `public/assets/phrase-lexicon.json`: higher-priority local phrase lexicon
 - `public/assets/phrasebook.json`: local classroom phrase data
 - `public/assets/phonetics.json`: local phonetic data
 - `functions/api/ocr.js`: Cloudflare Pages Function endpoint for same-origin OCR
@@ -215,6 +228,13 @@ Current project check:
 npm run check
 npm test
 npm run build
+```
+
+Lexicon maintenance:
+
+```bash
+npm run build:lexicon
+npm run audit:lexicon
 ```
 
 Manual validation used for the current flow:

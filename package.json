@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:lexicon": "node tools/build-core-lexicon.mjs",
+    "audit:lexicon": "node tools/audit-lexicon.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",

@@ -51,8 +51,37 @@ export function getPhoneticValue(entry) {
   return entry.phonetic || entry.us || entry.uk || "";
 }
 
+export function normalizeLookupTerm(term) {
+  return String(term || "").toLowerCase().replace(/[“”‘’"'.,!?;:()[\]{}]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function getPhraseMeaning(phraseLexicon, term) {
+  const key = normalizeLookupTerm(term);
+  if (!key || !key.includes(" ")) return null;
+  return phraseLexicon?.[key]?.cn || null;
+}
+
+export function buildCoreFormIndex(coreLexicon = {}) {
+  const forms = {};
+  for (const [base, entry] of Object.entries(coreLexicon || {})) {
+    for (const form of entry?.forms || []) {
+      if (form && !forms[form]) forms[form.toLowerCase()] = base;
+    }
+  }
+  return forms;
+}
+
+export function lookupCoreBase(coreLexicon, formIndex, word) {
+  const w = normalizeLookupTerm(word);
+  if (!w || w.includes(" ")) return null;
+  if (coreLexicon?.[w]) return { base: w, modifier: "" };
+  const base = formIndex?.[w];
+  if (base && coreLexicon?.[base]) return { base, modifier: "" };
+  return null;
+}
+
 export function lookupBaseWord(dict, word) {
-  const w = String(word || "").toLowerCase();
+  const w = normalizeLookupTerm(word);
   if (!w) return null;
   if (dict[w]) return { base: w, modifier: "" };
 
@@ -93,8 +122,25 @@ export function lookup(dict, word) {
   return meaning + resolved.modifier;
 }
 
-export function lookupLocalPhonetic(dict, phonetics, word) {
-  const w = String(word || "").toLowerCase();
+export function lookupLayered({ phraseLexicon = {}, coreLexicon = {}, formIndex = {}, dict = {} }, term) {
+  const phraseMeaning = getPhraseMeaning(phraseLexicon, term);
+  if (phraseMeaning) return phraseMeaning;
+
+  const coreResolved = lookupCoreBase(coreLexicon, formIndex, term);
+  if (coreResolved) {
+    return getMeaningValue(coreLexicon[coreResolved.base]);
+  }
+
+  return lookup(dict, term);
+}
+
+export function lookupLocalPhonetic(dict, phonetics, word, coreLexicon = {}, formIndex = {}) {
+  const w = normalizeLookupTerm(word);
+  const coreResolved = lookupCoreBase(coreLexicon, formIndex, w);
+  if (coreResolved) {
+    return getPhoneticValue(coreLexicon[coreResolved.base]) || phonetics[coreResolved.base] || "";
+  }
+  if (w.includes(" ")) return "";
   if (dict[w]) return getPhoneticValue(dict[w]);
   if (phonetics[w]) return phonetics[w];
   const resolved = lookupBaseWord(dict, w);
@@ -122,6 +168,53 @@ export function reverseLookupChineseWords(dict, text) {
   return hits.join(" ");
 }
 
+export function findPhraseMatches(phraseLexicon, text) {
+  const source = String(text || "").toLowerCase();
+  const matches = [];
+  for (const phrase of Object.keys(phraseLexicon || {})) {
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+    const re = new RegExp(`\\b${escaped}\\b`, "i");
+    const match = source.match(re);
+    if (match?.index != null) {
+      matches.push({ term: phrase, index: match.index, end: match.index + match[0].length });
+    }
+  }
+  return matches.sort((a, b) => a.index - b.index || b.term.length - a.term.length);
+}
+
+export function extractLookupTerms(text, phraseLexicon = {}) {
+  const source = String(text || "");
+  const phraseMatches = [];
+  const occupied = [];
+  for (const match of findPhraseMatches(phraseLexicon, source)) {
+    if (occupied.some(range => Math.max(range[0], match.index) < Math.min(range[1], match.end))) continue;
+    occupied.push([match.index, match.end]);
+    phraseMatches.push(match);
+  }
+
+  const terms = [];
+  const seen = new Set();
+  for (const match of phraseMatches) {
+    if (!seen.has(match.term)) {
+      seen.add(match.term);
+      terms.push(match.term);
+    }
+  }
+
+  const chars = source.split("");
+  for (const [start, end] of occupied) {
+    for (let i = start; i < end; i++) chars[i] = " ";
+  }
+  for (const word of chars.join("").match(/[a-zA-Z']+/g) || []) {
+    const key = word.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      terms.push(word);
+    }
+  }
+  return terms;
+}
+
 export function pickPhonetic(entry) {
   const candidates = [];
   if (entry?.phonetic) candidates.push(entry.phonetic);
@@ -131,10 +224,14 @@ export function pickPhonetic(entry) {
   return candidates.find(Boolean) || "";
 }
 
-export function createDictionaryService({ dict, phonetics, translateText, enqueueNetwork, getCachedOnlineWord, setCachedOnlineWord }) {
+export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon = {}, phonetics, translateText, enqueueNetwork, getCachedOnlineWord, setCachedOnlineWord }) {
+  const formIndex = buildCoreFormIndex(coreLexicon);
+  const lookupLayers = { phraseLexicon, coreLexicon, formIndex, dict };
+
   async function lookupOnlineData(word) {
-    const w = String(word).toLowerCase().trim();
-    if (!w) return null;
+    const w = normalizeLookupTerm(word);
+    if (!w || w.includes(" ")) return null;
+    if (lookupLayered(lookupLayers, w)) return null;
 
     const cached = getCachedOnlineWord(w);
     if (cached) return cached;
@@ -176,9 +273,10 @@ export function createDictionaryService({ dict, phonetics, translateText, enqueu
   }
 
   return {
-    lookup: word => lookup(dict, word),
-    lookupLocalPhonetic: word => lookupLocalPhonetic(dict, phonetics, word),
-    reverseLookupChineseWords: text => reverseLookupChineseWords(dict, text),
+    lookup: word => lookupLayered(lookupLayers, word),
+    lookupLocalPhonetic: word => lookupLocalPhonetic(dict, phonetics, word, coreLexicon, formIndex),
+    reverseLookupChineseWords: text => reverseLookupChineseWords({ ...dict, ...coreLexicon }, text),
+    extractLookupTerms: text => extractLookupTerms(text, phraseLexicon),
     lookupOnlineData
   };
 }

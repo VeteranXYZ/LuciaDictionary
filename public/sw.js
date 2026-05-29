@@ -1,8 +1,10 @@
-const CACHE_NAME = "lucia-local-core-v1";
+const CACHE_NAME = "lucia-local-core-v2";
 const PRECACHE_URLS = [
   "/",
   "/manifest.webmanifest",
   "/assets/dict.json",
+  "/assets/core-lexicon.json",
+  "/assets/phrase-lexicon.json",
   "/assets/phonetics.json",
   "/assets/phrasebook.json",
   "/assets/logo.png",
