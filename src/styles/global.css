@@ -121,6 +121,7 @@ button, textarea { touch-action: manipulation; }
 }
 
 .brand-logo {
+  appearance: none;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -134,8 +135,14 @@ button, textarea { touch-action: manipulation; }
   justify-content: center;
   transform: rotate(-4deg);
   transition: transform .3s var(--bounce);
+  cursor: pointer;
+  padding: 0;
 }
 .brand-logo:hover { transform: rotate(2deg) scale(1.05); }
+.brand-logo:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ink-soft), 0 3px 0 rgba(43,38,32,.08), var(--shadow-purple-soft);
+}
 .brand-logo img {
   width: 100%;
   height: 100%;
@@ -268,13 +275,22 @@ button, textarea { touch-action: manipulation; }
 }
 
 .input-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.input-actions {
+  display: grid;
+  grid-template-columns: 58px 66px;
   gap: 10px;
   align-items: stretch;
 }
 
 textarea#sentence-input {
-  flex: 1;
+  width: 100%;
+  min-width: 0;
   border: 2px solid var(--line);
   border-radius: var(--r-md);
   padding: 14px 16px;
@@ -283,7 +299,7 @@ textarea#sentence-input {
   background: var(--cream-2);
   color: var(--ink-text);
   resize: none;
-  height: 64px;
+  height: 66px;
   outline: none;
   transition: border-color .2s, background .2s, box-shadow .2s;
   line-height: 1.5;
@@ -299,8 +315,8 @@ textarea#sentence-input::placeholder {
 }
 
 .btn-go {
-  width: 64px;
-  height: 64px;
+  width: 66px;
+  height: 66px;
   border: none;
   border-radius: var(--r-md);
   background: var(--ink);
@@ -324,8 +340,8 @@ textarea#sentence-input::placeholder {
 .btn-go svg { width: 26px; height: 26px; }
 
 .btn-camera {
-  width: 56px;
-  height: 64px;
+  width: 58px;
+  height: 66px;
   border: 2px solid var(--line);
   border-radius: var(--r-md);
   background: var(--moss-soft);
@@ -1402,19 +1418,25 @@ textarea#sentence-input::placeholder {
   }
 
   .input-card {
-    width: calc(100vw - 48px);
+    width: 100%;
     max-width: 100%;
-    padding: 12px;
+    padding: 12px 24px;
     margin: 6px auto 14px;
     border-radius: var(--r-md);
   }
   .input-row {
+    width: calc(100% - 24px);
+    margin: 0 auto;
     gap: 8px;
     display: grid;
+    grid-template-columns: 1fr;
+  }
+  .input-actions {
+    display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
   }
   textarea#sentence-input {
-    grid-column: 1 / -1;
     min-width: 0;
     width: 100%;
     height: 58px;

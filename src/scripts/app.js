@@ -26,7 +26,8 @@ import {
 } from "./wordbook.js";
 import { renderQuiz } from "./quiz.js";
 import { TEMPLATES, renderTemplates } from "./templates.js";
-import { formatBytes, recognizeImageText } from "./ocr.js";
+import { recognizeImageText } from "./ocr.js";
+import { updateDailyStreak } from "./streak.js";
 import {
   SPEAKER_SVG,
   STAR_SVG,
@@ -96,10 +97,8 @@ function setAnalyzeBusy(isBusy) {
 }
 
 function setSentenceSpeakLabel(label) {
-  const btn = document.getElementById("speak-sentence-btn");
-  if (!btn) return;
-  const textNode = Array.from(btn.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
-  if (textNode) textNode.textContent = " " + label;
+  const labelEl = document.getElementById("speak-sentence-label");
+  if (labelEl) labelEl.textContent = label;
 }
 
 function isCurrentAnalyzeRun(runId) {
@@ -384,11 +383,11 @@ function setupImageOcr() {
 
       const result = await recognizeImageText(file, {
         apiKey: window.OCR_SPACE_KEY || "",
-        onProgress: (stage, image) => {
+        onProgress: stage => {
           if (stage === "compressing") {
-            setOcrStatus("正在本地压缩图片…");
+            setOcrStatus("正在处理图片…");
           } else if (stage === "uploading") {
-            setOcrStatus(`图片已压缩 ${formatBytes(image.originalSize)} → ${formatBytes(image.uploadSize)}，正在识别英文…`);
+            setOcrStatus("正在识别英文…");
           }
         }
       });
@@ -399,11 +398,11 @@ function setupImageOcr() {
       }
 
       sentenceInput.value = result.text;
-      setOcrStatus(`识别完成：${formatBytes(result.originalSize)} → ${formatBytes(result.uploadSize)}，正在生成单词卡…`, "success");
+      setOcrStatus("正在生成单词卡…");
       releasedBeforeAnalyze = true;
       setAnalyzeBusy(false);
       await analyzeSentence();
-      setOcrStatus(`识别完成：${formatBytes(result.originalSize)} → ${formatBytes(result.uploadSize)}`, "success");
+      setOcrStatus("");
     } catch (error) {
       const message = error instanceof Error && error.message ? error.message : "图片识别失败";
       setOcrStatus(message === "OCR API key is not configured" ? "OCR key 没有配置，请检查 Cloudflare 的 PUBLIC_OCR_SPACE_KEY。" : message, "error");
@@ -411,6 +410,17 @@ function setupImageOcr() {
       if (!releasedBeforeAnalyze) setAnalyzeBusy(false);
     }
   });
+}
+
+function setupDailyStreak() {
+  const label = document.getElementById("streak-label");
+  if (!label) return;
+  try {
+    const streak = updateDailyStreak();
+    label.textContent = `Day ${streak.count}`;
+  } catch (e) {
+    label.textContent = "Day 1";
+  }
 }
 
 function renderSettings() {
@@ -532,6 +542,7 @@ async function init() {
   document.querySelectorAll(".nav-item").forEach(btn => {
     btn.addEventListener("click", () => navTo(btn.dataset.pg));
   });
+  document.getElementById("brand-home-btn")?.addEventListener("click", () => navTo("home"));
   document.getElementById("go-btn")?.addEventListener("click", analyzeSentence);
   document.getElementById("speak-sentence-btn")?.addEventListener("click", () => {
     if (curSentence) speakSentence(curSentence);
@@ -551,6 +562,7 @@ async function init() {
   });
 
   setupImageOcr();
+  setupDailyStreak();
   setupVoices();
   renderSettings();
   setupLearningTip();
