@@ -8,6 +8,7 @@
     "build": "astro build",
     "build:lexicon": "node tools/build-core-lexicon.mjs",
     "audit:lexicon": "node tools/audit-lexicon.mjs",
+    "audit:ocr-sample": "node tools/audit-ocr-sample-coverage.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
