@@ -776,6 +776,115 @@ function clearWordbook() {
   }
 }
 
+/* ====== Quiz ====== */
+const quizState = { current: null, score: 0, total: 0 };
+
+function getQuizMeaning(entry) {
+  return String(entry?.m || "").trim();
+}
+
+function getQuizOptionLabel(entry, flipped) {
+  if (!flipped) return entry.w;
+  return getQuizMeaning(entry) || entry.w;
+}
+
+function renderQuiz() {
+  const wb = getWB().filter(item => item?.w);
+  const container = document.getElementById("quiz-content");
+  if (!container) return;
+
+  document.querySelectorAll(".quiz-opt").forEach(el => {
+    el.classList.remove("correct", "wrong", "selected", "active", "chosen", "on");
+    el.disabled = false;
+    el.style.removeProperty("background");
+    el.style.removeProperty("border-color");
+    el.style.removeProperty("color");
+  });
+
+  if (wb.length < 4) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-mascot"><img src="assets/monkey.png" alt=""></div>
+        <p>生词本至少需要 4 个单词才能开始测验<br><strong>先在首页收藏一些单词吧</strong></p>
+      </div>`;
+    return;
+  }
+
+  const shuffled = wb.slice().sort(() => Math.random() - 0.5);
+  const correct = shuffled[0];
+  const options = shuffled.slice(0, 4).sort(() => Math.random() - 0.5);
+  const type = Math.random() > 0.5 ? "listen" : "read";
+  const correctMeaning = getQuizMeaning(correct);
+  const flipped = type === "read" && !correctMeaning;
+  quizState.current = { correct, options, type, flipped };
+
+  let html = `
+    <div class="quiz-card">
+      <div class="quiz-score">得分 ${quizState.score} / ${quizState.total}</div>`;
+
+  if (type === "read") {
+    if (flipped) {
+      html += `<div class="quiz-q">单词 <strong>${escapeHtml(correct.w)}</strong> 的中文是？</div>`;
+    } else {
+      html += `<div class="quiz-q"><strong>${escapeHtml(correctMeaning)}</strong> 的英文是？</div>`;
+    }
+  } else {
+    html += `
+      <div class="quiz-q">听发音，选出正确的单词</div>
+      <button class="btn-action moss quiz-speak" id="quiz-speak-btn">${SPEAKER_SVG}<span>播放发音</span></button>`;
+  }
+
+  html += '<div class="quiz-opts">';
+  for (const opt of options) {
+    html += `<button class="quiz-opt" data-word="${escapeHtml(opt.w)}">${escapeHtml(getQuizOptionLabel(opt, flipped))}</button>`;
+  }
+  html += `
+      </div>
+    </div>
+    <button class="btn-action honey quiz-skip" id="quiz-skip-btn" type="button">
+      <span>换一题</span>
+    </button>`;
+
+  container.innerHTML = html;
+
+  if (type === "listen") {
+    document.getElementById("quiz-speak-btn")?.addEventListener("click", () => speak(correct.w));
+    setTimeout(() => speak(correct.w), 300);
+  }
+
+  document.querySelectorAll(".quiz-opt").forEach(btn => {
+    btn.addEventListener("click", () => {
+      quizState.total++;
+      const isCorrect = btn.dataset.word === correct.w;
+      if (isCorrect) {
+        quizState.score++;
+        btn.classList.add("correct");
+        showCelebration();
+        setTimeout(renderQuiz, 1200);
+        return;
+      }
+
+      btn.classList.add("wrong");
+      document.querySelectorAll(".quiz-opt").forEach(opt => {
+        if (opt.dataset.word === correct.w) opt.classList.add("correct");
+        opt.disabled = true;
+      });
+      setTimeout(renderQuiz, 1800);
+    });
+  });
+
+  document.getElementById("quiz-skip-btn")?.addEventListener("click", renderQuiz);
+}
+
+function showCelebration() {
+  const el = document.createElement("div");
+  el.className = "celebration";
+  const marks = ["Good!", "Great!", "Yes!", "Nice!"];
+  el.textContent = marks[Math.floor(Math.random() * marks.length)];
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
 /* ====== Templates ====== */
 const TPL_ICONS = {
   homework: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
@@ -953,6 +1062,7 @@ function navTo(pg, opts) {
   document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.pg === pg));
   if (!opts || !opts.keepScroll) window.scrollTo(0, 0);
   if (pg === "wordbook") renderWordbook();
+  if (pg === "quiz") renderQuiz();
   if (pg === "templates") renderTemplates();
   if (pg === "settings") renderSettings();
 }
