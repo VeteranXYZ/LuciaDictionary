@@ -294,7 +294,8 @@ function renderWordbook() {
       lookupOnlineData: dictService.lookupOnlineData,
       setMeaning: (target, meaning) => setCardMeaning(target, entry.w, meaning, updateStarredMeaning),
       isCurrentRun: () => true,
-      fillMeaning: !entry.m
+      fillMeaning: !entry.m,
+      allowNetwork: false
     });
   });
 }
@@ -519,7 +520,7 @@ function navTo(page, opts) {
 async function init() {
   [dictData, coreLexicon, phraseLexicon, phonetics, phrasebook] = await Promise.all([
     loadJsonAsset("assets/dict.json", {}),
-    loadJsonAsset("assets/core-lexicon.json", {}),
+    loadJsonAsset("assets/lexicon/core-lexicon.json", {}),
     loadJsonAsset("assets/phrase-lexicon.json", {}),
     loadJsonAsset("assets/phonetics.json", {}),
     loadJsonAsset("assets/phrasebook.json", [])

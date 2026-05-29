@@ -10,7 +10,7 @@ import {
 
 const samplePath = "tools/ocr-samples/lucia-webpage.txt";
 const phraseLexiconPath = "public/assets/phrase-lexicon.json";
-const coreLexiconPath = "public/assets/core-lexicon.json";
+const coreLexiconPath = "public/assets/lexicon/core-lexicon.json";
 const oldDictPath = "public/assets/dict.json";
 
 const requiredLocalWords = [

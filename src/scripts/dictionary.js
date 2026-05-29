@@ -48,7 +48,7 @@ export function getMeaningValue(entry) {
 
 export function getPhoneticValue(entry) {
   if (!entry || typeof entry === "string") return "";
-  return entry.phonetic || entry.us || entry.uk || "";
+  return entry.ph || entry.phonetic || entry.us || entry.uk || "";
 }
 
 export function normalizeLookupTerm(term) {
