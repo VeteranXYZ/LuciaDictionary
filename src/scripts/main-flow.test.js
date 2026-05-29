@@ -22,4 +22,18 @@ describe("main analysis flow source", () => {
     expect(markup).not.toContain("拍照提示");
     expect(markup).not.toContain("只拍英文题目区域");
   });
+
+  it("keeps mobile OCR buttons horizontal and shortens crowded labels", () => {
+    const markup = fs.readFileSync("src/pages/index.astro", "utf8");
+    const styles = fs.readFileSync("src/styles/global.css", "utf8");
+    expect(markup).toContain("<span>朗读</span>");
+    expect(markup).toContain("已收藏单词");
+    expect(styles).toContain("grid-template-columns: 1fr 1fr");
+    expect(styles).toContain("#pg-home > .hero");
+  });
+
+  it("counts unique local dictionary words in settings", () => {
+    const source = fs.readFileSync("src/scripts/app.js", "utf8");
+    expect(source).toContain("new Set([...Object.keys(dictData), ...Object.keys(coreLexicon)]).size");
+  });
 });

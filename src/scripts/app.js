@@ -482,7 +482,7 @@ function renderSettings() {
   }
 
   const dictCount = document.getElementById("dict-count");
-  if (dictCount) dictCount.textContent = (Object.keys(dictData).length + Object.keys(coreLexicon).length).toLocaleString();
+  if (dictCount) dictCount.textContent = new Set([...Object.keys(dictData), ...Object.keys(coreLexicon)]).size.toLocaleString();
   const wbCount = document.getElementById("about-wb-count");
   if (wbCount) wbCount.textContent = getWordbook().length.toLocaleString();
 }
