@@ -4,6 +4,9 @@ interface Props {
 }
 
 const { title = "Lucia's Dictionary · 露西亚的英语字典" } = Astro.props;
+const description = "Lucia's Dictionary helps bilingual elementary-school children turn English classroom instructions into word cards, Chinese meanings, pronunciation practice, and local review.";
+const canonical = "https://dict.luciaandrayna.com/";
+const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -11,9 +14,19 @@ const { title = "Lucia's Dictionary · 露西亚的英语字典" } = Astro.props
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content="Lucia's Dictionary" />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#6B8E5A" />
     <link rel="icon" type="image/png" href="/favicon.png?v=2.5" />
     <link rel="shortcut icon" href="/favicon.ico?v=2.5" sizes="any" />
     <link rel="apple-touch-icon" href="/assets/logo.png?v=2.5" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+SC:wght@500;600;700;800&display=swap" rel="stylesheet" />
