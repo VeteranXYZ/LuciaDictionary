@@ -40,6 +40,11 @@ export const IRREGULAR_BASES = {
   seen: "see"
 };
 
+export const OCR_NOISE_FRAGMENTS = new Set([
+  "b","c","d","e","f","g","h","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
+  "re","ve","ll"
+]);
+
 export function getMeaningValue(entry) {
   if (!entry) return null;
   if (typeof entry === "string") return entry;
@@ -215,6 +220,29 @@ export function extractLookupTerms(text, phraseLexicon = {}) {
   return terms;
 }
 
+export function extractWordTerms(text) {
+  const terms = [];
+  const seen = new Set();
+  for (const raw of String(text || "").match(/[a-zA-Z]+(?:'[a-zA-Z]+)?/g) || []) {
+    for (const part of raw.split("'")) {
+      const key = normalizeLookupTerm(part);
+      if (!isVisibleWordToken(key) || seen.has(key)) continue;
+      seen.add(key);
+      terms.push(key === "i" ? "I" : key);
+    }
+  }
+  return terms;
+}
+
+export function isVisibleWordToken(token) {
+  const key = normalizeLookupTerm(token);
+  if (!key || key.includes(" ")) return false;
+  if (!/^[a-z]+$/.test(key)) return false;
+  if (key.length === 1) return key === "a" || key === "i";
+  if (OCR_NOISE_FRAGMENTS.has(key)) return false;
+  return true;
+}
+
 export function pickPhonetic(entry) {
   const candidates = [];
   if (entry?.phonetic) candidates.push(entry.phonetic);
@@ -276,7 +304,7 @@ export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon 
     lookup: word => lookupLayered(lookupLayers, word),
     lookupLocalPhonetic: word => lookupLocalPhonetic(dict, phonetics, word, coreLexicon, formIndex),
     reverseLookupChineseWords: text => reverseLookupChineseWords({ ...dict, ...coreLexicon }, text),
-    extractLookupTerms: text => extractLookupTerms(text, phraseLexicon),
+    extractLookupTerms: text => extractWordTerms(text),
     lookupOnlineData
   };
 }
