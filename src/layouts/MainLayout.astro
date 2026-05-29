@@ -7,7 +7,6 @@ const { title = "Lucia's Dictionary · 露西亚的英语字典" } = Astro.props
 const description = "Lucia's Dictionary helps bilingual elementary-school children turn English classroom instructions into word cards, Chinese meanings, pronunciation practice, and local review.";
 const canonical = "https://dict.luciaandrayna.com/";
 const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
-const ocrSpaceKey = import.meta.env.PUBLIC_OCR_SPACE_KEY || "";
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -34,9 +33,6 @@ const ocrSpaceKey = import.meta.env.PUBLIC_OCR_SPACE_KEY || "";
   </head>
   <body>
     <slot />
-    <script is:inline define:vars={{ ocrSpaceKey }}>
-      window.OCR_SPACE_KEY = ocrSpaceKey;
-    </script>
     <script>
       import "../scripts/app.js";
     </script>

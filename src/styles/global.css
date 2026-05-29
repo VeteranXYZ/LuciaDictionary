@@ -258,6 +258,7 @@ button, textarea { touch-action: manipulation; }
   border: 2px solid var(--line);
   box-shadow: var(--card-shadow);
   position: relative;
+  overflow: hidden;
 }
 
 .input-card::before {
@@ -279,6 +280,7 @@ button, textarea { touch-action: manipulation; }
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: stretch;
+  min-width: 0;
 }
 
 .input-actions {
@@ -286,6 +288,7 @@ button, textarea { touch-action: manipulation; }
   grid-template-columns: 58px 66px;
   gap: 10px;
   align-items: stretch;
+  min-width: 0;
 }
 
 textarea#sentence-input {
@@ -382,6 +385,28 @@ textarea#sentence-input::placeholder {
 .ocr-status.success { color: var(--moss); }
 .ocr-status.warning { color: var(--tangerine); }
 .ocr-status.error { color: var(--brick); }
+
+.ocr-tips {
+  margin-top: 10px;
+  color: var(--mute);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.ocr-tips span {
+  color: var(--moss);
+}
+.ocr-tips ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 6px;
+}
+.ocr-tips li::before {
+  content: "• ";
+  color: var(--moss);
+}
 
 /* ============================================================
    Sentence preview bar
@@ -1418,22 +1443,21 @@ textarea#sentence-input::placeholder {
   }
 
   .input-card {
-    width: 100%;
+    width: auto;
     max-width: 100%;
-    padding: 12px 24px;
-    margin: 6px auto 14px;
+    padding: 12px;
+    margin: 6px 24px 14px;
     border-radius: var(--r-md);
   }
   .input-row {
-    width: calc(100% - 24px);
-    margin: 0 auto;
+    width: 100%;
     gap: 8px;
     display: grid;
     grid-template-columns: 1fr;
   }
   .input-actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: 1fr;
     gap: 8px;
   }
   textarea#sentence-input {
@@ -1447,13 +1471,13 @@ textarea#sentence-input::placeholder {
   .btn-go {
     min-width: 0;
     width: 100%;
-    height: 58px;
+    height: 50px;
     border-radius: 16px;
   }
   .btn-camera {
     min-width: 0;
     width: 100%;
-    height: 58px;
+    height: 50px;
     border-radius: 16px;
   }
   .btn-go svg {
@@ -1463,6 +1487,15 @@ textarea#sentence-input::placeholder {
   .btn-camera svg {
     width: 22px;
     height: 22px;
+  }
+  .ocr-tips ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 8px;
+  }
+  .ocr-tips li {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .sentence-bar {

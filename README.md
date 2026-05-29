@@ -14,6 +14,7 @@ It is built around a simple homework problem: a child receives an English classr
 - reads the full sentence aloud with word-card highlighting
 - saves unfamiliar words to a local wordbook
 - provides a phrasebook of common US elementary classroom instructions
+- supports photo OCR through a same-origin server endpoint when configured
 - stores settings, cache, and wordbook data in the browser
 
 ## Why This Exists
@@ -85,7 +86,11 @@ Saved words are stored locally in the browser. The Wordbook view lets the child 
 
 ### Phrasebook
 
-The phrasebook contains common US elementary classroom instructions across homework, reading, writing, math, science, and classroom behavior. It also improves Chinese input handling by matching known phrases before online translation.
+The phrasebook contains common US elementary classroom instructions and classmate language across homework, reading, writing, math, science, notices, art, PE, safety, and parent-signature workflows. It also improves Chinese input handling by matching known phrases before online translation.
+
+### OCR Photo Input
+
+The browser compresses uploaded classroom photos locally and sends the image to a same-origin `/api/ocr` endpoint. The OCR.Space API key is not exposed to the browser. Cloudflare Pages Functions can serve `functions/api/ocr.js`; the same handler is also available as `workers/ocr-worker.js` for a standalone Worker route.
 
 ### Mobile Layout
 
@@ -98,6 +103,13 @@ The interface is designed for phone use: bottom navigation, card-based layout, l
 - Browser storage instead of accounts: wordbook, settings, and cache stay private and local.
 - Speech as core behavior: pronunciation and follow-along reading are part of the learning flow, not extra decoration.
 - Mobile-first interface: the expected use case is a parent and child working together on a phone.
+
+## Data and Privacy Model
+
+- Public offline core: the static app shell, basic dictionary, phonetics, core images, and public phrasebook are intended to be available locally and may be cached by the service worker.
+- Protected cloud layer: `OCR_SPACE_API_KEY` must stay server-side in Cloudflare Pages/Workers secrets. Future advanced phrasebook data or AI explanations should also live behind protected cloud endpoints.
+- User data: the wordbook, settings, and lookup caches remain in the current browser through `localStorage` unless a future sync feature is explicitly added.
+- OCR: uploaded images are sent only to the same-origin `/api/ocr` endpoint, which forwards them to OCR.Space with the server-side secret. OCR responses are not cached by the service worker.
 
 ## Development Notes
 
@@ -123,6 +135,7 @@ AI was used during development for implementation drafts, copy alternatives, deb
 - Speech: browser `SpeechSynthesisUtterance`
 - Dictionary fallback: `dictionaryapi.dev`
 - Translation fallback: Google Translate public endpoint and browser Translator API when available
+- OCR endpoint: Cloudflare Pages Function or Worker reading `OCR_SPACE_API_KEY` from server-side secrets
 - Build: Vite through Astro
 
 ## Project Structure
@@ -146,6 +159,14 @@ public/
     logo.png
     lucia.png
     monkey.png
+
+functions/
+  api/
+    ocr.js
+
+workers/
+  ocr-handler.js
+  ocr-worker.js
 ```
 
 ## Key Files
@@ -156,6 +177,21 @@ public/
 - `public/assets/dict.json`: local dictionary data
 - `public/assets/phrasebook.json`: local classroom phrase data
 - `public/assets/phonetics.json`: local phonetic data
+- `functions/api/ocr.js`: Cloudflare Pages Function endpoint for same-origin OCR
+- `workers/ocr-worker.js`: standalone Cloudflare Worker entry for `/api/ocr`
+- `public/sw.js`: local-first service worker cache for public app core only
+
+## OCR Deployment
+
+For Cloudflare Pages, add a secret named `OCR_SPACE_API_KEY` in the Pages project settings. The `functions/api/ocr.js` endpoint will receive `POST /api/ocr`, validate `jpeg`, `png`, and `webp` uploads, reject oversized files, call OCR.Space with the server-side secret, and return only `{ "text": "..." }` or a stable error code.
+
+For a standalone Worker, deploy `workers/ocr-worker.js` and route it to the same site path `/api/ocr`. Bind the same secret name:
+
+```bash
+wrangler secret put OCR_SPACE_API_KEY
+```
+
+The frontend never reads `PUBLIC_OCR_SPACE_KEY` and does not include OCR credentials in the browser bundle.
 
 ## Running Locally
 
@@ -176,6 +212,8 @@ npm run preview
 Current project check:
 
 ```bash
+npm run check
+npm test
 npm run build
 ```
 
@@ -193,10 +231,10 @@ Manual validation used for the current flow:
 - No backend account system; wordbook data only lives in the current browser through localStorage.
 - Online dictionary and translation fallbacks depend on public endpoints that may fail or change behavior.
 - Online definitions are not yet controlled by grade level.
-- There is no formal test suite yet for lookup, cache, wordbook, or phrase matching logic.
 - Speech quality varies by browser, operating system, and installed voices.
 - The app does not yet track mastery, review history, or spaced repetition.
 - AI was used during development, but the app does not currently call an LLM at runtime.
+- OCR requires network access and a deployed same-origin Cloudflare endpoint with `OCR_SPACE_API_KEY`.
 
 ## Future Work
 
