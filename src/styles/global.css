@@ -193,6 +193,20 @@ button, textarea { touch-action: manipulation; }
   position: relative;
 }
 
+#pg-home > .hero {
+  text-align: center;
+}
+
+.hero-center {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  max-width: 100%;
+  text-align: left;
+  vertical-align: top;
+}
+
 .hero-mascot {
   width: 180px;
   height: 180px;
@@ -202,6 +216,15 @@ button, textarea { touch-action: manipulation; }
   align-items: center;
   justify-content: center;
   animation: mascotFloat 4s ease-in-out infinite;
+}
+#pg-home > .hero .hero-mascot {
+  flex: 0 0 180px;
+  margin: 0;
+}
+.hero-copy {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 560px;
 }
 .hero-mascot::before {
   content: '';
@@ -1438,19 +1461,20 @@ textarea#sentence-input::placeholder {
     padding: 6px 4px 12px;
   }
   #pg-home > .hero {
-    display: grid;
-    grid-template-columns: 82px minmax(0, 245px);
-    column-gap: 12px;
-    justify-content: center;
-    align-items: center;
-    text-align: left;
+    text-align: center;
+  }
+  #pg-home > .hero .hero-center {
+    gap: 12px;
   }
   #pg-home > .hero .hero-mascot {
-    grid-row: 1 / span 2;
+    flex-basis: 82px;
     width: 82px;
     height: 82px;
     margin: 0;
     animation: none;
+  }
+  #pg-home > .hero .hero-copy {
+    max-width: 245px;
   }
   #pg-home > .hero .hero-mascot::before {
     width: 58px;
@@ -1675,12 +1699,18 @@ textarea#sentence-input::placeholder {
   }
   .hero-title { font-size: 1.14rem; }
   #pg-home > .hero {
-    grid-template-columns: 74px minmax(0, 220px);
-    column-gap: 10px;
+    text-align: center;
+  }
+  #pg-home > .hero .hero-center {
+    gap: 10px;
   }
   #pg-home > .hero .hero-mascot {
+    flex-basis: 74px;
     width: 74px;
     height: 74px;
+  }
+  #pg-home > .hero .hero-copy {
+    max-width: 220px;
   }
   #pg-home > .hero .hero-title {
     font-size: 1rem;
