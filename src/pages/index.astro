@@ -5,14 +5,16 @@ import MainLayout from "../layouts/MainLayout.astro";
 <MainLayout>
   <div class="app">
     <header class="brand">
-      <div class="brand-logo"><img src="assets/logo.png" alt="Lucia's Dictionary" /></div>
+      <button class="brand-logo" id="brand-home-btn" type="button" aria-label="返回首页">
+        <img src="assets/logo.png" alt="Lucia's Dictionary" />
+      </button>
       <div class="brand-text">
         <div class="brand-title">Lucia's Dictionary</div>
         <div class="brand-sub">Lucia 的小学英语学习伙伴</div>
       </div>
       <div class="brand-streak" title="今日学习">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14a8 8 0 0 0 16 0C20 9.91 18.04 6.27 14.91 3.79L13.5.67z"></path></svg>
-        <span>Day 1</span>
+        <span id="streak-label">Day 1</span>
       </div>
     </header>
 
@@ -26,13 +28,15 @@ import MainLayout from "../layouts/MainLayout.astro";
       <div class="input-card">
         <div class="input-row">
           <textarea id="sentence-input" placeholder="在这里输入中文或英文句子…" rows="2"></textarea>
-          <label class="btn-camera" id="camera-btn" title="上传图片识别英文" aria-label="上传图片识别英文">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
-            <input type="file" id="image-input" accept="image/*" capture="environment" />
-          </label>
-          <button class="btn-go" id="go-btn" title="开始学习" aria-label="开始">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
-          </button>
+          <div class="input-actions">
+            <label class="btn-camera" id="camera-btn" title="上传图片识别英文" aria-label="上传图片识别英文">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+              <input type="file" id="image-input" accept="image/*" capture="environment" />
+            </label>
+            <button class="btn-go" id="go-btn" title="开始学习" aria-label="开始">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
+            </button>
+          </div>
         </div>
         <div class="ocr-status" id="ocr-status" hidden></div>
       </div>
@@ -42,7 +46,7 @@ import MainLayout from "../layouts/MainLayout.astro";
         <div class="text" id="sentence-text"></div>
         <button class="speak-btn" id="speak-sentence-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-          朗读整句
+          <span id="speak-sentence-label">朗读整句</span>
         </button>
         <div class="sentence-explanation" id="sentence-explanation" hidden></div>
       </div>
@@ -189,7 +193,7 @@ import MainLayout from "../layouts/MainLayout.astro";
     </button>
     <button class="nav-item" data-pg="quiz">
       <span class="icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v15A2.5 2.5 0 0 0 9.5 22"></path><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v15a2.5 2.5 0 0 1-2.5 2.5"></path><path d="M7 7H5.5A2.5 2.5 0 0 0 3 9.5"></path><path d="M17 7h1.5A2.5 2.5 0 0 1 21 9.5"></path><path d="M7 17H5.5A2.5 2.5 0 0 1 3 14.5"></path><path d="M17 17h1.5A2.5 2.5 0 0 0 21 14.5"></path><path d="M10 8h4"></path><path d="M10 12h4"></path><path d="M10 16h4"></path></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="18" rx="2"></rect><path d="M9 4a3 3 0 0 1 6 0"></path><path d="M9 12l2 2 4-4"></path><path d="M9 18h6"></path></svg>
       </span>
       测验
     </button>
