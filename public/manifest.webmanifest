@@ -1,0 +1,22 @@
+{
+  "name": "Lucia's Dictionary",
+  "short_name": "Lucia Dict",
+  "description": "A local-first English classroom instruction helper for bilingual elementary-school learners.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF8E6",
+  "theme_color": "#6B8E5A",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

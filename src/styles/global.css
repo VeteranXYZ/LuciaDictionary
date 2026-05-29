@@ -372,6 +372,41 @@ textarea#sentence-input::placeholder {
 }
 .sentence-bar .speak-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #547446; }
 .sentence-bar .speak-btn svg { width: 14px; height: 14px; }
+.sentence-explanation {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(70,88,77,.28);
+}
+.sentence-meaning {
+  color: var(--ink-text);
+  font-size: .95rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.sentence-steps {
+  margin: 8px 0 0 20px;
+  color: var(--mute);
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.sentence-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sentence-keywords span {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-pill);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: .78rem;
+  font-weight: 800;
+  padding: 4px 8px;
+}
 
 /* ============================================================
    Word Card · the star of the show
@@ -497,6 +532,24 @@ textarea#sentence-input::placeholder {
   font-weight: 800;
   margin-right: 4px;
   vertical-align: middle;
+}
+.definition-row { margin-top: 3px; }
+.muted-inline {
+  color: var(--whisper);
+  font-size: .85rem;
+}
+.word-meta,
+.word-source {
+  margin-top: 6px;
+  color: var(--mute);
+  font-size: .74rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.word-source {
+  padding-left: 8px;
+  border-left: 3px solid var(--line);
+  overflow-wrap: anywhere;
 }
 
 .word-actions {
@@ -753,6 +806,11 @@ textarea#sentence-input::placeholder {
   cursor: pointer;
   transition: transform .15s, box-shadow .15s;
   font-family: inherit;
+}
+.btn-action:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
 }
 .btn-action svg { width: 18px; height: 18px; flex-shrink: 0; }
 .btn-action:active { transform: translateY(2px); }
