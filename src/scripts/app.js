@@ -12,7 +12,7 @@ import {
 } from "./storage.js";
 import { STOP_WORDS, createDictionaryService } from "./dictionary.js";
 import { CHINESE_RE, createTranslationService } from "./translation.js";
-import { setupVoices, speak, speakSentence, speakWordN } from "./speech.js";
+import { getSentenceSpeechLabel, renderSpeakableText, resetSentenceSpeech, setupVoices, speak, speakWordN, toggleSentenceSpeech } from "./speech.js";
 import {
   clearWordbookItems,
   exportWordbookJson,
@@ -29,13 +29,13 @@ import { TEMPLATES, renderTemplates } from "./templates.js";
 import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
 import { updateDailyStreak } from "./streak.js";
 import { registerServiceWorker } from "./offline.js";
+import { createCameraCaptureController } from "./cameraCapture.js";
 import {
   SPEAKER_SVG,
   STAR_SVG,
   buildWordCard,
   createEmptyState,
   hydrateOnlineWord,
-  renderSentenceExplanation,
   setCardMeaning,
   setMutedText
 } from "./ui.js";
@@ -48,6 +48,7 @@ let phraseLexicon = {};
 let phonetics = {};
 let phrasebook = [];
 let curSentence = "";
+let curSentenceDisplay = "";
 let analyzeRunId = 0;
 let dictService = null;
 let translationService = null;
@@ -104,6 +105,12 @@ function setSentenceSpeakLabel(label) {
   if (labelEl) labelEl.textContent = label;
 }
 
+function setSentenceText(text) {
+  const sentenceText = document.getElementById("sentence-text");
+  curSentenceDisplay = text;
+  if (sentenceText) renderSpeakableText(sentenceText, text);
+}
+
 function isCurrentAnalyzeRun(runId) {
   return runId == null || runId === analyzeRunId;
 }
@@ -121,17 +128,17 @@ async function analyzeSentence() {
 
   const runId = ++analyzeRunId;
   const bar = document.getElementById("sentence-bar");
-  const sentenceText = document.getElementById("sentence-text");
   const explanationEl = document.getElementById("sentence-explanation");
   const list = document.getElementById("word-list");
 
   let sentence = raw;
-  let explanation = null;
   setAnalyzeBusy(true);
   bar?.classList.add("visible");
-  if (sentenceText) sentenceText.textContent = raw;
-  setSentenceSpeakLabel("朗读整句");
-  renderSentenceExplanation(explanationEl, null);
+  resetSentenceSpeech();
+  setSentenceText(raw);
+  setSentenceSpeakLabel(getSentenceSpeechLabel("idle"));
+  explanationEl?.replaceChildren();
+  if (explanationEl) explanationEl.hidden = true;
 
   try {
     if (CHINESE_RE.test(raw)) {
@@ -140,23 +147,19 @@ async function analyzeSentence() {
         const resolved = await translationService.resolveChineseInput(raw);
         if (runId !== analyzeRunId) return;
         sentence = resolved.sentence;
-        explanation = resolved.explanation;
-        if (sentenceText) sentenceText.textContent = `${raw} → ${sentence}（${sourceLabel(resolved.source)}）`;
+        setSentenceText(`${raw} → ${sentence}（${sourceLabel(resolved.source)}）`);
         setSentenceSpeakLabel("朗读英文句子");
       } catch (e) {
         if (runId !== analyzeRunId) return;
         list.replaceChildren(createEmptyState("中文识别暂时不可用", "请检查网络，或先输入英文句子"));
         return;
       }
-    } else {
-      translationService.explainEnglishSentence(raw, sentence).then(result => {
-        if (runId === analyzeRunId) renderSentenceExplanation(explanationEl, result);
-      });
     }
 
     if (runId !== analyzeRunId) return;
     curSentence = sentence;
-    renderSentenceExplanation(explanationEl, explanation);
+    explanationEl?.replaceChildren();
+    if (explanationEl) explanationEl.hidden = true;
     const words = dictService.extractLookupTerms(sentence);
     list.replaceChildren();
 
@@ -245,7 +248,7 @@ function renderWordbook() {
     en.textContent = entry.w;
     const ph = document.createElement("div");
     ph.className = "word-phonetic";
-    ph.textContent = dictService.lookupLocalPhonetic(entry.w);
+    ph.textContent = dictService.lookupLocalPhonetic(entry.w) || "暂无音标";
     const cn = document.createElement("div");
     cn.className = "word-cn";
     if (entry.m) cn.textContent = entry.m;
@@ -371,13 +374,11 @@ function setOcrStatus(message, type = "") {
 function setupImageOcr() {
   const imageInput = document.getElementById("image-input");
   const sentenceInput = document.getElementById("sentence-input");
+  const cameraButton = document.getElementById("camera-btn");
   if (!imageInput || !sentenceInput) return;
 
-  imageInput.addEventListener("change", async event => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
+  async function processOcrFile(file) {
     if (!file) return;
-
     let releasedBeforeAnalyze = false;
     setAnalyzeBusy(true);
     try {
@@ -411,6 +412,19 @@ function setupImageOcr() {
     } finally {
       if (!releasedBeforeAnalyze) setAnalyzeBusy(false);
     }
+  }
+
+  imageInput.addEventListener("change", async event => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    await processOcrFile(file);
+  });
+
+  createCameraCaptureController({
+    cameraButton,
+    imageInput,
+    setStatus: setOcrStatus,
+    onFile: processOcrFile
   });
 }
 
@@ -551,7 +565,13 @@ async function init() {
   document.getElementById("brand-home-btn")?.addEventListener("click", () => navTo("home"));
   document.getElementById("go-btn")?.addEventListener("click", analyzeSentence);
   document.getElementById("speak-sentence-btn")?.addEventListener("click", () => {
-    if (curSentence) speakSentence(curSentence);
+    if (!curSentence) return;
+    toggleSentenceSpeech(curSentence, {
+      textEl: document.getElementById("sentence-text"),
+      displayText: curSentenceDisplay || curSentence,
+      onStateChange: state => setSentenceSpeakLabel(getSentenceSpeechLabel(state)),
+      onUnavailable: () => setOcrStatus("当前浏览器不支持朗读。", "warning")
+    });
   });
   document.getElementById("sentence-input")?.addEventListener("keydown", event => {
     if (event.key === "Enter" && !event.shiftKey) {

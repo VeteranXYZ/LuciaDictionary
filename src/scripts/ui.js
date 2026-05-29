@@ -175,7 +175,7 @@ export function buildWordCard(word, index, meaning, container, options) {
 
   const ph = document.createElement("div");
   ph.className = "word-phonetic";
-  ph.textContent = options.lookupLocalPhonetic(word);
+  ph.textContent = options.lookupLocalPhonetic(word) || "暂无音标";
 
   const cn = document.createElement("div");
   cn.className = "word-cn";

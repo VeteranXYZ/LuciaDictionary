@@ -1,4 +1,5 @@
 import { cleanDisplayTranslation } from "./meaningCleaner.js";
+import { cleanPhonetic } from "./phonetic.js";
 
 export const STOP_WORDS = new Set([
   "a","an","the","and","or","but","to","of","in","on","at","for","with","by","from",
@@ -66,7 +67,7 @@ export function cleanMeaningForDisplay(meaning, word = "") {
 
 export function getPhoneticValue(entry) {
   if (!entry || typeof entry === "string") return "";
-  return entry.ph || entry.phonetic || entry.us || entry.uk || "";
+  return cleanPhonetic(entry.ph || entry.phonetic || entry.us || entry.uk || "");
 }
 
 export function normalizeLookupTerm(term) {
@@ -171,13 +172,13 @@ export function lookupLocalPhonetic(dict, phonetics, word, coreLexicon = {}, for
   if (reserved) return reserved.ph || "";
   const coreResolved = lookupCoreBase(coreLexicon, formIndex, w);
   if (coreResolved) {
-    return getPhoneticValue(coreLexicon[coreResolved.base]) || phonetics[coreResolved.base] || "";
+    return getPhoneticValue(coreLexicon[coreResolved.base]) || cleanPhonetic(phonetics[coreResolved.base]) || "";
   }
   if (w.includes(" ")) return "";
   if (dict[w]) return getPhoneticValue(dict[w]);
-  if (phonetics[w]) return phonetics[w];
+  if (phonetics[w]) return cleanPhonetic(phonetics[w]);
   const resolved = lookupBaseWord(dict, w);
-  if (resolved?.base && phonetics[resolved.base]) return phonetics[resolved.base];
+  if (resolved?.base && phonetics[resolved.base]) return cleanPhonetic(phonetics[resolved.base]);
   return "";
 }
 
