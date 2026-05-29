@@ -26,8 +26,12 @@ describe("main analysis flow source", () => {
   it("keeps mobile OCR buttons horizontal and shortens crowded labels", () => {
     const markup = fs.readFileSync("src/pages/index.astro", "utf8");
     const styles = fs.readFileSync("src/styles/global.css", "utf8");
+    expect(markup).toContain('class="hero-center"');
+    expect(markup).toContain('class="hero-copy"');
     expect(markup).toContain("<span>朗读</span>");
     expect(markup).toContain("已收藏单词");
+    expect(styles).toContain(".hero-center");
+    expect(styles).toContain("display: inline-flex");
     expect(styles).toContain("grid-template-columns: 1fr 1fr");
     expect(styles).toContain("#pg-home > .hero");
     expect(styles).toContain("justify-content: center");
