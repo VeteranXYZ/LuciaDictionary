@@ -323,6 +323,50 @@ textarea#sentence-input::placeholder {
 }
 .btn-go svg { width: 26px; height: 26px; }
 
+.btn-camera {
+  width: 56px;
+  height: 64px;
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--moss-soft);
+  color: var(--moss);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 #D6DFC9;
+  transition: transform .15s var(--ease), box-shadow .15s var(--ease), border-color .15s var(--ease);
+}
+.btn-camera:hover {
+  border-color: var(--moss);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #D6DFC9;
+}
+.btn-camera:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #D6DFC9;
+}
+.btn-camera.is-disabled {
+  opacity: .55;
+  cursor: wait;
+  transform: none;
+  box-shadow: 0 2px 0 #D6DFC9;
+}
+.btn-camera svg { width: 25px; height: 25px; }
+.btn-camera input { display: none; }
+
+.ocr-status {
+  margin-top: 9px;
+  color: var(--mute);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.ocr-status.success { color: var(--moss); }
+.ocr-status.warning { color: var(--tangerine); }
+.ocr-status.error { color: var(--brick); }
+
 /* ============================================================
    Sentence preview bar
    ============================================================ */
@@ -1358,28 +1402,45 @@ textarea#sentence-input::placeholder {
   }
 
   .input-card {
+    width: calc(100vw - 48px);
+    max-width: 100%;
     padding: 12px;
-    margin: 6px 0 14px;
+    margin: 6px auto 14px;
     border-radius: var(--r-md);
   }
   .input-row {
     gap: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   textarea#sentence-input {
+    grid-column: 1 / -1;
     min-width: 0;
+    width: 100%;
     height: 58px;
     padding: 11px 12px;
     font-size: 0.96rem;
     line-height: 1.35;
   }
   .btn-go {
-    width: 54px;
+    min-width: 0;
+    width: 100%;
+    height: 58px;
+    border-radius: 16px;
+  }
+  .btn-camera {
+    min-width: 0;
+    width: 100%;
     height: 58px;
     border-radius: 16px;
   }
   .btn-go svg {
     width: 23px;
     height: 23px;
+  }
+  .btn-camera svg {
+    width: 22px;
+    height: 22px;
   }
 
   .sentence-bar {
@@ -1529,13 +1590,17 @@ textarea#sentence-input::placeholder {
   }
   .hero-title { font-size: 1.14rem; }
   .input-row {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
   textarea#sentence-input {
     width: 100%;
     height: 76px;
   }
   .btn-go {
+    width: 100%;
+    height: 48px;
+  }
+  .btn-camera {
     width: 100%;
     height: 48px;
   }
