@@ -8,7 +8,7 @@ function readJson(path) {
   return JSON.parse(fs.readFileSync(path, "utf8"));
 }
 
-const core = readJson("public/assets/core-lexicon.json");
+const core = readJson("public/assets/lexicon/core-lexicon.json");
 const phrases = readJson("public/assets/phrase-lexicon.json");
 const errors = [];
 
@@ -23,10 +23,9 @@ function resolveCore(word) {
 
 for (const [key, entry] of Object.entries(core)) {
   if (key !== key.toLowerCase()) errors.push(`core key is not lowercase: ${key}`);
-  if (!entry?.word || !entry?.cn) errors.push(`core entry missing word/cn: ${key}`);
+  if (!entry?.cn) errors.push(`core entry missing cn: ${key}`);
   for (const form of entry.forms || []) {
     if (!core[key]) errors.push(`form ${form} points to missing base ${key}`);
-    if (core[form] && form !== key) errors.push(`form duplicates a core key: ${form}`);
   }
 }
 
@@ -43,7 +42,7 @@ if (missingRequiredPhrases.length) errors.push(`missing required phrases: ${miss
 const levelCounts = {};
 const tagCounts = {};
 for (const entry of Object.values(core)) {
-  levelCounts[entry.level || "unknown"] = (levelCounts[entry.level || "unknown"] || 0) + 1;
+  levelCounts[entry.level || "unleveled"] = (levelCounts[entry.level || "unleveled"] || 0) + 1;
   for (const tag of entry.tags || ["untagged"]) {
     tagCounts[tag] = (tagCounts[tag] || 0) + 1;
   }

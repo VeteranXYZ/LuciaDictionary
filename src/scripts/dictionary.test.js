@@ -46,7 +46,7 @@ describe("dictionary lookup", () => {
   });
 });
 
-const coreLexicon = JSON.parse(fs.readFileSync("public/assets/core-lexicon.json", "utf8"));
+const coreLexicon = JSON.parse(fs.readFileSync("public/assets/lexicon/core-lexicon.json", "utf8"));
 const phraseLexicon = JSON.parse(fs.readFileSync("public/assets/phrase-lexicon.json", "utf8"));
 const formIndex = buildCoreFormIndex(coreLexicon);
 
@@ -64,23 +64,31 @@ describe("local lexicon layers", () => {
   it("finds required common words locally", () => {
     expect(lookupLayered(layers, "address")).toContain("地址");
     expect(lookupLayered(layers, "activity")).toContain("活动");
+    expect(lookupLayered(layers, "privacy")).toContain("隐私");
+    expect(lookupLayered(layers, "policy")).toContain("政策");
+    expect(lookupLayered(layers, "thoughtful")).toContain("体贴");
+    expect(lookupLayered(layers, "supportive")).toBeTruthy();
+    expect(lookupLayered(layers, "fun")).toContain("乐趣");
+    expect(lookupLayered(layers, "lab")).toContain("实验室");
+    expect(lookupLayered(layers, "inbox")).toBeTruthy();
   });
 
   it("resolves required morphology through core forms", () => {
     expect(lookupLayered(layers, "activities")).toContain("活动");
     expect(lookupLayered(layers, "resources")).toContain("资源");
-    expect(lookupLayered(layers, "parents")).toContain("家长");
+    expect(lookupLayered(layers, "parents")).toContain("父母");
   });
 
   it("detects high-priority phrases before single words", () => {
     expect(lookupLayered(layers, "privacy policy")).toBe("隐私政策");
+    expect(lookupLayered(layers, "privacy policy")).not.toContain("个人");
     expect(lookupLayered(layers, "email address")).toBe("电子邮件地址");
     expect(lookupLayered(layers, "give up")).toBe("放弃");
     expect(lookupLayered(layers, "face challenges")).toBe("面对挑战");
   });
 
   it("uses child-friendly context meanings from core lexicon", () => {
-    expect(lookupLayered(layers, "tips")).toContain("建议");
+    expect(lookupLayered(layers, "tips")).toContain("提示");
     expect(lookupLayered(layers, "woods")).toContain("树林");
   });
 
@@ -115,5 +123,36 @@ describe("local lexicon layers", () => {
     expect(service.lookup("privacy policy")).toBe("隐私政策");
     expect(await service.lookupOnlineData("address")).toBe(null);
     expect(networkCalls).toBe(0);
+  });
+
+  it("does not need online lookup for common OCR words", async () => {
+    let networkCalls = 0;
+    const service = createDictionaryService({
+      dict: {},
+      coreLexicon,
+      phraseLexicon,
+      phonetics: {},
+      translateText: async () => "",
+      enqueueNetwork: async task => {
+        networkCalls++;
+        return task();
+      },
+      getCachedOnlineWord: () => null,
+      setCachedOnlineWord: () => {}
+    });
+
+    for (const word of ["address", "activity", "privacy", "policy", "thoughtful", "supportive", "fun", "lab", "inbox"]) {
+      expect(service.lookup(word)).toBeTruthy();
+      expect(await service.lookupOnlineData(word)).toBe(null);
+    }
+    expect(networkCalls).toBe(0);
+  });
+
+  it("does not output empty-cn core entries", () => {
+    expect(Object.entries(coreLexicon).filter(([, entry]) => !String(entry.cn || "").trim())).toEqual([]);
+  });
+
+  it("does not ship generated examples or simple definitions in core entries", () => {
+    expect(Object.entries(coreLexicon).filter(([, entry]) => "examples" in entry || "simple" in entry || "source" in entry)).toEqual([]);
   });
 });
