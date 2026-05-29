@@ -26,8 +26,9 @@ import {
 } from "./wordbook.js";
 import { renderQuiz } from "./quiz.js";
 import { TEMPLATES, renderTemplates } from "./templates.js";
-import { recognizeImageText } from "./ocr.js";
+import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
 import { updateDailyStreak } from "./streak.js";
+import { registerServiceWorker } from "./offline.js";
 import {
   SPEAKER_SVG,
   STAR_SVG,
@@ -382,7 +383,6 @@ function setupImageOcr() {
       }
 
       const result = await recognizeImageText(file, {
-        apiKey: window.OCR_SPACE_KEY || "",
         onProgress: stage => {
           if (stage === "compressing") {
             setOcrStatus("正在处理图片…");
@@ -404,8 +404,7 @@ function setupImageOcr() {
       await analyzeSentence();
       setOcrStatus("");
     } catch (error) {
-      const message = error instanceof Error && error.message ? error.message : "图片识别失败";
-      setOcrStatus(message === "OCR API key is not configured" ? "OCR key 没有配置，请检查 Cloudflare 的 PUBLIC_OCR_SPACE_KEY。" : message, "error");
+      setOcrStatus(getOcrErrorMessage(error), "error");
     } finally {
       if (!releasedBeforeAnalyze) setAnalyzeBusy(false);
     }
@@ -563,6 +562,7 @@ async function init() {
 
   setupImageOcr();
   setupDailyStreak();
+  registerServiceWorker();
   setupVoices();
   renderSettings();
   setupLearningTip();

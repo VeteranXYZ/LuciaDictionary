@@ -1,9 +1,22 @@
-const OCR_ENDPOINT = "https://api.ocr.space/parse/image";
+const OCR_ENDPOINT = "/api/ocr";
 const DEFAULT_MAX_SIDE = 1600;
 const OCR_UPLOAD_LIMIT_BYTES = 500 * 1024;
 const DEFAULT_TARGET_UPLOAD_BYTES = 460 * 1024;
 const DEFAULT_MIN_SIDE = 520;
 const QUALITY_STEPS = [0.82, 0.72, 0.62, 0.52, 0.44, 0.36];
+const SUPPORTED_INPUT_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+const OCR_ERROR_MESSAGES = {
+  no_text_detected: "没有识别到清晰的英文。请把纸张拍正、拍近，并避免阴影。",
+  image_too_blurry: "图片里的文字不够清楚。请重新拍一张更近、更亮的照片。",
+  file_too_large: "图片太大了。请只拍英文题目区域，或裁剪后再上传。",
+  unsupported_file_type: "这个图片格式暂时不支持。请上传 JPG、PNG 或 WebP 图片。",
+  network_error: "网络连接不稳定。你可以先手动输入句子，稍后再试。",
+  offline: "OCR 需要网络连接。你可以先手动输入句子。",
+  service_unavailable: "OCR 服务暂时不可用。你可以先手动输入句子，稍后再试。",
+  too_many_requests: "OCR 请求太多了。请稍等一会儿再试。",
+  unknown: "图片识别失败。你可以先手动输入句子。"
+};
 
 export function cleanOcrText(text) {
   return String(text || "")
@@ -20,6 +33,29 @@ export function formatBytes(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) return "0 KB";
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+export function createOcrError(code, message) {
+  const error = new Error(message || OCR_ERROR_MESSAGES[code] || OCR_ERROR_MESSAGES.unknown);
+  error.code = code || "unknown";
+  return error;
+}
+
+export function getOcrErrorMessage(error) {
+  const code = typeof error === "string" ? error : error?.code;
+  return OCR_ERROR_MESSAGES[code] || error?.message || OCR_ERROR_MESSAGES.unknown;
+}
+
+export function mapOcrResponseError(status, body = {}) {
+  if (status === 413) return "file_too_large";
+  if (status === 415) return "unsupported_file_type";
+  if (status === 429) return "too_many_requests";
+  if (status >= 500) return "service_unavailable";
+  return body.error || body.code || "unknown";
+}
+
+export function isSupportedOcrImage(file) {
+  return SUPPORTED_INPUT_TYPES.has(file?.type);
 }
 
 function loadImage(file) {
@@ -115,7 +151,7 @@ export async function compressImageFile(file, options = {}) {
   if (!best || !bestStep) throw new Error("图片压缩失败");
 
   if (best.size > hardLimitBytes) {
-    throw new Error(`图片压缩后仍超过 ${formatBytes(hardLimitBytes)}，请裁剪后再上传。`);
+    throw createOcrError("file_too_large");
   }
 
   const compressed = new File([best], "lucia-ocr.jpg", { type: "image/jpeg" });
@@ -131,8 +167,8 @@ export async function compressImageFile(file, options = {}) {
 }
 
 export async function recognizeImageText(file, options = {}) {
-  const apiKey = options.apiKey || "";
-  if (!apiKey) throw new Error("OCR API key is not configured");
+  if (!isSupportedOcrImage(file)) throw createOcrError("unsupported_file_type");
+  if (typeof navigator !== "undefined" && navigator.onLine === false) throw createOcrError("offline");
 
   options.onProgress?.("compressing");
   const image = await compressImageFile(file, options);
@@ -140,23 +176,24 @@ export async function recognizeImageText(file, options = {}) {
 
   const formData = new FormData();
   formData.append("file", image.file);
-  formData.append("apikey", apiKey);
-  formData.append("language", "eng");
-  formData.append("isOverlayRequired", "false");
-  formData.append("detectOrientation", "true");
-  formData.append("scale", "true");
-  formData.append("OCREngine", "2");
-
-  const response = await fetch(OCR_ENDPOINT, { method: "POST", body: formData });
-  if (!response.ok) throw new Error(`OCR request failed: ${response.status}`);
-  const data = await response.json();
-  if (data.IsErroredOnProcessing) {
-    const message = data.ErrorMessage || data.ErrorDetails || "OCR 识别失败";
-    throw new Error(Array.isArray(message) ? message.join("；") : message);
+  let response;
+  let data = {};
+  try {
+    response = await fetch(OCR_ENDPOINT, { method: "POST", body: formData });
+    data = await response.json().catch(() => ({}));
+  } catch (e) {
+    throw createOcrError("network_error");
   }
 
+  if (!response.ok) {
+    throw createOcrError(mapOcrResponseError(response.status, data));
+  }
+
+  const text = cleanOcrText(data.text || "");
+  if (!text) throw createOcrError(data.error || "no_text_detected");
+
   return {
-    text: cleanOcrText(data.ParsedResults?.[0]?.ParsedText || ""),
+    text,
     originalSize: image.originalSize,
     uploadSize: image.uploadSize,
     compressed: image.compressed
