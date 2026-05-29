@@ -303,7 +303,7 @@ textarea#sentence-input {
   background: var(--cream-2);
   color: var(--ink-text);
   resize: none;
-  height: 66px;
+  height: 112px;
   outline: none;
   transition: border-color .2s, background .2s, box-shadow .2s;
   line-height: 1.25;
@@ -320,7 +320,8 @@ textarea#sentence-input::placeholder {
 
 .btn-go {
   width: 66px;
-  height: 66px;
+  height: 100%;
+  min-height: 66px;
   border: none;
   border-radius: var(--r-md);
   background: var(--ink);
@@ -345,7 +346,8 @@ textarea#sentence-input::placeholder {
 
 .btn-camera {
   width: 58px;
-  height: 66px;
+  height: 100%;
+  min-height: 66px;
   border: 2px solid var(--line);
   border-radius: var(--r-md);
   background: var(--moss-soft);
@@ -1437,8 +1439,9 @@ textarea#sentence-input::placeholder {
   }
   #pg-home > .hero {
     display: grid;
-    grid-template-columns: 82px minmax(0, 1fr);
+    grid-template-columns: 82px minmax(0, 245px);
     column-gap: 12px;
+    justify-content: center;
     align-items: center;
     text-align: left;
   }
@@ -1476,7 +1479,7 @@ textarea#sentence-input::placeholder {
     width: auto;
     max-width: 100%;
     padding: 12px;
-    margin: 6px 24px 14px;
+    margin: 6px 0 14px;
     border-radius: var(--r-md);
   }
   .input-row {
@@ -1493,7 +1496,7 @@ textarea#sentence-input::placeholder {
   textarea#sentence-input {
     min-width: 0;
     width: 100%;
-    height: 58px;
+    height: 104px;
     padding: 9px 11px;
     font-size: 0.88rem;
     line-height: 1.22;
@@ -1501,13 +1504,15 @@ textarea#sentence-input::placeholder {
   .btn-go {
     min-width: 0;
     width: 100%;
-    height: 50px;
+    height: 54px;
+    min-height: 54px;
     border-radius: 16px;
   }
   .btn-camera {
     min-width: 0;
     width: 100%;
-    height: 50px;
+    height: 54px;
+    min-height: 54px;
     border-radius: 16px;
   }
   .btn-go svg {
@@ -1670,7 +1675,7 @@ textarea#sentence-input::placeholder {
   }
   .hero-title { font-size: 1.14rem; }
   #pg-home > .hero {
-    grid-template-columns: 74px minmax(0, 1fr);
+    grid-template-columns: 74px minmax(0, 220px);
     column-gap: 10px;
   }
   #pg-home > .hero .hero-mascot {
@@ -1688,17 +1693,19 @@ textarea#sentence-input::placeholder {
   }
   textarea#sentence-input {
     width: 100%;
-    height: 76px;
+    height: 110px;
     font-size: 0.86rem;
     line-height: 1.2;
   }
   .btn-go {
     width: 100%;
     height: 48px;
+    min-height: 48px;
   }
   .btn-camera {
     width: 100%;
     height: 48px;
+    min-height: 48px;
   }
   .word-card {
     grid-template-columns: minmax(0, 1fr) 42px;

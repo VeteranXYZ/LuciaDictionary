@@ -30,6 +30,8 @@ describe("main analysis flow source", () => {
     expect(markup).toContain("已收藏单词");
     expect(styles).toContain("grid-template-columns: 1fr 1fr");
     expect(styles).toContain("#pg-home > .hero");
+    expect(styles).toContain("justify-content: center");
+    expect(styles).toContain("height: 104px");
   });
 
   it("counts unique local dictionary words in settings", () => {
