@@ -1433,21 +1433,41 @@ textarea#sentence-input::placeholder {
   }
 
   .hero {
-    padding: 8px 4px 16px;
+    padding: 6px 4px 12px;
   }
-  .hero-mascot {
-    width: 118px;
-    height: 118px;
-    margin-bottom: 12px;
+  #pg-home > .hero {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: center;
+    text-align: left;
   }
-  .hero-mascot::before {
-    width: 88px;
+  #pg-home > .hero .hero-mascot {
+    grid-row: 1 / span 2;
+    width: 82px;
+    height: 82px;
+    margin: 0;
+    animation: none;
   }
-  .hero-title {
+  #pg-home > .hero .hero-mascot::before {
+    width: 58px;
+    height: 9px;
+    bottom: -3px;
+  }
+  #pg-home > .hero .hero-title {
+    font-size: 1.06rem;
+    line-height: 1.18;
+    margin-bottom: 3px;
+  }
+  #pg-home > .hero .hero-sub {
+    font-size: 0.78rem;
+    line-height: 1.32;
+  }
+  .page:not(#pg-home) .hero-title {
     font-size: 1.24rem;
     line-height: 1.25;
   }
-  .hero-sub {
+  .page:not(#pg-home) .hero-sub {
     font-size: 0.88rem;
     line-height: 1.45;
   }
@@ -1467,7 +1487,7 @@ textarea#sentence-input::placeholder {
   }
   .input-actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
   textarea#sentence-input {
@@ -1649,6 +1669,20 @@ textarea#sentence-input::placeholder {
     height: 104px;
   }
   .hero-title { font-size: 1.14rem; }
+  #pg-home > .hero {
+    grid-template-columns: 74px minmax(0, 1fr);
+    column-gap: 10px;
+  }
+  #pg-home > .hero .hero-mascot {
+    width: 74px;
+    height: 74px;
+  }
+  #pg-home > .hero .hero-title {
+    font-size: 1rem;
+  }
+  #pg-home > .hero .hero-sub {
+    font-size: 0.74rem;
+  }
   .input-row {
     grid-template-columns: 1fr;
   }
