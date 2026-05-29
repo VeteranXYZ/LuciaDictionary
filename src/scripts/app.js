@@ -26,6 +26,7 @@ import {
 } from "./wordbook.js";
 import { renderQuiz } from "./quiz.js";
 import { TEMPLATES, renderTemplates } from "./templates.js";
+import { formatBytes, recognizeImageText } from "./ocr.js";
 import {
   SPEAKER_SVG,
   STAR_SVG,
@@ -83,8 +84,15 @@ function setCachedOnlineWord(word, value) {
 function setAnalyzeBusy(isBusy) {
   const btn = document.getElementById("go-btn");
   const input = document.getElementById("sentence-input");
+  const imageInput = document.getElementById("image-input");
+  const cameraBtn = document.getElementById("camera-btn");
   if (btn) btn.disabled = isBusy;
   if (input) input.disabled = isBusy;
+  if (imageInput) imageInput.disabled = isBusy;
+  if (cameraBtn) {
+    cameraBtn.classList.toggle("is-disabled", isBusy);
+    cameraBtn.setAttribute("aria-disabled", String(isBusy));
+  }
 }
 
 function setSentenceSpeakLabel(label) {
@@ -349,6 +357,62 @@ async function importWordbook(event) {
   }
 }
 
+function setOcrStatus(message, type = "") {
+  const status = document.getElementById("ocr-status");
+  if (!status) return;
+  status.hidden = !message;
+  status.className = "ocr-status" + (type ? ` ${type}` : "");
+  status.textContent = message || "";
+}
+
+function setupImageOcr() {
+  const imageInput = document.getElementById("image-input");
+  const sentenceInput = document.getElementById("sentence-input");
+  if (!imageInput || !sentenceInput) return;
+
+  imageInput.addEventListener("change", async event => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    let releasedBeforeAnalyze = false;
+    setAnalyzeBusy(true);
+    try {
+      if (!file.type.startsWith("image/")) {
+        throw new Error("请选择图片文件");
+      }
+
+      const result = await recognizeImageText(file, {
+        apiKey: window.OCR_SPACE_KEY || "",
+        onProgress: (stage, image) => {
+          if (stage === "compressing") {
+            setOcrStatus("正在本地压缩图片…");
+          } else if (stage === "uploading") {
+            setOcrStatus(`图片已压缩 ${formatBytes(image.originalSize)} → ${formatBytes(image.uploadSize)}，正在识别英文…`);
+          }
+        }
+      });
+
+      if (!result.text) {
+        setOcrStatus("没有识别到英文，请换一张更清晰的图片。", "warning");
+        return;
+      }
+
+      sentenceInput.value = result.text;
+      setOcrStatus(`识别完成：${formatBytes(result.originalSize)} → ${formatBytes(result.uploadSize)}，正在生成单词卡…`, "success");
+      releasedBeforeAnalyze = true;
+      setAnalyzeBusy(false);
+      await analyzeSentence();
+      setOcrStatus(`识别完成：${formatBytes(result.originalSize)} → ${formatBytes(result.uploadSize)}`, "success");
+    } catch (error) {
+      const message = error instanceof Error && error.message ? error.message : "图片识别失败";
+      setOcrStatus(message === "OCR API key is not configured" ? "OCR key 没有配置，请检查 Cloudflare 的 PUBLIC_OCR_SPACE_KEY。" : message, "error");
+    } finally {
+      if (!releasedBeforeAnalyze) setAnalyzeBusy(false);
+    }
+  });
+}
+
 function renderSettings() {
   const speeds = [["慢速", "slow"], ["正常", "normal"]];
   const repeats = [1, 3, 5];
@@ -486,6 +550,7 @@ async function init() {
     document.getElementById("import-wb-input")?.click();
   });
 
+  setupImageOcr();
   setupVoices();
   renderSettings();
   setupLearningTip();
