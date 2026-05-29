@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { createDictionaryService, extractLookupTerms, lookup, lookupBaseWord, lookupLayered, buildCoreFormIndex } from "./dictionary.js";
+import { createDictionaryService, extractLookupTerms, extractWordTerms, lookup, lookupBaseWord, lookupLayered, buildCoreFormIndex } from "./dictionary.js";
 
 const dict = {
   go: "去",
@@ -77,6 +77,11 @@ describe("local lexicon layers", () => {
     expect(lookupLayered(layers, "activities")).toContain("活动");
     expect(lookupLayered(layers, "resources")).toContain("资源");
     expect(lookupLayered(layers, "parents")).toContain("父母");
+    expect(lookupLayered(layers, "challenges")).toContain("挑战");
+    expect(lookupLayered(layers, "stories")).toContain("故事");
+    expect(lookupLayered(layers, "plants")).toContain("植物");
+    expect(lookupLayered(layers, "animals")).toContain("动物");
+    expect(lookupLayered(layers, "questions")).toContain("问题");
   });
 
   it("detects high-priority phrases before single words", () => {
@@ -96,11 +101,35 @@ describe("local lexicon layers", () => {
     expect(lookupLayered(layers, "address")).not.toBe("旧地址释义");
   });
 
-  it("extracts phrase terms before individual words", () => {
+  it("keeps explicit phrase extraction available outside the main flow", () => {
     expect(extractLookupTerms("Write your email address and read the privacy policy.", phraseLexicon).slice(0, 2)).toEqual([
       "email address",
       "privacy policy"
     ]);
+  });
+
+  it("main analysis extracts word cards only instead of phrase cards", () => {
+    const service = createDictionaryService({
+      dict: {},
+      coreLexicon,
+      phraseLexicon,
+      phonetics: {},
+      translateText: async () => "",
+      enqueueNetwork: async task => task(),
+      getCachedOnlineWord: () => null,
+      setCachedOnlineWord: () => {}
+    });
+
+    expect(service.extractLookupTerms("grow together")).toEqual(["grow", "together"]);
+    expect(service.extractLookupTerms("email address")).toEqual(["email", "address"]);
+    expect(service.extractLookupTerms("privacy policy")).toEqual(["privacy", "policy"]);
+    expect(service.extractLookupTerms("grow together")).not.toContain("grow together");
+    expect(service.extractLookupTerms("email address")).not.toContain("email address");
+    expect(service.extractLookupTerms("privacy policy")).not.toContain("privacy policy");
+  });
+
+  it("filters isolated OCR noise while keeping a and I", () => {
+    expect(extractWordTerms("a I g u x r plant 2024 ©")).toEqual(["a", "I", "plant"]);
   });
 
   it("does not need online lookup for required common words", async () => {

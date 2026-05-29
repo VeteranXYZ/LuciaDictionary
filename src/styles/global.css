@@ -702,6 +702,30 @@ textarea#sentence-input::placeholder {
 }
 .btn-speak svg { width: 18px; height: 18px; }
 
+.btn-online-lookup {
+  min-width: 72px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  border: 2px solid var(--cream);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 3px 0 #1d1a25;
+  white-space: nowrap;
+  transition: transform .15s, box-shadow .15s;
+}
+.btn-online-lookup:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #1d1a25; }
+.btn-online-lookup:active { transform: translateY(2px); box-shadow: 0 1px 0 #1d1a25; }
+.btn-online-lookup:disabled {
+  opacity: .65;
+  cursor: wait;
+  transform: none;
+}
+
 /* ============================================================
    Empty States
    ============================================================ */
@@ -1553,6 +1577,11 @@ textarea#sentence-input::placeholder {
   .btn-speak {
     width: 40px;
     height: 40px;
+  }
+  .btn-online-lookup {
+    min-width: 68px;
+    min-height: 32px;
+    font-size: 0.74rem;
   }
 
   .empty {

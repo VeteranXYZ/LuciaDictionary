@@ -4,6 +4,7 @@ export const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="curren
 export const BOOK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
 export const LOCAL_MISSING_MESSAGE = "暂无本地释义，可单独联网查询";
 export const ONLINE_FAILURE_MESSAGE = "联网查询失败，请稍后再试";
+export const ONLINE_LOOKUP_BUTTON_LABEL = "联网查询";
 
 export function getLookupFallbackMessage({ explicitLookup = false, failed = false } = {}) {
   return explicitLookup && failed ? ONLINE_FAILURE_MESSAGE : LOCAL_MISSING_MESSAGE;
@@ -215,8 +216,8 @@ export function buildWordCard(word, index, meaning, container, options) {
   actions.append(star, speakBtn);
   if (!displayMeaning && !skipOnlineLookup) {
     const onlineBtn = document.createElement("button");
-    onlineBtn.className = "btn-speak";
-    onlineBtn.textContent = "查";
+    onlineBtn.className = "btn-online-lookup";
+    onlineBtn.textContent = ONLINE_LOOKUP_BUTTON_LABEL;
     onlineBtn.setAttribute("aria-label", "联网查询");
     onlineBtn.addEventListener("click", async event => {
       event.stopPropagation();
