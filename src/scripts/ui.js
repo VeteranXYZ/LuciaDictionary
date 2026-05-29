@@ -123,7 +123,7 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
     const data = await lookupOnlineData(w);
     if (!isCurrentRun(runId)) return;
     if (!data) {
-      if (fillMeaning) setMutedText(cnEl, "未找到中文释义");
+      if (fillMeaning) setMutedText(cnEl, "暂无本地释义，可单独联网查询");
       if (phoneticEl && phoneticEl.textContent === "音标查询中…") phoneticEl.textContent = "暂无音标";
       return;
     }
@@ -134,7 +134,7 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
     }
   } catch (e) {
     if (!isCurrentRun(runId)) return;
-    if (fillMeaning) setMutedText(cnEl, "网络错误，暂时无法查询");
+    if (fillMeaning) setMutedText(cnEl, "暂无本地释义，可单独联网查询");
     if (phoneticEl && phoneticEl.textContent === "音标查询中…") phoneticEl.textContent = "暂无音标";
   }
 }
