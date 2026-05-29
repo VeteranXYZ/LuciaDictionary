@@ -1,3 +1,5 @@
+import { cleanDisplayTranslation } from "./meaningCleaner.js";
+
 export const STOP_WORDS = new Set([
   "a","an","the","and","or","but","to","of","in","on","at","for","with","by","from",
   "is","am","are","was","were","be","been","being","do","does","did","it","this","that",
@@ -45,10 +47,21 @@ export const OCR_NOISE_FRAGMENTS = new Set([
   "re","ve","ll"
 ]);
 
+export const RESERVED_PROJECT_NAMES = {
+  lucia: { cn: "Lucia，角色名", ph: "", pos: "name" },
+  rayna: { cn: "Rayna，角色名", ph: "", pos: "name" },
+  luciaandrayna: { cn: "Lucia & Rayna，品牌名", ph: "", pos: "name" },
+  "lucia&rayna": { cn: "Lucia & Rayna，品牌名", ph: "", pos: "name" }
+};
+
 export function getMeaningValue(entry) {
   if (!entry) return null;
   if (typeof entry === "string") return entry;
   return entry.cn || entry.meaning || null;
+}
+
+export function cleanMeaningForDisplay(meaning, word = "") {
+  return cleanDisplayTranslation(meaning, word);
 }
 
 export function getPhoneticValue(entry) {
@@ -58,6 +71,14 @@ export function getPhoneticValue(entry) {
 
 export function normalizeLookupTerm(term) {
   return String(term || "").toLowerCase().replace(/[“”‘’"'.,!?;:()[\]{}]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function normalizeReservedNameTerm(term) {
+  return String(term || "").toLowerCase().replace(/\s+/g, "").replace(/[^a-z&]/g, "");
+}
+
+export function getReservedProjectName(term) {
+  return RESERVED_PROJECT_NAMES[normalizeReservedNameTerm(term)] || null;
 }
 
 export function getPhraseMeaning(phraseLexicon, term) {
@@ -79,6 +100,7 @@ export function buildCoreFormIndex(coreLexicon = {}) {
 export function lookupCoreBase(coreLexicon, formIndex, word) {
   const w = normalizeLookupTerm(word);
   if (!w || w.includes(" ")) return null;
+  if (getReservedProjectName(w)) return { base: w, modifier: "", reserved: true };
   if (coreLexicon?.[w]) return { base: w, modifier: "" };
   const base = formIndex?.[w];
   if (base && coreLexicon?.[base]) return { base, modifier: "" };
@@ -128,19 +150,25 @@ export function lookup(dict, word) {
 }
 
 export function lookupLayered({ phraseLexicon = {}, coreLexicon = {}, formIndex = {}, dict = {} }, term) {
+  const reserved = getReservedProjectName(term);
+  if (reserved) return reserved.cn;
+
   const phraseMeaning = getPhraseMeaning(phraseLexicon, term);
   if (phraseMeaning) return phraseMeaning;
 
   const coreResolved = lookupCoreBase(coreLexicon, formIndex, term);
   if (coreResolved) {
-    return getMeaningValue(coreLexicon[coreResolved.base]);
+    if (coreResolved.reserved) return getReservedProjectName(coreResolved.base)?.cn || null;
+    return cleanMeaningForDisplay(getMeaningValue(coreLexicon[coreResolved.base]), coreResolved.base);
   }
 
-  return lookup(dict, term);
+  return cleanMeaningForDisplay(lookup(dict, term), term);
 }
 
 export function lookupLocalPhonetic(dict, phonetics, word, coreLexicon = {}, formIndex = {}) {
   const w = normalizeLookupTerm(word);
+  const reserved = getReservedProjectName(word);
+  if (reserved) return reserved.ph || "";
   const coreResolved = lookupCoreBase(coreLexicon, formIndex, w);
   if (coreResolved) {
     return getPhoneticValue(coreLexicon[coreResolved.base]) || phonetics[coreResolved.base] || "";
@@ -223,8 +251,14 @@ export function extractLookupTerms(text, phraseLexicon = {}) {
 export function extractWordTerms(text) {
   const terms = [];
   const seen = new Set();
-  for (const raw of String(text || "").match(/[a-zA-Z]+(?:'[a-zA-Z]+)?/g) || []) {
+  for (const raw of String(text || "").match(/[a-zA-Z]+(?:&[a-zA-Z]+)?(?:'[a-zA-Z]+)?/g) || []) {
     for (const part of raw.split("'")) {
+      const reservedKey = normalizeReservedNameTerm(part);
+      if (getReservedProjectName(reservedKey) && !seen.has(reservedKey)) {
+        seen.add(reservedKey);
+        terms.push(reservedKey);
+        continue;
+      }
       const key = normalizeLookupTerm(part);
       if (!isVisibleWordToken(key) || seen.has(key)) continue;
       seen.add(key);

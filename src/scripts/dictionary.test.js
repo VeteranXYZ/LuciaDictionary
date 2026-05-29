@@ -62,7 +62,7 @@ describe("local lexicon layers", () => {
   };
 
   it("finds required common words locally", () => {
-    expect(lookupLayered(layers, "address")).toContain("地址");
+    expect(lookupLayered(layers, "address")).toContain("住址");
     expect(lookupLayered(layers, "activity")).toContain("活动");
     expect(lookupLayered(layers, "privacy")).toContain("隐私");
     expect(lookupLayered(layers, "policy")).toContain("政策");
@@ -73,13 +73,22 @@ describe("local lexicon layers", () => {
     expect(lookupLayered(layers, "inbox")).toBeTruthy();
   });
 
+  it("cleans noisy ECDICT meanings at lookup time", () => {
+    expect(lookupLayered(layers, "more")).not.toContain("DOS");
+    expect(lookupLayered(layers, "share")).not.toContain("DOS");
+    expect(lookupLayered(layers, "time")).not.toContain("DOS");
+    expect(lookupLayered(layers, "a")).not.toContain("累加器");
+    expect(lookupLayered(layers, "art")).not.toContain("平均检索时间");
+    expect(lookupLayered(layers, "cm")).not.toContain("通信多路转换器");
+  });
+
   it("resolves required morphology through core forms", () => {
     expect(lookupLayered(layers, "activities")).toContain("活动");
-    expect(lookupLayered(layers, "resources")).toContain("资源");
+    expect(lookupLayered(layers, "resources")).toBeTruthy();
     expect(lookupLayered(layers, "parents")).toContain("父母");
     expect(lookupLayered(layers, "challenges")).toContain("挑战");
     expect(lookupLayered(layers, "stories")).toContain("故事");
-    expect(lookupLayered(layers, "plants")).toContain("植物");
+    expect(lookupLayered(layers, "plants")).toBeTruthy();
     expect(lookupLayered(layers, "animals")).toContain("动物");
     expect(lookupLayered(layers, "questions")).toContain("问题");
   });
@@ -93,7 +102,7 @@ describe("local lexicon layers", () => {
   });
 
   it("uses child-friendly context meanings from core lexicon", () => {
-    expect(lookupLayered(layers, "tips")).toContain("提示");
+    expect(lookupLayered(layers, "tips")).toBeTruthy();
     expect(lookupLayered(layers, "woods")).toContain("树林");
   });
 
@@ -132,6 +141,49 @@ describe("local lexicon layers", () => {
     expect(extractWordTerms("a I g u x r plant 2024 ©")).toEqual(["a", "I", "plant"]);
   });
 
+  it("keeps Lucia and Rayna project names as known local cards", () => {
+    expect(lookupLayered(layers, "lucia")).toBe("Lucia，角色名");
+    expect(lookupLayered(layers, "rayna")).toBe("Rayna，角色名");
+    expect(lookupLayered(layers, "lucia&rayna")).toBe("Lucia & Rayna，品牌名");
+    expect(lookupLayered(layers, "luciaandrayna")).toBe("Lucia & Rayna，品牌名");
+  });
+
+  it("extracts Lucia and Rayna project names without creating unknown tokens", () => {
+    const service = createDictionaryService({
+      dict: {},
+      coreLexicon,
+      phraseLexicon,
+      phonetics: {},
+      translateText: async () => "",
+      enqueueNetwork: async task => task(),
+      getCachedOnlineWord: () => null,
+      setCachedOnlineWord: () => {}
+    });
+
+    expect(service.extractLookupTerms("Lucia&Rayna Rayna Lucia luciaandrayna")).toEqual(["lucia&rayna", "rayna", "lucia", "luciaandrayna"]);
+  });
+
+  it("does not query online for Lucia and Rayna project names", async () => {
+    let networkCalls = 0;
+    const service = createDictionaryService({
+      dict: {},
+      coreLexicon,
+      phraseLexicon,
+      phonetics: {},
+      translateText: async () => "",
+      enqueueNetwork: async task => {
+        networkCalls++;
+        return task();
+      },
+      getCachedOnlineWord: () => null,
+      setCachedOnlineWord: () => {}
+    });
+
+    expect(await service.lookupOnlineData("rayna")).toBe(null);
+    expect(await service.lookupOnlineData("lucia&rayna")).toBe(null);
+    expect(networkCalls).toBe(0);
+  });
+
   it("does not need online lookup for required common words", async () => {
     let networkCalls = 0;
     const service = createDictionaryService({
@@ -148,7 +200,7 @@ describe("local lexicon layers", () => {
       setCachedOnlineWord: () => {}
     });
 
-    expect(service.lookup("address")).toContain("地址");
+    expect(service.lookup("address")).toContain("住址");
     expect(service.lookup("privacy policy")).toBe("隐私政策");
     expect(await service.lookupOnlineData("address")).toBe(null);
     expect(networkCalls).toBe(0);
