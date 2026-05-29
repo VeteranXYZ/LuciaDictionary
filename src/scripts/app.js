@@ -29,7 +29,6 @@ import { TEMPLATES, renderTemplates } from "./templates.js";
 import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
 import { updateDailyStreak } from "./streak.js";
 import { registerServiceWorker } from "./offline.js";
-import { createCameraCaptureController } from "./cameraCapture.js";
 import {
   SPEAKER_SVG,
   STAR_SVG,
@@ -420,11 +419,9 @@ function setupImageOcr() {
     await processOcrFile(file);
   });
 
-  createCameraCaptureController({
-    cameraButton,
-    imageInput,
-    setStatus: setOcrStatus,
-    onFile: processOcrFile
+  cameraButton?.addEventListener("click", () => {
+    if (cameraButton.getAttribute("aria-disabled") === "true") return;
+    imageInput.click();
   });
 }
 

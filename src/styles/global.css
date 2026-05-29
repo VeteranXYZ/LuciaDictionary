@@ -297,8 +297,8 @@ textarea#sentence-input {
   min-width: 0;
   border: 2px solid var(--line);
   border-radius: var(--r-md);
-  padding: 14px 16px;
-  font-size: 1.05rem;
+  padding: 10px 14px;
+  font-size: 0.94rem;
   font-weight: 600;
   background: var(--cream-2);
   color: var(--ink-text);
@@ -306,7 +306,7 @@ textarea#sentence-input {
   height: 66px;
   outline: none;
   transition: border-color .2s, background .2s, box-shadow .2s;
-  line-height: 1.5;
+  line-height: 1.25;
 }
 textarea#sentence-input:focus {
   border-color: var(--ink);
@@ -375,64 +375,6 @@ textarea#sentence-input::placeholder {
 }
 .btn-camera svg { width: 25px; height: 25px; }
 
-.camera-choice-panel {
-  position: absolute;
-  right: 86px;
-  top: 100%;
-  z-index: 20;
-  display: grid;
-  gap: 7px;
-  min-width: 168px;
-  margin-top: 8px;
-  padding: 8px;
-  border: 2px solid var(--line);
-  border-radius: var(--r-sm);
-  background: var(--cream);
-  box-shadow: var(--shadow-sm);
-}
-.camera-choice-panel button,
-.camera-modal-actions button {
-  border: 0;
-  border-radius: var(--r-pill);
-  padding: 9px 12px;
-  background: var(--moss);
-  color: var(--cream);
-  font-weight: 900;
-  cursor: pointer;
-}
-.camera-choice-panel button:first-child { background: var(--ink); }
-.camera-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  background: rgba(34, 29, 40, .62);
-}
-.camera-modal-panel {
-  width: min(620px, 100%);
-  padding: 14px;
-  border-radius: var(--r-md);
-  background: var(--cream);
-  box-shadow: var(--shadow-lg);
-}
-.camera-preview {
-  display: block;
-  width: 100%;
-  max-height: 62vh;
-  border-radius: var(--r-sm);
-  background: #111;
-  object-fit: contain;
-}
-.camera-modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 12px;
-}
-.camera-modal-actions button:last-child { background: var(--brick); }
-
 .ocr-status {
   margin-top: 9px;
   color: var(--mute);
@@ -444,27 +386,6 @@ textarea#sentence-input::placeholder {
 .ocr-status.warning { color: var(--tangerine); }
 .ocr-status.error { color: var(--brick); }
 
-.ocr-tips {
-  margin-top: 10px;
-  color: var(--mute);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1.35;
-}
-.ocr-tips span {
-  color: var(--moss);
-}
-.ocr-tips ul {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  margin-top: 6px;
-}
-.ocr-tips li::before {
-  content: "• ";
-  color: var(--moss);
-}
 
 /* ============================================================
    Sentence preview bar
@@ -1553,9 +1474,9 @@ textarea#sentence-input::placeholder {
     min-width: 0;
     width: 100%;
     height: 58px;
-    padding: 11px 12px;
-    font-size: 0.96rem;
-    line-height: 1.35;
+    padding: 9px 11px;
+    font-size: 0.88rem;
+    line-height: 1.22;
   }
   .btn-go {
     min-width: 0;
@@ -1577,16 +1498,6 @@ textarea#sentence-input::placeholder {
     width: 22px;
     height: 22px;
   }
-  .ocr-tips ul {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5px 8px;
-  }
-  .ocr-tips li {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
   .sentence-bar {
     padding: 12px 13px;
     margin-bottom: 12px;
@@ -1744,6 +1655,8 @@ textarea#sentence-input::placeholder {
   textarea#sentence-input {
     width: 100%;
     height: 76px;
+    font-size: 0.86rem;
+    line-height: 1.2;
   }
   .btn-go {
     width: 100%;

@@ -32,22 +32,13 @@ import MainLayout from "../layouts/MainLayout.astro";
             <button class="btn-camera" id="camera-btn" type="button" title="上传图片或拍照识别英文" aria-label="上传图片或拍照识别英文">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
             </button>
-            <input type="file" id="image-input" accept="image/*" capture="environment" hidden />
+            <input type="file" id="image-input" accept="image/*" hidden />
             <button class="btn-go" id="go-btn" title="开始学习" aria-label="开始">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
             </button>
           </div>
         </div>
         <div class="ocr-status" id="ocr-status" hidden></div>
-        <div class="ocr-tips" aria-label="拍照提示">
-          <span>拍照提示</span>
-          <ul>
-            <li>只拍英文题目区域</li>
-            <li>保持纸张平整</li>
-            <li>避免阴影和反光</li>
-            <li>让文字尽量清楚</li>
-          </ul>
-        </div>
       </div>
 
       <div class="sentence-bar" id="sentence-bar">
