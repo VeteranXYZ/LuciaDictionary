@@ -53,7 +53,8 @@ const extraWords = {
   paragraph: "段落", sentence: "句子", punctuation: "标点", revise: "修改", edit: "编辑；修改",
   draft: "草稿", explain: "解释", describe: "描述", summarize: "总结", predict: "预测",
   analyze: "分析", identify: "识别；找出", complete: "完成", answer: "答案；回答", question: "问题",
-  circle: "圈出；圆圈", underline: "划线", label: "标签；标注", match: "配对；匹配", solve: "解答"
+  circle: "圈出；圆圈", underline: "划线", label: "标签；标注", match: "配对；匹配", solve: "解答",
+  latest: "最新的；最近的", strong: "强壮的；强的", stronger: "更强的；更坚强的", way: "方式；道路", term: "术语；学期；条款", aug: "八月（缩写）"
 };
 
 const phraseSeeds = {
@@ -81,7 +82,9 @@ const phraseSeeds = {
   "complete sentence": ["完整句", "a sentence with a full idea", ["writing"], "Write a complete sentence.", "写一个完整句。"],
   "rock pool": ["岩石水洼；潮池", "a small pool of water near rocks", ["science", "story"], "The creature lived in a rock pool.", "那个生物住在岩石水洼里。"],
   "social studies": ["社会学习课", "school lessons about people and places", ["school"], "We have social studies today.", "今天我们有社会学习课。"],
-  "science lab": ["科学实验室", "a room for science activities", ["science"], "Meet in the science lab.", "在科学实验室集合。"]
+  "science lab": ["科学实验室", "a room for science activities", ["science"], "Meet in the science lab.", "在科学实验室集合。"],
+  "terms of use": ["使用条款", "rules for using a website or app", ["website", "ui"], "Read the terms of use with a parent.", "和家长一起阅读使用条款。"],
+  "all rights reserved": ["版权所有", "a short notice that a website owns its work", ["website"], "The footer says all rights reserved.", "页脚写着版权所有。"]
 };
 
 const tagRules = [

@@ -362,6 +362,35 @@
       }
     ]
   },
+  "terms of use": {
+    "phrase": "terms of use",
+    "cn": "使用条款",
+    "simple": "rules for using a website or app",
+    "tags": [
+      "website",
+      "ui"
+    ],
+    "examples": [
+      {
+        "en": "Read the terms of use with a parent.",
+        "cn": "和家长一起阅读使用条款。"
+      }
+    ]
+  },
+  "all rights reserved": {
+    "phrase": "all rights reserved",
+    "cn": "版权所有",
+    "simple": "a short notice that a website owns its work",
+    "tags": [
+      "website"
+    ],
+    "examples": [
+      {
+        "en": "The footer says all rights reserved.",
+        "cn": "页脚写着版权所有。"
+      }
+    ]
+  },
   "please sit criss-cross on the rug.": {
     "phrase": "please sit criss-cross on the rug.",
     "cn": "请盘腿坐在地毯上。",
@@ -4691,34 +4720,6 @@
       {
         "en": "Read the phrase: nurse office.",
         "cn": "读这个短语：nurse office。"
-      }
-    ]
-  },
-  "playground rules": {
-    "phrase": "playground rules",
-    "cn": "playground rules（常用短语）",
-    "simple": "",
-    "tags": [
-      "daily"
-    ],
-    "examples": [
-      {
-        "en": "Read the phrase: playground rules.",
-        "cn": "读这个短语：playground rules。"
-      }
-    ]
-  },
-  "quiet area": {
-    "phrase": "quiet area",
-    "cn": "quiet area（常用短语）",
-    "simple": "",
-    "tags": [
-      "daily"
-    ],
-    "examples": [
-      {
-        "en": "Read the phrase: quiet area.",
-        "cn": "读这个短语：quiet area。"
       }
     ]
   }
