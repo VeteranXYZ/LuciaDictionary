@@ -284,7 +284,7 @@ export function pickPhonetic(entry) {
   for (const item of entry?.phonetics || []) {
     if (item?.text) candidates.push(item.text);
   }
-  return candidates.find(Boolean) || "";
+  return cleanPhonetic(candidates.find(Boolean) || "");
 }
 
 export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon = {}, phonetics, translateText, enqueueNetwork, getCachedOnlineWord, setCachedOnlineWord }) {

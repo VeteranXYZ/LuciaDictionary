@@ -1,3 +1,5 @@
+import { cleanPhonetic } from "./phonetic.js";
+
 export const SPEAKER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
 export const STAR_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
 export const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
@@ -113,7 +115,7 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
   const cached = getCachedOnlineWord(w);
   if (cached) {
     if (!isCurrentRun(runId)) return;
-    if (cached.phonetic && phoneticEl) phoneticEl.textContent = cached.phonetic;
+    if (cached.phonetic && phoneticEl) phoneticEl.textContent = cleanPhonetic(cached.phonetic);
     if (fillMeaning) {
       renderDefinitionsToElement(cnEl, cached.definitions);
       setMeaning(card, cached.meaning);
@@ -140,7 +142,7 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
       if (phoneticEl && phoneticEl.textContent === "音标查询中…") phoneticEl.textContent = "暂无音标";
       return;
     }
-    if (data.phonetic && phoneticEl) phoneticEl.textContent = data.phonetic;
+    if (data.phonetic && phoneticEl) phoneticEl.textContent = cleanPhonetic(data.phonetic);
     if (fillMeaning) {
       renderDefinitionsToElement(cnEl, data.definitions);
       setMeaning(card, data.meaning);

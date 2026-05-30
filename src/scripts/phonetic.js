@@ -7,6 +7,7 @@ export function cleanPhonetic(ph) {
   const normalized = raw
     .replace(/\s+/g, " ")
     .replace(/\s*\/\s*/g, "/")
+    .replace(/^\/+|\/+$/g, "")
     .trim();
   if (!normalized || INVALID_PHONETIC_RE.test(normalized)) return "";
   if (!/[a-zA-Zɑæəɜɪʊɔʌɒθðʃʒŋˈˌːˑ]/.test(normalized)) return "";

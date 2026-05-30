@@ -596,7 +596,8 @@ textarea#sentence-input::placeholder {
   font-weight: 600;
   margin-top: 3px;
   font-family: "Charis SIL", "Doulos SIL", "Noto Sans", "Noto Sans Symbols", "Arial Unicode MS", system-ui, sans-serif;
-  font-style: italic;
+  font-style: normal;
+  letter-spacing: 0;
   word-break: normal;
   overflow-wrap: normal;
 }
@@ -634,20 +635,6 @@ textarea#sentence-input::placeholder {
   color: var(--whisper);
   font-size: .85rem;
 }
-.word-meta,
-.word-source {
-  margin-top: 6px;
-  color: var(--mute);
-  font-size: .74rem;
-  font-weight: 700;
-  line-height: 1.35;
-}
-.word-source {
-  padding-left: 8px;
-  border-left: 3px solid var(--line);
-  overflow-wrap: anywhere;
-}
-
 .word-actions {
   display: flex;
   flex-direction: column;
