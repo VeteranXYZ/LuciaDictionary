@@ -7,8 +7,10 @@ let sentenceState = "idle";
 let sentenceTextEl = null;
 let sentenceTokens = [];
 let sentenceFallbackTimer = null;
+let sentenceFallbackDelayTimer = null;
 let sentenceHighlightIndex = -1;
 let sentenceStateHandler = null;
+let sentenceBoundarySeen = false;
 
 const SENTENCE_LABELS = {
   idle: "朗读整句",
@@ -129,10 +131,7 @@ export function highlightSentenceToken(index) {
 }
 
 export function resetSentenceSpeech() {
-  if (sentenceFallbackTimer) {
-    clearInterval(sentenceFallbackTimer);
-    sentenceFallbackTimer = null;
-  }
+  clearSentenceTimers();
   if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel();
   clearSentenceHighlight();
   setSentenceState("idle");
@@ -156,11 +155,12 @@ export function startSentenceSpeech(text, options = {}) {
     options.onUnavailable?.();
     return;
   }
-  if (sentenceFallbackTimer) clearInterval(sentenceFallbackTimer);
+  clearSentenceTimers();
   sentenceStateHandler = options.onStateChange || sentenceStateHandler;
   sentenceTextEl = options.textEl || sentenceTextEl;
   sentenceTokens = sentenceTextEl ? renderSpeakableText(sentenceTextEl, options.displayText || text) : [];
   sentenceHighlightIndex = -1;
+  sentenceBoundarySeen = false;
 
   speechSynthesis.cancel();
   qsa(".word-card.sentence-active").forEach(card => card.classList.remove("sentence-active"));
@@ -186,10 +186,11 @@ export function startSentenceSpeech(text, options = {}) {
 
   utterance.onboundary = event => {
     if (event.name && event.name !== "word") return;
-    const before = text.slice(0, event.charIndex);
-    const beforeTokens = before.match(/[a-zA-Z']+/g) || [];
-    highlightSentenceToken(beforeTokens.length);
-    const word = tokens[beforeTokens.length];
+    sentenceBoundarySeen = true;
+    clearSentenceTimers();
+    const tokenIndex = getSentenceTokenIndex(event.charIndex);
+    if (tokenIndex >= 0) highlightSentenceToken(tokenIndex);
+    const word = sentenceTokens[tokenIndex]?.text.toLowerCase() || tokens[tokenIndex];
     if (!word) return;
     const card = cardByWord[word];
     if (lastCard && lastCard !== card) lastCard.classList.remove("sentence-active");
@@ -205,34 +206,58 @@ export function startSentenceSpeech(text, options = {}) {
   };
   utterance.onend = utterance.onerror = () => {
     qsa(".word-card.sentence-active").forEach(card => card.classList.remove("sentence-active"));
-    if (sentenceFallbackTimer) {
-      clearInterval(sentenceFallbackTimer);
-      sentenceFallbackTimer = null;
-    }
+    clearSentenceTimers();
     clearSentenceHighlight();
     setSentenceState("idle");
   };
   setSentenceState("speaking");
   if (sentenceTokens.length) {
     highlightSentenceToken(0);
-    startFallbackHighlight();
+    scheduleFallbackHighlight();
   }
   speechSynthesis.speak(utterance);
 }
 
 export function pauseSentenceSpeech() {
   if (typeof speechSynthesis !== "undefined") speechSynthesis.pause();
-  if (sentenceFallbackTimer) {
-    clearInterval(sentenceFallbackTimer);
-    sentenceFallbackTimer = null;
-  }
+  clearSentenceTimers();
   setSentenceState("paused");
 }
 
 export function resumeSentenceSpeech() {
   if (typeof speechSynthesis !== "undefined") speechSynthesis.resume();
   setSentenceState("speaking");
-  startFallbackHighlight();
+  if (!sentenceBoundarySeen) scheduleFallbackHighlight();
+}
+
+function clearSentenceTimers() {
+  if (sentenceFallbackTimer) {
+    clearInterval(sentenceFallbackTimer);
+    sentenceFallbackTimer = null;
+  }
+  if (sentenceFallbackDelayTimer) {
+    clearTimeout(sentenceFallbackDelayTimer);
+    sentenceFallbackDelayTimer = null;
+  }
+}
+
+function getSentenceTokenIndex(charIndex) {
+  const index = Number(charIndex);
+  if (!sentenceTokens.length || !Number.isFinite(index)) return -1;
+  for (let i = 0; i < sentenceTokens.length; i++) {
+    const token = sentenceTokens[i];
+    if (index >= token.start && index < token.end) return i;
+    if (index < token.start) return i;
+  }
+  return sentenceTokens.length - 1;
+}
+
+function scheduleFallbackHighlight() {
+  if (!sentenceTokens.length || sentenceBoundarySeen || sentenceFallbackTimer || sentenceFallbackDelayTimer) return;
+  sentenceFallbackDelayTimer = setTimeout(() => {
+    sentenceFallbackDelayTimer = null;
+    if (!sentenceBoundarySeen && sentenceState === "speaking") startFallbackHighlight();
+  }, 900);
 }
 
 function startFallbackHighlight() {
