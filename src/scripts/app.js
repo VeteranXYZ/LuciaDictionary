@@ -114,12 +114,6 @@ function isCurrentAnalyzeRun(runId) {
   return runId == null || runId === analyzeRunId;
 }
 
-function sourceLabel(source) {
-  if (source === "template") return "本地课堂短句";
-  if (source === "local-words") return "本地词库";
-  return "在线翻译";
-}
-
 async function analyzeSentence() {
   const input = document.getElementById("sentence-input");
   const raw = input?.value.trim() || "";
@@ -146,7 +140,7 @@ async function analyzeSentence() {
         const resolved = await translationService.resolveChineseInput(raw);
         if (runId !== analyzeRunId) return;
         sentence = resolved.sentence;
-        setSentenceText(`${raw} → ${sentence}（${sourceLabel(resolved.source)}）`);
+        setSentenceText(sentence);
         setSentenceSpeakLabel("朗读英文句子");
       } catch (e) {
         if (runId !== analyzeRunId) return;

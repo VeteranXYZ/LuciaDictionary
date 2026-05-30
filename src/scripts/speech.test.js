@@ -13,6 +13,7 @@ const originalUtterance = globalThis.SpeechSynthesisUtterance;
 
 afterEach(() => {
   resetSentenceSpeech();
+  vi.useRealTimers();
   globalThis.document = originalDocument;
   globalThis.speechSynthesis = originalSpeechSynthesis;
   globalThis.SpeechSynthesisUtterance = originalUtterance;
@@ -118,6 +119,20 @@ describe("sentence read aloud", () => {
 
     getUtterance().onend();
     expect(textEl.querySelectorAll(".speaking-word").length).toBe(0);
+  });
+
+  it("does not let fallback timing override browser word boundaries", () => {
+    vi.useFakeTimers();
+    const getUtterance = installSpeech();
+    const textEl = makeElement();
+
+    startSentenceSpeech("Alpha beta gamma.", { textEl });
+    getUtterance().onboundary({ name: "word", charIndex: 6 });
+    vi.advanceTimersByTime(2000);
+
+    const highlighted = textEl.querySelectorAll(".speaking-word");
+    expect(highlighted).toHaveLength(1);
+    expect(highlighted[0].textContent).toBe("beta");
   });
 
   it("pause keeps current highlight and resume keeps a highlight", () => {

@@ -308,7 +308,7 @@ button, textarea { touch-action: manipulation; }
 
 .input-actions {
   display: grid;
-  grid-template-columns: 58px 66px;
+  grid-template-columns: 66px 66px;
   gap: 10px;
   align-items: stretch;
   min-width: 0;
@@ -368,7 +368,7 @@ textarea#sentence-input::placeholder {
 .btn-go svg { width: 26px; height: 26px; }
 
 .btn-camera {
-  width: 58px;
+  width: 66px;
   height: 100%;
   min-height: 66px;
   border: 2px solid var(--line);
