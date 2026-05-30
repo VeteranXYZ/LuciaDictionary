@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { cleanPhonetic } from "./phonetic.js";
 
 describe("cleanPhonetic", () => {
-  it("keeps valid IPA unchanged", () => {
-    expect(cleanPhonetic("/eɪdʒ/")).toBe("/eɪdʒ/");
-    expect(cleanPhonetic("/maɪnd/")).toBe("/maɪnd/");
-    expect(cleanPhonetic("/ˈsɪstəz/")).toBe("/ˈsɪstəz/");
+  it("keeps valid IPA without edge slashes", () => {
+    expect(cleanPhonetic("/eɪdʒ/")).toBe("eɪdʒ");
+    expect(cleanPhonetic("/maɪnd/")).toBe("maɪnd");
+    expect(cleanPhonetic("/ˈsɪstəz/")).toBe("ˈsɪstəz");
+    expect(cleanPhonetic(" / ə / ")).toBe("ə");
   });
 
   it("hides malformed phonetics with square placeholders", () => {

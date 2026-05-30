@@ -253,17 +253,7 @@ function renderWordbook() {
     if (entry.m) cn.textContent = entry.m;
     else setMutedText(cn, "正在查询中文释义…");
 
-    const meta = document.createElement("div");
-    meta.className = "word-meta";
-    meta.textContent = `正确 ${entry.correct || 0} · 错误 ${entry.wrong || 0} · Level ${entry.level || 0}`;
-    body.append(en, ph, cn, meta);
-
-    if (entry.sourceSentence) {
-      const source = document.createElement("div");
-      source.className = "word-source";
-      source.textContent = entry.sourceSentence;
-      body.appendChild(source);
-    }
+    body.append(en, ph, cn);
 
     const acts = document.createElement("div");
     acts.className = "word-actions";
