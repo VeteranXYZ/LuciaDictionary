@@ -1,0 +1,137 @@
+# Lucia's Dictionary SEO and Webmaster Setup Report
+
+Date: 2026-07-04
+
+Production origin: https://dict.luciaandrayna.com/
+
+## Scope
+
+This report records the SEO, crawl, Google Search Console, and Bing Webmaster Tools work completed for Lucia's Dictionary.
+
+The Search Console property used was the verified Domain property `luciaandrayna.com`. That property covers subdomains, but the inspected URL and submitted sitemap for this app were specifically for `https://dict.luciaandrayna.com/`.
+
+## Git State
+
+- Starting synced commit: `475fb9044fb193a2dee7ea3eb885a0bc17e3a6e3`
+- SEO implementation commit: `81afa976bb678a3b0ef239e6b46505f1e49f526e`
+- Bing verification commit: `9e20177`
+- Branch: `main`
+- Remote: `origin/main`
+- Ignored local state: root-level untracked `favicon.ico` was left untouched.
+
+## Site Model
+
+Indexable public pages:
+
+- `https://dict.luciaandrayna.com/`
+- `https://dict.luciaandrayna.com/about/`
+- `https://dict.luciaandrayna.com/how-to/`
+- `https://dict.luciaandrayna.com/sources/`
+- `https://dict.luciaandrayna.com/privacy/`
+- `https://dict.luciaandrayna.com/accessibility/`
+
+Non-indexable or canonicalized states:
+
+- Client-side dictionary searches do not create crawlable result URLs.
+- Query variants such as `/?q=apple`, `/about?utm_source=x`, and `/search?q=apple` redirect to canonical non-query URLs.
+- `/api/ocr` is internal API surface only and returns `X-Robots-Tag: noindex, nofollow`.
+
+404 routes:
+
+- `/word/apple`
+- `/NOPE`
+- Other unknown paths
+
+There are no dedicated word-entry pages at this time.
+
+## Crawl Files
+
+- `public/sitemap.xml` contains 6 canonical URLs.
+- `public/robots.txt` allows the public site, disallows `/api/` and `/assets/*.json`, and points to `https://dict.luciaandrayna.com/sitemap.xml`.
+- Production `robots.txt` also includes Cloudflare Managed Content before the app rules.
+- `public/_redirects`, `public/_headers`, `public/_routes.json`, and `functions/_middleware.js` enforce canonical query redirects, noindex API headers, and correct static asset routing.
+
+## Production Verification
+
+Verified after deployment:
+
+- Homepage returns `200`.
+- Homepage contains `<meta name="msvalidate.01" content="F0033F6901282859D6F7A01930532E70">`.
+- `/sitemap.xml` returns `200` with `content-type: application/xml`.
+- `/word/apple` returns `404`.
+- `/api/ocr` returns `405` for GET and includes `X-Robots-Tag: noindex, nofollow`.
+- Chrome interaction test on production generated word cards without changing the canonical URL.
+
+## Google Search Console
+
+Property used: Domain property `luciaandrayna.com`.
+
+Sitemap submission:
+
+- Submitted sitemap: `https://dict.luciaandrayna.com/sitemap.xml`
+- Submitted: Jul 4, 2026
+- Last read: Jul 4, 2026
+- Status: Success
+- Discovered pages: 6
+- Discovered videos: 0
+
+URL Inspection for `https://dict.luciaandrayna.com/`:
+
+- The inspected URL was the dict subdomain homepage, not the apex domain.
+- Google index status: URL is not on Google.
+- Current indexed-inspection reason after recheck: `URL is unknown to Google`.
+- Discovery section currently says no referring sitemap detected, even though the Sitemaps report lists the dict sitemap as successful. Treat this as Search Console data lag unless it persists after Google crawls the sitemap.
+- Live Test completed on Jul 4, 2026 at 4:15 PM Pacific.
+- Live Test result: URL is available to Google.
+- Page availability: Page can be indexed.
+- Request indexing was attempted earlier and blocked by an account-level daily quota modal: `Quota Exceeded`. No further indexing request was submitted.
+
+Manual actions and security:
+
+- Manual actions: No issues detected.
+- Security issues: No issues detected.
+
+## Bing Webmaster Tools
+
+Site added and verified:
+
+- Site: `https://dict.luciaandrayna.com/`
+- Verification method: HTML meta tag in the homepage `<head>`.
+- Verification meta: `msvalidate.01`.
+- After production deployment and refresh, Bing no longer showed `User is unauthorized to access the site`.
+
+Sitemap submission:
+
+- Submitted sitemap: `https://dict.luciaandrayna.com/sitemap.xml`
+- Bing result: `Success: https://dict.luciaandrayna.com/sitemap.xml is successfully submitted for processing.`
+- Bing table status immediately after submission: `Submitted - Processing`
+- Last submit: 7/4/2026
+- URLs discovered immediately after submission: 0, pending processing.
+
+Google Search Console import was not used because it would grant Bing read-only Google Search Console account access and periodic verification access. Manual Bing verification was completed instead.
+
+## Validation Commands
+
+All passed after implementation and after the Bing verification meta change:
+
+```bash
+npm test
+npm run check
+npm run build
+npm run audit:seo
+```
+
+Latest local validation results:
+
+- Test files: 15 passed
+- Tests: 85 passed
+- Astro check: 0 errors, 0 warnings, 0 hints
+- Build: 7 pages built
+- SEO audit: 6 sitemap URLs passed
+
+## Known Follow-Ups
+
+- Google indexing is not immediate. The live page is technically indexable, but Search Console currently reports the URL as not indexed.
+- Revisit Google URL Inspection after the daily quota resets if manual indexing request is still desired.
+- Recheck Bing sitemap after processing; initial state is expected to show `Submitted - Processing` with 0 URLs discovered.
+- `npm install` reported existing dependency audit findings: 1 low, 5 moderate, and 3 high. No dependency upgrade or `npm audit fix` was run as part of this SEO task.
