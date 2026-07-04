@@ -1,12 +1,27 @@
 ---
 interface Props {
   title?: string;
+  description?: string;
+  canonicalPath?: string;
+  ogTitle?: string;
+  noindex?: boolean;
+  appScript?: boolean;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const { title = "Lucia's Dictionary · 露西亚的英语字典" } = Astro.props;
-const description = "Lucia's Dictionary helps bilingual elementary-school children turn English classroom instructions into word cards, Chinese meanings, pronunciation practice, and local review.";
-const canonical = "https://dict.luciaandrayna.com/";
+const {
+  title = "Lucia's Dictionary · English Sentence Dictionary for Bilingual Learners",
+  description = "Lucia's Dictionary helps bilingual elementary-school children turn English classroom instructions into word cards, Chinese meanings, pronunciation practice, and local review.",
+  canonicalPath = "/",
+  ogTitle = "Lucia's Dictionary",
+  noindex = false,
+  appScript = true,
+  structuredData = []
+} = Astro.props;
+const siteOrigin = "https://dict.luciaandrayna.com";
+const canonicalUrl = new URL(canonicalPath, siteOrigin).toString();
 const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
+const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData];
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -15,12 +30,14 @@ const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    <meta property="og:title" content="Lucia's Dictionary" />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:url" content={canonical} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Lucia's Dictionary" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#6B8E5A" />
     <link rel="icon" type="image/png" href="/favicon.png?v=2.5" />
@@ -30,12 +47,15 @@ const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+SC:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    {jsonLd.map(item => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
   </head>
   <body>
     <slot />
-    <script>
-      import "../scripts/app.js";
-    </script>
+    {appScript && (
+      <script>
+        import "../scripts/app.js";
+      </script>
+    )}
   </body>
 </html>
 

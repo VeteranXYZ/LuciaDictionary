@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /assets/*.json
+
+Sitemap: https://dict.luciaandrayna.com/sitemap.xml

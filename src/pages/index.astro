@@ -1,8 +1,35 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
+
+const title = "Lucia's Dictionary · English Sentence Dictionary for Bilingual Learners";
+const description = "Search or paste English classroom sentences, then get word cards with Chinese meanings, phonetics, pronunciation practice, and local review tools.";
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Lucia's Dictionary",
+    url: "https://dict.luciaandrayna.com/",
+    description,
+    inLanguage: ["en", "zh-CN"],
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://dict.luciaandrayna.com/",
+      "query-input": "name=sentence"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Lucia's Dictionary",
+    url: "https://dict.luciaandrayna.com/",
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Any modern web browser",
+    description
+  }
+];
 ---
 
-<MainLayout>
+<MainLayout title={title} description={description} structuredData={structuredData}>
   <div class="app">
     <header class="brand">
       <button class="brand-logo" id="brand-home-btn" type="button" aria-label="返回首页">
@@ -23,15 +50,16 @@ import MainLayout from "../layouts/MainLayout.astro";
         <div class="hero-center">
           <div class="hero-mascot"><img src="assets/lucia.png" alt="Lucia" /></div>
           <div class="hero-copy">
-            <h1 class="hero-title">把句子变成单词卡 ✨</h1>
-            <p class="hero-sub">输入中文或英文句子，<br />我帮你认识里面的每一个英文单词</p>
+            <h1 class="hero-title">Lucia's Dictionary</h1>
+            <p class="hero-sub">输入中文或英文课堂句子，<br />把它拆成可朗读、可复习的单词卡</p>
           </div>
         </div>
       </section>
 
       <div class="input-card">
+        <label class="sr-only" for="sentence-input">输入中文或英文课堂句子</label>
         <div class="input-row">
-          <textarea id="sentence-input" placeholder="在这里输入中文或英文句子…" rows="2"></textarea>
+          <textarea id="sentence-input" placeholder="输入作业、阅读、数学或课堂英文句子…" rows="2"></textarea>
           <div class="input-actions">
             <button class="btn-camera" id="camera-btn" type="button" title="上传图片或拍照识别英文" aria-label="上传图片或拍照识别英文">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
@@ -70,6 +98,21 @@ import MainLayout from "../layouts/MainLayout.astro";
         </div>
         <button class="tip-close" id="tip-close-btn" type="button" aria-label="关闭小提示">×</button>
       </div>
+
+      <section class="public-summary" aria-labelledby="public-summary-title">
+        <h2 id="public-summary-title">A sentence-first online dictionary for classroom English</h2>
+        <p>
+          Lucia's Dictionary helps Chinese-speaking families understand English homework and classroom instructions.
+          Paste a sentence, review the extracted words, listen to pronunciations, and save unfamiliar words in this browser.
+        </p>
+        <nav class="public-links" aria-label="Dictionary information">
+          <a href="/about/">About</a>
+          <a href="/how-to/">How to Use</a>
+          <a href="/sources/">Sources</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/accessibility/">Accessibility</a>
+        </nav>
+      </section>
     </div>
 
     <div class="page" id="pg-wordbook">
