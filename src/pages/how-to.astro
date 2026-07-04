@@ -1,0 +1,40 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+
+const title = "How to Use Lucia's Dictionary";
+const description = "Use Lucia's Dictionary by entering a Chinese or English classroom sentence, reviewing word cards, listening to pronunciation, and saving words for local review.";
+---
+
+<MainLayout title={title} description={description} canonicalPath="/how-to/" ogTitle={title} appScript={false}>
+  <main class="info-page">
+    <a class="back-link" href="/">Lucia's Dictionary</a>
+    <h1>How to Use Lucia's Dictionary</h1>
+    <ol class="steps">
+      <li>Enter or paste a Chinese or English classroom sentence.</li>
+      <li>Use the action button to create word cards.</li>
+      <li>Review each English word, Chinese meaning, and phonetic hint.</li>
+      <li>Tap a word or speaker control to hear pronunciation.</li>
+      <li>Save unfamiliar words to the local wordbook for later practice.</li>
+    </ol>
+    <section>
+      <h2>What You Can Search</h2>
+      <p>
+        The app works best with classroom sentences, homework directions, reading questions, math prompts, science notes,
+        and short teacher instructions. It can also accept single words, but its main workflow is sentence-first.
+      </p>
+    </section>
+    <section>
+      <h2>Search States</h2>
+      <p>
+        Searches happen inside the app. They do not create public word pages, saved search pages, accounts, or shared
+        search histories.
+      </p>
+    </section>
+    <nav class="info-links" aria-label="Public pages">
+      <a href="/">Open Dictionary</a>
+      <a href="/about/">About</a>
+      <a href="/sources/">Sources</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+  </main>
+</MainLayout>

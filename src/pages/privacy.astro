@@ -1,0 +1,45 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+
+const title = "Privacy";
+const description = "Lucia's Dictionary stores wordbook items, settings, and lookup caches in the browser and does not provide accounts, public profiles, or advertising tracking.";
+---
+
+<MainLayout title={title} description={description} canonicalPath="/privacy/" ogTitle={title} appScript={false}>
+  <main class="info-page">
+    <a class="back-link" href="/">Lucia's Dictionary</a>
+    <h1>Privacy</h1>
+    <p>
+      Lucia's Dictionary is designed as a simple local-first learning tool. It does not provide accounts, public user
+      profiles, search-history sharing, personalized advertising, or a backend wordbook sync feature.
+    </p>
+    <section>
+      <h2>Browser Storage</h2>
+      <p>
+        Saved words, settings, daily-use state, and lookup caches are stored in the current browser through localStorage.
+        Clearing browser data or using another device can remove or separate that local data.
+      </p>
+    </section>
+    <section>
+      <h2>Network Requests</h2>
+      <p>
+        The app can request online dictionary and translation fallbacks when local data is not enough. Photo OCR, when
+        configured, sends the selected image to a same-origin OCR endpoint that forwards it to an OCR service with a
+        server-side key.
+      </p>
+    </section>
+    <section>
+      <h2>Children's Information</h2>
+      <p>
+        The public site should not publish private child information such as schools, addresses, birth dates, schedules,
+        private photographs, or account details.
+      </p>
+    </section>
+    <nav class="info-links" aria-label="Public pages">
+      <a href="/">Open Dictionary</a>
+      <a href="/about/">About</a>
+      <a href="/sources/">Sources</a>
+      <a href="/accessibility/">Accessibility</a>
+    </nav>
+  </main>
+</MainLayout>

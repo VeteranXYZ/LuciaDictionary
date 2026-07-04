@@ -1,0 +1,37 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+
+const title = "Accessibility";
+const description = "Accessibility notes for Lucia's Dictionary, including keyboard input, labels, readable layout, speech controls, and current limitations.";
+---
+
+<MainLayout title={title} description={description} canonicalPath="/accessibility/" ogTitle={title} appScript={false}>
+  <main class="info-page">
+    <a class="back-link" href="/">Lucia's Dictionary</a>
+    <h1>Accessibility</h1>
+    <p>
+      Lucia's Dictionary is built for quick use on phones and modern browsers, with large controls, readable cards,
+      keyboard-friendly sentence input, and labels for the main input and icon buttons.
+    </p>
+    <section>
+      <h2>Current Support</h2>
+      <p>
+        The main sentence field has an accessible label, common icon buttons include aria labels, and the app can be
+        operated with keyboard input for sentence submission.
+      </p>
+    </section>
+    <section>
+      <h2>Known Limitations</h2>
+      <p>
+        Speech quality depends on the browser and operating system. A full screen-reader audit, reduced-motion pass,
+        and formal accessibility conformance review remain future work.
+      </p>
+    </section>
+    <nav class="info-links" aria-label="Public pages">
+      <a href="/">Open Dictionary</a>
+      <a href="/about/">About</a>
+      <a href="/how-to/">How to Use</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+  </main>
+</MainLayout>

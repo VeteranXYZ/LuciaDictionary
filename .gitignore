@@ -2,6 +2,7 @@
 node_modules/
 dist/
 .astro/
+.wrangler/
 
 # Security-sensitive local files
 .env

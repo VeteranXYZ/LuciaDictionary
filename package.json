@@ -9,6 +9,7 @@
     "build:lexicon": "node tools/build-core-lexicon.mjs",
     "build:hfv-ecdict-core": "node tools/build-hfv-ecdict-core.mjs",
     "audit:lexicon": "node tools/audit-lexicon.mjs",
+    "audit:seo": "node tools/validate-seo.mjs",
     "audit:hfv-ecdict-core": "node tools/audit-hfv-ecdict-core.mjs",
     "audit:ocr-sample": "node tools/audit-ocr-sample-coverage.mjs",
     "audit:translation-quality": "node tools/audit-translation-quality.mjs",

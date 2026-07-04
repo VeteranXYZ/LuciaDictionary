@@ -1,0 +1,44 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+
+const title = "Dictionary Sources and Attribution";
+const description = "Review the data-source model for Lucia's Dictionary, including local lexicon files, classroom phrase data, phonetics, and online fallback services.";
+---
+
+<MainLayout title={title} description={description} canonicalPath="/sources/" ogTitle={title} appScript={false}>
+  <main class="info-page">
+    <a class="back-link" href="/">Lucia's Dictionary</a>
+    <h1>Dictionary Sources and Attribution</h1>
+    <p>
+      Lucia's Dictionary combines local public app data with optional online fallback services. The internal vocabulary
+      files are application data, not a promise that every word has a public web page.
+    </p>
+    <section>
+      <h2>Local App Data</h2>
+      <p>
+        The app uses bundled JSON assets for a basic dictionary, a core English lexicon, classroom phrase matching,
+        and phonetic hints. These files support the in-browser learning workflow.
+      </p>
+    </section>
+    <section>
+      <h2>Lexicon Inputs</h2>
+      <p>
+        The repository documentation identifies high-frequency-vocabulary and ECDICT as source inputs for building the
+        generated core lexicon. Large temporary source files are not committed; the generated app data is committed.
+      </p>
+    </section>
+    <section>
+      <h2>Online Fallbacks</h2>
+      <p>
+        When local data is missing, the app may use dictionaryapi.dev and translation fallback paths. Network fallback
+        results can vary and are cached locally in the current browser.
+      </p>
+    </section>
+    <nav class="info-links" aria-label="Public pages">
+      <a href="/">Open Dictionary</a>
+      <a href="/about/">About</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/accessibility/">Accessibility</a>
+    </nav>
+  </main>
+</MainLayout>

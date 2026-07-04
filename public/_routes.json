@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/_a/*",
+    "/assets/*",
+    "/*.{ico,png,jpg,jpeg,webp,css,js,json,webmanifest,txt,xml}"
+  ]
+}
