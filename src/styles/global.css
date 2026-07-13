@@ -1989,10 +1989,11 @@ textarea#sentence-input::placeholder {
   background: var(--ink-50);
   border: 1px solid var(--ink-soft);
   border-radius: var(--r-md);
-  text-align: left;
+  text-align: center;
 }
 .settings-info-head {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
 }
@@ -2036,12 +2037,14 @@ textarea#sentence-input::placeholder {
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   color: var(--ink-text);
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   text-decoration: none;
+  text-align: center;
   font-size: 0.76rem;
   font-weight: 750;
   transition:
@@ -2062,6 +2065,8 @@ textarea#sentence-input::placeholder {
 }
 .settings-info-links a:last-child {
   grid-column: 1 / -1;
+  justify-self: center;
+  width: calc((100% - 8px) / 2);
 }
 .settings-info-note {
   margin-top: 11px;
