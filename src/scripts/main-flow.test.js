@@ -41,6 +41,20 @@ describe("main analysis flow source", () => {
     expect(styles).toContain("height: 104px");
   });
 
+  it("provides a matching copy action with visible completion feedback", () => {
+    const source = fs.readFileSync("src/scripts/app.js", "utf8");
+    const markup = fs.readFileSync("src/pages/index.astro", "utf8");
+    const styles = fs.readFileSync("src/styles/global.css", "utf8");
+    expect(markup).toContain('id="copy-sentence-btn"');
+    expect(markup).toContain('id="copy-sentence-icon"');
+    expect(markup).toContain("复制文本");
+    expect(styles).toContain(".sentence-actions");
+    expect(source).toContain("navigator.clipboard?.writeText");
+    expect(source).toContain(
+      'label.textContent = copied ? "已复制" : "复制文本"',
+    );
+  });
+
   it("counts unique local dictionary words in settings", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
     expect(source).toMatch(
