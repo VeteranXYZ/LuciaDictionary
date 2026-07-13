@@ -8,15 +8,16 @@ describe("main analysis flow source", () => {
     expect(source).toContain("buildWordCard(");
   });
 
-  it("uses the native file picker for the camera button", () => {
+  it("uses separate native camera and photo-library inputs", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
     const markup = fs.readFileSync("src/pages/index.astro", "utf8");
     expect(source).not.toContain("createCameraCaptureController");
-    expect(source).toContain("imageInput.click()");
-    expect(markup).toContain(
-      'type="file" id="image-input" accept="image/*" hidden',
-    );
-    expect(markup).not.toContain("capture=");
+    expect(source).toContain("sourceDialog.showModal()");
+    expect(markup).toContain('id="camera-input"');
+    expect(markup).toContain('capture="environment"');
+    expect(markup).toContain('for="camera-input"');
+    expect(markup).toContain('id="image-input"');
+    expect(markup).toContain('for="image-input"');
   });
 
   it("does not render the photo tips block", () => {

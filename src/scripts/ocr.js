@@ -11,6 +11,8 @@ const SUPPORTED_INPUT_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
 ]);
 
 const OCR_ERROR_MESSAGES = {
@@ -67,7 +69,11 @@ export function mapOcrResponseError(status, body = {}) {
 }
 
 export function isSupportedOcrImage(file) {
-  return SUPPORTED_INPUT_TYPES.has(file?.type);
+  const type = String(file?.type || "").toLowerCase();
+  if (SUPPORTED_INPUT_TYPES.has(type)) return true;
+  if (!type && /\.(jpe?g|png|webp|heic|heif)$/i.test(file?.name || ""))
+    return true;
+  return false;
 }
 
 function loadImage(file) {

@@ -66,6 +66,27 @@ test("handles OCR through the same-origin endpoint", async ({ page }) => {
   await expect(page.locator("#word-list .word-card")).toHaveCount(3);
 });
 
+test("keeps uncertain OCR tokens compact until individually confirmed", async ({
+  page,
+}) => {
+  await page.route("**/api/ocr", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ text: "Read the rowe zzzz passage." }),
+    }),
+  );
+  await page.goto("/");
+  await page.locator("#image-input").setInputFiles("public/favicon.png");
+
+  await expect(page.locator("#word-list .word-card")).toHaveCount(3);
+  await expect(page.locator(".ocr-uncertain")).toContainText(
+    "已收起 2 个可能识别有误的词",
+  );
+  await expect(page.locator(".ocr-uncertain-chip")).toHaveCount(2);
+  await expect(page.locator("#word-list")).not.toContainText("联网查询失败");
+});
+
 test("starts and analyzes a local sentence while offline", async ({
   page,
   context,

@@ -101,10 +101,12 @@ function setAnalyzeBusy(isBusy) {
   const btn = document.getElementById("go-btn");
   const input = document.getElementById("sentence-input");
   const imageInput = document.getElementById("image-input");
+  const cameraInput = document.getElementById("camera-input");
   const cameraBtn = document.getElementById("camera-btn");
   if (btn) btn.disabled = isBusy;
   if (input) input.disabled = isBusy;
   if (imageInput) imageInput.disabled = isBusy;
+  if (cameraInput) cameraInput.disabled = isBusy;
   if (cameraBtn) {
     cameraBtn.classList.toggle("is-disabled", isBusy);
     cameraBtn.setAttribute("aria-disabled", String(isBusy));
@@ -178,7 +180,52 @@ function isCurrentAnalyzeRun(runId) {
   return runId == null || runId === analyzeRunId;
 }
 
-async function analyzeSentence() {
+function createOcrUncertainPanel(words, lookupWord) {
+  const panel = document.createElement("section");
+  panel.className = "ocr-uncertain";
+  panel.setAttribute("aria-label", "可能识别有误的词");
+
+  const copy = document.createElement("div");
+  copy.className = "ocr-uncertain-copy";
+  const title = document.createElement("strong");
+  title.textContent = `已收起 ${words.length} 个可能识别有误的词`;
+  const hint = document.createElement("span");
+  hint.textContent = "这些词未在本地词典中找到。点一个词，可单独联网确认。";
+  copy.append(title, hint);
+
+  const chips = document.createElement("div");
+  chips.className = "ocr-uncertain-chips";
+  for (const word of words) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ocr-uncertain-chip";
+    button.textContent = word;
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      button.classList.remove("is-missing");
+      button.textContent = `${word} · 查询中`;
+      const found = await lookupWord(word);
+      if (found) {
+        button.remove();
+        const remaining = chips.querySelectorAll("button").length;
+        title.textContent = remaining
+          ? `还有 ${remaining} 个词可能识别有误`
+          : "已确认全部可查询词";
+        if (!remaining) hint.textContent = "查询到的词已加入下方单词卡。";
+      } else {
+        button.disabled = false;
+        button.classList.add("is-missing");
+        button.textContent = `${word} · 未查到`;
+      }
+    });
+    chips.appendChild(button);
+  }
+
+  panel.append(copy, chips);
+  return panel;
+}
+
+async function analyzeSentence({ source = "manual" } = {}) {
   const input = document.getElementById("sentence-input");
   const raw = input?.value.trim() || "";
   if (!raw || document.getElementById("go-btn")?.disabled) return;
@@ -251,29 +298,70 @@ async function analyzeSentence() {
       }
     }
 
-    uniqWords.forEach((word, index) => {
-      buildWordCard(word, index, dictService.lookup(word), list, {
-        stopWords: STOP_WORDS,
-        lookupLocalPhonetic: dictService.lookupLocalPhonetic,
-        lookupLearningBand: dictService.lookupLearningBand,
-        isStarred,
-        toggleStar,
-        speakWordN,
-        getCachedOnlineWord,
-        lookupOnlineData: dictService.lookupOnlineData,
-        sourceSentence: () => curSentence,
-        setMeaning: (card, meaning) =>
-          setCardMeaning(
-            card,
-            word.toLowerCase(),
-            meaning,
-            updateStarredMeaning,
-          ),
-        isCurrentRun: isCurrentAnalyzeRun,
-        runId,
-      });
+    const makeCardOptions = (word) => ({
+      stopWords: STOP_WORDS,
+      lookupLocalPhonetic: dictService.lookupLocalPhonetic,
+      lookupLearningBand: dictService.lookupLearningBand,
+      isStarred,
+      toggleStar,
+      speakWordN,
+      getCachedOnlineWord,
+      lookupOnlineData: dictService.lookupOnlineData,
+      sourceSentence: () => curSentence,
+      setMeaning: (card, meaning) =>
+        setCardMeaning(card, word.toLowerCase(), meaning, updateStarredMeaning),
+      isCurrentRun: isCurrentAnalyzeRun,
+      runId,
     });
-    announce(`已生成 ${uniqWords.length} 张单词卡`);
+
+    const uncertainWords =
+      source === "ocr"
+        ? uniqWords.filter(
+            (word) =>
+              !dictService.lookup(word) && !STOP_WORDS.has(word.toLowerCase()),
+          )
+        : [];
+    const uncertainKeys = new Set(
+      uncertainWords.map((word) => word.toLowerCase()),
+    );
+    const visibleWords = uniqWords.filter(
+      (word) => !uncertainKeys.has(word.toLowerCase()),
+    );
+
+    visibleWords.forEach((word, index) => {
+      buildWordCard(
+        word,
+        index,
+        dictService.lookup(word),
+        list,
+        makeCardOptions(word),
+      );
+    });
+
+    if (uncertainWords.length) {
+      list.appendChild(
+        createOcrUncertainPanel(uncertainWords, async (word) => {
+          try {
+            const data = await dictService.lookupOnlineData(word);
+            if (!data || runId !== analyzeRunId) return false;
+            buildWordCard(
+              word,
+              list.querySelectorAll(".word-card").length,
+              data.meaning,
+              list,
+              makeCardOptions(word),
+            );
+            return true;
+          } catch {
+            return false;
+          }
+        }),
+      );
+    }
+    const uncertainNote = uncertainWords.length
+      ? `，另收起 ${uncertainWords.length} 个待确认词`
+      : "";
+    announce(`已生成 ${visibleWords.length} 张单词卡${uncertainNote}`);
   } catch {
     list.replaceChildren(
       createEmptyState("本地词典暂时无法加载", "请刷新页面后再试"),
@@ -503,8 +591,10 @@ function setOcrStatus(message, type = "") {
 
 function setupImageOcr() {
   const imageInput = document.getElementById("image-input");
+  const cameraInput = document.getElementById("camera-input");
   const sentenceInput = document.getElementById("sentence-input");
   const cameraButton = document.getElementById("camera-btn");
+  const sourceDialog = document.getElementById("image-source-dialog");
   if (!imageInput || !sentenceInput) return;
 
   async function processOcrFile(file) {
@@ -512,10 +602,6 @@ function setupImageOcr() {
     let releasedBeforeAnalyze = false;
     setAnalyzeBusy(true);
     try {
-      if (!file.type.startsWith("image/")) {
-        throw new Error("请选择图片文件");
-      }
-
       const result = await recognizeImageText(file, {
         onProgress: (stage) => {
           if (stage === "compressing") {
@@ -535,7 +621,7 @@ function setupImageOcr() {
       setOcrStatus("正在生成单词卡…");
       releasedBeforeAnalyze = true;
       setAnalyzeBusy(false);
-      await analyzeSentence();
+      await analyzeSentence({ source: "ocr" });
       setOcrStatus("");
     } catch (error) {
       setOcrStatus(getOcrErrorMessage(error), "error");
@@ -544,15 +630,23 @@ function setupImageOcr() {
     }
   }
 
-  imageInput.addEventListener("change", async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    await processOcrFile(file);
-  });
+  for (const input of [cameraInput, imageInput].filter(Boolean)) {
+    input.addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (sourceDialog?.open) sourceDialog.close();
+      await processOcrFile(file);
+    });
+  }
 
   cameraButton?.addEventListener("click", () => {
     if (cameraButton.getAttribute("aria-disabled") === "true") return;
-    imageInput.click();
+    if (sourceDialog?.showModal) sourceDialog.showModal();
+    else imageInput.click();
+  });
+
+  sourceDialog?.addEventListener("click", (event) => {
+    if (event.target === sourceDialog) sourceDialog.close();
   });
 }
 
