@@ -1,11 +1,16 @@
 {
   "name": "lucia-dictionary",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "dev:pages": "npm run build && wrangler pages dev",
+    "build": "astro build && node tools/build-service-worker.mjs",
+    "build:runtime-lexicon": "node tools/build-runtime-lexicon.mjs",
     "build:lexicon": "node tools/build-core-lexicon.mjs",
     "build:hfv-ecdict-core": "node tools/build-hfv-ecdict-core.mjs",
     "audit:lexicon": "node tools/audit-lexicon.mjs",
@@ -13,19 +18,36 @@
     "audit:hfv-ecdict-core": "node tools/audit-hfv-ecdict-core.mjs",
     "audit:ocr-sample": "node tools/audit-ocr-sample-coverage.mjs",
     "audit:translation-quality": "node tools/audit-translation-quality.mjs",
+    "audit:offline": "node tools/audit-offline-build.mjs",
+    "audit:all": "npm run audit:lexicon && npm run audit:seo && npm run audit:ocr-sample && npm run audit:translation-quality && npm run audit:offline",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "vitest run",
-    "format": "prettier --write ."
+    "test": "npm run test:unit && npm run test:worker",
+    "test:unit": "vitest run --config vitest.config.js",
+    "test:worker": "vitest run --config vitest.worker.config.js",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e",
+    "cf:types": "wrangler types worker-configuration.d.ts",
+    "cf:types:check": "wrangler types worker-configuration.d.ts --check",
+    "cf:build": "wrangler pages functions build --outdir .wrangler/functions-build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "npm run format:check && npm run check && npm run test:all && npm run build && npm run audit:all && npm run cf:types:check && npm run cf:build && npm audit --audit-level=moderate"
   },
   "dependencies": {
-    "astro": "^6.2.1",
-    "terser": "^5.46.2"
+    "astro": "^7.0.7",
+    "terser": "^5.49.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
-    "prettier": "^3.7.4",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.16"
+    "@astrojs/check": "^0.9.9",
+    "@cloudflare/vitest-pool-workers": "^0.18.4",
+    "@cloudflare/workers-types": "^5.20260712.1",
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^22.20.1",
+    "prettier": "^3.9.5",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.110.0"
   }
 }

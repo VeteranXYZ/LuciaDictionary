@@ -1,28 +1,36 @@
+import { fetchWithPolicy } from "./network.js";
+import { getClientId } from "./storage.js";
+
 const OCR_ENDPOINT = "/api/ocr";
 const DEFAULT_MAX_SIDE = 1600;
 const OCR_UPLOAD_LIMIT_BYTES = 500 * 1024;
 const DEFAULT_TARGET_UPLOAD_BYTES = 460 * 1024;
 const DEFAULT_MIN_SIDE = 520;
 const QUALITY_STEPS = [0.82, 0.72, 0.62, 0.52, 0.44, 0.36];
-const SUPPORTED_INPUT_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const SUPPORTED_INPUT_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
 
 const OCR_ERROR_MESSAGES = {
   no_text_detected: "没有识别到清晰的英文。请把纸张拍正、拍近，并避免阴影。",
   image_too_blurry: "图片里的文字不够清楚。请重新拍一张更近、更亮的照片。",
   file_too_large: "图片太大了。请只拍英文题目区域，或裁剪后再上传。",
-  unsupported_file_type: "这个图片格式暂时不支持。请上传 JPG、PNG 或 WebP 图片。",
+  unsupported_file_type:
+    "这个图片格式暂时不支持。请上传 JPG、PNG 或 WebP 图片。",
   network_error: "网络连接不稳定。你可以先手动输入句子，稍后再试。",
   offline: "OCR 需要网络连接。你可以先手动输入句子。",
   service_unavailable: "OCR 服务暂时不可用。你可以先手动输入句子，稍后再试。",
   too_many_requests: "OCR 请求太多了。请稍等一会儿再试。",
-  unknown: "图片识别失败。你可以先手动输入句子。"
+  unknown: "图片识别失败。你可以先手动输入句子。",
 };
 
 export function cleanOcrText(text) {
   return String(text || "")
     .replace(/\r/g, "\n")
     .split("\n")
-    .map(line => line.trim())
+    .map((line) => line.trim())
     .filter(Boolean)
     .join(" ")
     .replace(/\s+/g, " ")
@@ -36,14 +44,18 @@ export function formatBytes(bytes) {
 }
 
 export function createOcrError(code, message) {
-  const error = new Error(message || OCR_ERROR_MESSAGES[code] || OCR_ERROR_MESSAGES.unknown);
+  const error = new Error(
+    message || OCR_ERROR_MESSAGES[code] || OCR_ERROR_MESSAGES.unknown,
+  );
   error.code = code || "unknown";
   return error;
 }
 
 export function getOcrErrorMessage(error) {
   const code = typeof error === "string" ? error : error?.code;
-  return OCR_ERROR_MESSAGES[code] || error?.message || OCR_ERROR_MESSAGES.unknown;
+  return (
+    OCR_ERROR_MESSAGES[code] || error?.message || OCR_ERROR_MESSAGES.unknown
+  );
 }
 
 export function mapOcrResponseError(status, body = {}) {
@@ -76,10 +88,14 @@ function loadImage(file) {
 
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {
-    canvas.toBlob(blob => {
-      if (blob) resolve(blob);
-      else reject(new Error("图片压缩失败"));
-    }, type, quality);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("图片压缩失败"));
+      },
+      type,
+      quality,
+    );
   });
 }
 
@@ -87,7 +103,7 @@ function fitImageSize(sourceWidth, sourceHeight, maxSide) {
   const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
   return {
     width: Math.max(1, Math.round(sourceWidth * scale)),
-    height: Math.max(1, Math.round(sourceHeight * scale))
+    height: Math.max(1, Math.round(sourceHeight * scale)),
   };
 }
 
@@ -162,13 +178,14 @@ export async function compressImageFile(file, options = {}) {
     uploadSize: compressed.size,
     width: bestStep.width,
     height: bestStep.height,
-    compressed: true
+    compressed: true,
   };
 }
 
 export async function recognizeImageText(file, options = {}) {
   if (!isSupportedOcrImage(file)) throw createOcrError("unsupported_file_type");
-  if (typeof navigator !== "undefined" && navigator.onLine === false) throw createOcrError("offline");
+  if (typeof navigator !== "undefined" && navigator.onLine === false)
+    throw createOcrError("offline");
 
   options.onProgress?.("compressing");
   const image = await compressImageFile(file, options);
@@ -179,7 +196,16 @@ export async function recognizeImageText(file, options = {}) {
   let response;
   let data = {};
   try {
-    response = await fetch(OCR_ENDPOINT, { method: "POST", body: formData });
+    const clientId = getClientId();
+    response = await fetchWithPolicy(
+      OCR_ENDPOINT,
+      {
+        method: "POST",
+        body: formData,
+        headers: clientId ? { "x-lucia-client": clientId } : {},
+      },
+      { timeoutMs: 20000, retries: 0 },
+    );
     data = await response.json().catch(() => ({}));
   } catch (e) {
     throw createOcrError("network_error");
@@ -196,6 +222,6 @@ export async function recognizeImageText(file, options = {}) {
     text,
     originalSize: image.originalSize,
     uploadSize: image.uploadSize,
-    compressed: image.compressed
+    compressed: image.compressed,
   };
 }

@@ -1,272 +1,174 @@
 # Lucia's Dictionary
 
-Lucia's Dictionary is a mobile-first English sentence learning tool for Chinese-speaking families.
+Lucia's Dictionary is a mobile-first, local-first English classroom learning tool for Chinese-speaking families. It turns an English or Chinese classroom sentence into readable, speakable, saveable word cards and schedules saved words for review.
 
-It is built around a simple homework problem: a child receives an English classroom sentence, reading instruction, math prompt, or teacher note, and needs to understand the whole sentence quickly. The app helps turn that sentence into readable, speakable, reviewable word cards.
+## Learning loop
 
-## What It Does
+1. Enter or photograph a classroom sentence.
+2. Translate Chinese input locally when a known phrase matches, with a bounded online fallback when needed.
+3. Split the English sentence into child-friendly word cards with meanings, phonetics, learning bands, and speech.
+4. Save unfamiliar words to the browser-only wordbook.
+5. Review due words with **会 / 不确定 / 忘记** feedback and lightweight spaced repetition.
 
-- accepts Chinese or English sentence input
-- matches known classroom phrases before using online translation fallback
-- extracts English words from the sentence
-- generates word cards with Chinese definitions and phonetics
-- reads individual words aloud
-- reads the full sentence aloud with word-card highlighting
-- saves unfamiliar words to a local wordbook
-- provides a phrasebook of common US elementary classroom instructions
-- supports photo OCR through a same-origin server endpoint when configured
-- stores settings, cache, and wordbook data in the browser
+No account is required. Wordbook, review history, preferences, and lookup caches remain in the current browser.
 
-## Why This Exists
-
-Traditional dictionaries are usually word-first. Lucia's homework problem was sentence-first.
-
-For a young learner, a sentence like "Circle the correct answer and explain your thinking" is not just a vocabulary lookup. The child needs to hear the sentence, see it broken into parts, identify unfamiliar words, and return to those words later.
-
-Lucia's Dictionary focuses on that learning loop:
-
-1. Start with the sentence.
-2. Break it into words.
-3. Show simple Chinese meanings and phonetics.
-4. Practice pronunciation.
-5. Save words that need review.
-
-The app is intentionally local-first and low-friction. Common words and classroom phrases should work without relying on network calls, while online services remain available as a fallback for missing data.
-
-## How It Works
+## Architecture
 
 ```mermaid
-flowchart TD
-  A[User sentence input] --> B{Chinese text?}
-  B -->|No| C[Extract English words]
-  B -->|Yes| D[Match local phrasebook]
-  D -->|Matched| C
-  D -->|Not matched| E[Translation fallback]
-  E --> C
-  C --> F[Local dictionary JSON]
-  C --> P[Local phonetics JSON]
-  F -->|Hit| G[Word card data]
-  F -->|Miss| H[Online dictionary fallback]
-  H --> I[Translate definitions]
-  I --> J[Bounded local cache]
-  J --> G
-  P --> G
-  G --> K[Word cards]
-  K --> L[Speech synthesis]
-  K --> M[Sentence playback highlight]
-  K --> N[Wordbook localStorage]
-  O[Astro static shell] --> K
+flowchart LR
+  A["Astro static shell"] --> B["Browser application"]
+  B --> C["Compact runtime lexicon"]
+  B --> D["Lazy-loaded phrasebook"]
+  B --> E["localStorage wordbook, schedule, settings, cache"]
+  B --> F["Browser speech synthesis"]
+  B --> G["Bounded dictionary and translation fallbacks"]
+  B --> H["Same-origin /api/ocr"]
+  H --> I["Cloudflare Pages Function"]
+  I --> J["OCR.Space"]
+  K["Generated service-worker precache"] --> A
+  K --> C
+  K --> D
 ```
 
-## Features
+The interface binds immediately; dictionary data loads asynchronously and the phrasebook loads only when Chinese input needs it. The production service worker precaches the generated Astro JS/CSS and the local learning data, so the core English sentence flow works after installation without a network connection.
 
-### Sentence Input
+## Lookup order
 
-The main input accepts either English or Chinese. English input is analyzed directly. Chinese input first checks the local classroom phrasebook, then falls back to translation when no local match is found.
+1. Compact runtime core lexicon: `public/assets/lexicon/core-lexicon.json`
+2. Legacy local dictionary: `public/assets/dict.json`
+3. `dictionaryapi.dev`, followed by a translation fallback for the returned definition
 
-### Word Cards
+The source lexicon and retired comparison datasets live under `tools/lexicon-data/`; they are build inputs and are not published. Runtime entries include normalized forms and one of three learning bands: `foundation`, `developing`, or `expanding`.
 
-The app extracts English words, removes duplicates, and renders each word as a card with definition, phonetics, speech controls, and a save button.
+Chinese classroom phrases are matched against `public/assets/phrasebook.json` before any online translation request.
 
-### Local-First Dictionary
+## OCR and network security
 
-The app keeps the original roughly 8,600-entry `public/assets/dict.json`, then adds a higher-priority lexicon layer for common school, daily-life, OCR, form, website, and academic foundation words.
+The browser compresses an uploaded image and sends it to the same-origin `POST /api/ocr` endpoint. `functions/api/ocr.js` is the single supported deployment entry point. The shared handler:
 
-Lookup priority is:
+- keeps `OCR_SPACE_API_KEY` server-side;
+- rejects cross-site, non-multipart, oversized, unsupported, and signature-mismatched uploads;
+- applies the Cloudflare `OCR_RATE_LIMITER` binding (12 requests per client per minute);
+- aborts a slow upstream request after 15 seconds;
+- returns stable, non-sensitive errors and structured request logs;
+- never stores or logs image contents, recognized text, or the API key.
 
-1. `public/assets/phrase-lexicon.json`
-2. `public/assets/core-lexicon.json`
-3. `public/assets/dict.json`
-4. online dictionary fallback
+Dictionary, translation, and OCR requests share bounded timeout, abort, and retry behavior. The service worker never caches `/api/*` responses.
 
-`core-lexicon.json` also carries word forms such as `activities -> activity` and `resources -> resource`, so common OCR/plural forms stay local-first.
+## Technology
 
-### Online Fallbacks
+- Astro 7 static output and Vite
+- JavaScript, Astro, and CSS
+- Cloudflare Pages Functions and Rate Limiting bindings
+- localStorage for user-owned local data
+- Service Worker/Cache API for offline use
+- Web Speech API for pronunciation and follow-along reading
+- Vitest, Cloudflare Workers Vitest pool, and Playwright
 
-When a word is missing locally, the app can use `dictionaryapi.dev` and translation fallback paths. Results are cached in localStorage with bounded cache behavior so repeated lookups are faster and storage does not grow without control.
+Node.js 22.12 or newer is required; `.node-version` records the CI baseline.
 
-### Speech and Follow-Along Reading
-
-Word reading and full-sentence playback use the browser `SpeechSynthesisUtterance` API. During sentence playback, the current word card is highlighted so the child can connect sound, spelling, and meaning.
-
-### Wordbook
-
-Saved words are stored locally in the browser. The Wordbook view lets the child or parent return to unfamiliar words for later reading and review.
-
-### Phrasebook
-
-The phrasebook contains common US elementary classroom instructions and classmate language across homework, reading, writing, math, science, notices, art, PE, safety, and parent-signature workflows. It also improves Chinese input handling by matching known phrases before online translation.
-
-### OCR Photo Input
-
-The browser compresses uploaded classroom photos locally and sends the image to a same-origin `/api/ocr` endpoint. The OCR.Space API key is not exposed to the browser. Cloudflare Pages Functions can serve `functions/api/ocr.js`; the same handler is also available as `workers/ocr-worker.js` for a standalone Worker route.
-
-### Mobile Layout
-
-The interface is designed for phone use: bottom navigation, card-based layout, large touch targets, compact controls, and safe-area spacing.
-
-## Product Decisions
-
-- Sentence-first instead of search-first: the sentence is the learning unit because that is how homework arrives.
-- Local-first instead of API-first: common words and classroom phrases should work even when the network is slow or unavailable.
-- Browser storage instead of accounts: wordbook, settings, and cache stay private and local.
-- Speech as core behavior: pronunciation and follow-along reading are part of the learning flow, not extra decoration.
-- Mobile-first interface: the expected use case is a parent and child working together on a phone.
-
-## Data and Privacy Model
-
-- Public offline core: the static app shell, basic dictionary, phonetics, core images, and public phrasebook are intended to be available locally and may be cached by the service worker.
-- Protected cloud layer: `OCR_SPACE_API_KEY` must stay server-side in Cloudflare Pages/Workers secrets. Future advanced phrasebook data or AI explanations should also live behind protected cloud endpoints.
-- User data: the wordbook, settings, and lookup caches remain in the current browser through `localStorage` unless a future sync feature is explicitly added.
-- OCR: uploaded images are sent only to the same-origin `/api/ocr` endpoint, which forwards them to OCR.Space with the server-side secret. OCR responses are not cached by the service worker.
-
-## Development Notes
-
-The first prototype was generated as a single HTML file with AI. The current version was rebuilt as an Astro app and refined around Lucia's real homework workflow.
-
-Major development passes included:
-
-- rebuilding the base app in Astro
-- separating page structure, styles, and client-side behavior
-- adding phonetics and Chinese input handling
-- adding local dictionary and classroom phrase data
-- hardening lookup, cache, fallback, and async behavior
-- improving mobile layout, bottom navigation, branding, favicon, and metadata
-
-AI was used during development for implementation drafts, copy alternatives, debugging ideas, and iteration support. The final behavior, learning flow, fallback rules, and product decisions were reviewed and directed manually.
-
-## Tech Stack
-
-- Framework: Astro static site
-- Language: JavaScript, Astro, CSS
-- Data: JSON assets in `public/assets`
-- Storage: `localStorage` for wordbook, settings, and cache
-- Speech: browser `SpeechSynthesisUtterance`
-- Dictionary fallback: `dictionaryapi.dev`
-- Translation fallback: Google Translate public endpoint and browser Translator API when available
-- OCR endpoint: Cloudflare Pages Function or Worker reading `OCR_SPACE_API_KEY` from server-side secrets
-- Build: Vite through Astro
-
-## Project Structure
+## Project structure
 
 ```text
 src/
-  layouts/
-    MainLayout.astro
-  pages/
-    index.astro
-  scripts/
-    app.js
-  styles/
-    global.css
-
+  layouts/                 shared document layout and metadata
+  pages/                   static pages and application shell
+  scripts/                 application features and unit tests
+  styles/                  mobile-first design system
 public/
-  assets/
-    dict.json
-    core-lexicon.json
-    phrase-lexicon.json
-    phonetics.json
-    phrasebook.json
-    logo.png
-    lucia.png
-    monkey.png
-
+  assets/                  runtime dictionary, phonetics, phrasebook, and images
+  sw.js                    service-worker source with build placeholders
 functions/
-  api/
-    ocr.js
-
-workers/
-  ocr-handler.js
-  ocr-worker.js
+  api/ocr.js               Pages Function route
+  _shared/ocr-handler.js   validated OCR proxy implementation
+tools/
+  lexicon-data/            non-published source and legacy datasets
+  build-*.mjs              deterministic data/offline builders
+  audit-*.mjs              release quality gates
+tests/e2e/                 mobile Chromium user-flow tests
+wrangler.jsonc             reproducible Pages/observability/rate-limit config
 ```
 
-## Key Files
-
-- `src/pages/index.astro`: application shell and page structure
-- `src/scripts/app.js`: dictionary lookup, translation fallback, cache, speech, wordbook, settings, and UI interactions
-- `src/styles/global.css`: mobile-first visual system and responsive layout
-- `public/assets/dict.json`: local dictionary data
-- `public/assets/core-lexicon.json`: higher-priority local lexicon for common school, OCR, website, and academic words
-- `public/assets/phrase-lexicon.json`: higher-priority local phrase lexicon
-- `public/assets/phrasebook.json`: local classroom phrase data
-- `public/assets/phonetics.json`: local phonetic data
-- `functions/api/ocr.js`: Cloudflare Pages Function endpoint for same-origin OCR
-- `workers/ocr-worker.js`: standalone Cloudflare Worker entry for `/api/ocr`
-- `public/sw.js`: local-first service worker cache for public app core only
-
-## OCR Deployment
-
-For Cloudflare Pages, add a secret named `OCR_SPACE_API_KEY` in the Pages project settings. The `functions/api/ocr.js` endpoint will receive `POST /api/ocr`, validate `jpeg`, `png`, and `webp` uploads, reject oversized files, call OCR.Space with the server-side secret, and return only `{ "text": "..." }` or a stable error code.
-
-For a standalone Worker, deploy `workers/ocr-worker.js` and route it to the same site path `/api/ocr`. Bind the same secret name:
+## Local development
 
 ```bash
-wrangler secret put OCR_SPACE_API_KEY
-```
-
-The frontend never reads `PUBLIC_OCR_SPACE_KEY` and does not include OCR credentials in the browser bundle.
-
-## Running Locally
-
-```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Build and preview:
+Build and preview the static production output:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Validation
-
-Current project check:
+To exercise Pages Functions locally, copy `.dev.vars.example` to `.dev.vars`, set a non-production OCR key, then run:
 
 ```bash
-npm run check
-npm test
-npm run build
+npm run dev:pages
 ```
 
-Lexicon maintenance:
+Never commit `.dev.vars`. Production secrets are set through the Cloudflare project, for example:
 
 ```bash
-npm run build:lexicon
+npx wrangler pages secret put OCR_SPACE_API_KEY --project-name luciadictionary
+```
+
+## Data maintenance
+
+`tools/lexicon-data/core-lexicon.source.json` is the canonical rich source. Generate the compact public dataset and run its quality checks with:
+
+```bash
+npm run build:runtime-lexicon
 npm run audit:lexicon
+npm run audit:translation-quality
 ```
 
-Manual validation used for the current flow:
+Translation audit exceptions must be explicit in `tools/translation-quality-allowlist.json`; deliberate corrections belong in `tools/translation-overrides.json`. The audit exits non-zero on a new suspicious value.
 
-- enter an English classroom sentence
-- generate word cards
-- trigger word pronunciation
-- play the full sentence
-- save a word to the wordbook
-- navigate between Home, Wordbook, Phrasebook, and Settings
+## Validation and CI
 
-## Limitations
+The complete local release gate is:
 
-- No backend account system; wordbook data only lives in the current browser through localStorage.
-- Online dictionary and translation fallbacks depend on public endpoints that may fail or change behavior.
-- Online definitions are not yet controlled by grade level.
-- Speech quality varies by browser, operating system, and installed voices.
-- The app does not yet track mastery, review history, or spaced repetition.
-- AI was used during development, but the app does not currently call an LLM at runtime.
-- OCR requires network access and a deployed same-origin Cloudflare endpoint with `OCR_SPACE_API_KEY`.
+```bash
+npm run verify
+```
 
-## Future Work
+It checks formatting and Astro types, runs unit tests, executes the OCR handler inside the Cloudflare runtime, runs mobile Chromium end-to-end/offline tests, rebuilds the site and generated service worker, audits lexicon/SEO/OCR coverage/translation/offline artifacts, checks generated Cloudflare binding types, compiles Pages Functions, and fails on moderate-or-higher dependency advisories.
 
-- Add child-friendly model-backed explanations for difficult words.
-- Add grade-level example sentences.
-- Add review feedback such as "know", "unsure", and "forgot".
-- Add spaced repetition for saved words.
-- Add spelling practice and listening dictation.
-- Split `src/scripts/app.js` into smaller modules such as `dictionary`, `speech`, `cache`, `wordbook`, and `phrasebook`.
-- Add unit tests for morphology lookup, Chinese fallback, cache expiry, and wordbook persistence.
-- Add export/import or lightweight sync so a parent can preserve the child's wordbook across devices.
-- Review accessibility for keyboard navigation, reduced motion, and screen reader labels.
+GitHub Actions runs the same gate on pushes to `main` and pull requests. Dependabot checks npm and GitHub Actions updates weekly.
+
+Useful focused commands:
+
+```bash
+npm run test:unit
+npm run test:worker
+npm run test:e2e
+npm run audit:all
+npm run cf:types:check
+npm run cf:build
+```
+
+## Privacy boundaries
+
+- Local input analysis, word cards, speech, saved words, review schedules, settings, and cached lookups stay in the browser.
+- A missing Chinese phrase may be sent to Google Translate fallback.
+- A missing English word may be sent to `dictionaryapi.dev`; an English definition may then use the translation fallback.
+- A photo is sent only after the user selects it, through the same-origin Cloudflare endpoint to OCR.Space.
+- Cloudflare serves the site and endpoint and records bounded operational metadata; application logs intentionally exclude learning content.
+
+See the in-app Privacy and Accessibility pages for user-facing details. Because this is designed for children to use with a parent, any future account, sync, analytics, or generated-content feature requires a separate privacy and content-safety review.
+
+## Current limitations
+
+- Local data does not sync across browsers or devices; JSON import/export is the recovery path.
+- Public dictionary and translation services can be unavailable or change behavior; local coverage remains the primary experience.
+- Browser voices and speech quality vary by device.
+- OCR requires network access and a configured Cloudflare secret.
+- Learning bands are broad product bands, not formal school-grade certifications.
+
+The completed 2026 upgrade, measurements, acceptance gates, and next-stage options are tracked in [docs/optimization-upgrade-roadmap.md](docs/optimization-upgrade-roadmap.md).
 
 ## Author
 

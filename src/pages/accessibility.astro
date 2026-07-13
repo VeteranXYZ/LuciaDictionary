@@ -6,7 +6,7 @@ const description = "Accessibility notes for Lucia's Dictionary, including keybo
 ---
 
 <MainLayout title={title} description={description} canonicalPath="/accessibility/" ogTitle={title} appScript={false}>
-  <main class="info-page">
+  <main class="info-page" id="main-content">
     <a class="back-link" href="/">Lucia's Dictionary</a>
     <h1>Accessibility</h1>
     <p>
@@ -16,15 +16,17 @@ const description = "Accessibility notes for Lucia's Dictionary, including keybo
     <section>
       <h2>Current Support</h2>
       <p>
-        The main sentence field has an accessible label, common icon buttons include aria labels, and the app can be
-        operated with keyboard input for sentence submission.
+        The main sentence field has an accessible label, icon buttons include accessible names, bottom navigation exposes
+        tab state, dynamic results and OCR progress are announced, and all primary actions are keyboard reachable. The
+        interface permits browser zoom and honors reduced-motion preferences.
       </p>
     </section>
     <section>
       <h2>Known Limitations</h2>
       <p>
-        Speech quality depends on the browser and operating system. A full screen-reader audit, reduced-motion pass,
-        and formal accessibility conformance review remain future work.
+        Speech quality and word-boundary highlighting depend on the browser and operating system. Automated checks and
+        keyboard testing cannot cover every assistive-technology combination, so issues can be reported through the
+        contact link in the app.
       </p>
     </section>
     <nav class="info-links" aria-label="Public pages">

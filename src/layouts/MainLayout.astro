@@ -1,4 +1,6 @@
 ---
+import packageJson from "../../package.json";
+
 interface Props {
   title?: string;
   description?: string;
@@ -19,6 +21,7 @@ const {
   structuredData = []
 } = Astro.props;
 const siteOrigin = "https://dict.luciaandrayna.com";
+const appVersion = packageJson.version;
 const canonicalUrl = new URL(canonicalPath, siteOrigin).toString();
 const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
 const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData];
@@ -27,7 +30,7 @@ const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData]
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="msvalidate.01" content="F0033F6901282859D6F7A01930532E70" />
@@ -41,16 +44,14 @@ const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData]
     <meta property="og:site_name" content="Lucia's Dictionary" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#6B8E5A" />
-    <link rel="icon" type="image/png" href="/favicon.png?v=2.5" />
-    <link rel="shortcut icon" href="/favicon.ico?v=2.5" sizes="any" />
-    <link rel="apple-touch-icon" href="/assets/logo.png?v=2.5" />
+    <link rel="icon" type="image/png" href={`/favicon.png?v=${appVersion}`} />
+    <link rel="shortcut icon" href={`/favicon.ico?v=${appVersion}`} sizes="any" />
+    <link rel="apple-touch-icon" href={`/assets/logo.png?v=${appVersion}`} />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+SC:wght@500;600;700;800&display=swap" rel="stylesheet" />
     {jsonLd.map(item => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
   </head>
   <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
     <slot />
     {appScript && (
       <script>

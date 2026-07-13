@@ -4,15 +4,15 @@ export default defineConfig({
   output: "static",
   build: {
     assets: "_a",
-    inlineStylesheets: "auto"
+    inlineStylesheets: "auto",
   },
   vite: {
     build: {
       minify: "terser",
       terserOptions: {
         mangle: true,
-        compress: { drop_console: true }
-      }
-    }
-  }
+        compress: { drop_console: true },
+      },
+    },
+  },
 });

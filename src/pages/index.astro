@@ -1,5 +1,6 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
+import packageJson from "../../package.json";
 
 const title = "Lucia's Dictionary · English Sentence Dictionary for Bilingual Learners";
 const description = "Search or paste English classroom sentences, then get word cards with Chinese meanings, phonetics, pronunciation practice, and local review tools.";
@@ -30,10 +31,11 @@ const structuredData = [
 ---
 
 <MainLayout title={title} description={description} structuredData={structuredData}>
-  <div class="app">
+  <main class="app" id="main-content">
+    <div class="sr-only" id="app-status" role="status" aria-live="polite"></div>
     <header class="brand">
       <button class="brand-logo" id="brand-home-btn" type="button" aria-label="返回首页">
-        <img src="assets/logo.png" alt="Lucia's Dictionary" />
+        <img src="assets/logo.png" width="512" height="512" alt="Lucia's Dictionary" />
       </button>
       <div class="brand-text">
         <div class="brand-title">Lucia's Dictionary</div>
@@ -45,10 +47,10 @@ const structuredData = [
       </div>
     </header>
 
-    <div class="page active" id="pg-home">
+    <div class="page active" id="pg-home" role="tabpanel" aria-labelledby="nav-home">
       <section class="hero">
         <div class="hero-center">
-          <div class="hero-mascot"><img src="assets/lucia.png" alt="Lucia" /></div>
+          <div class="hero-mascot"><img src="assets/lucia.png" width="768" height="768" fetchpriority="high" alt="Lucia" /></div>
           <div class="hero-copy">
             <h1 class="hero-title">Lucia's Dictionary</h1>
             <p class="hero-sub">输入中文或英文课堂句子，<br />把它拆成可朗读、可复习的单词卡</p>
@@ -70,7 +72,7 @@ const structuredData = [
             </button>
           </div>
         </div>
-        <div class="ocr-status" id="ocr-status" hidden></div>
+        <div class="ocr-status" id="ocr-status" role="status" aria-live="polite" hidden></div>
       </div>
 
       <div class="sentence-bar" id="sentence-bar">
@@ -80,12 +82,11 @@ const structuredData = [
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
           <span id="speak-sentence-label">朗读整句</span>
         </button>
-        <div class="sentence-explanation" id="sentence-explanation" hidden></div>
       </div>
 
       <div class="word-list" id="word-list">
         <div class="empty">
-          <div class="empty-mascot"><img src="assets/monkey.png" alt="" /></div>
+          <div class="empty-mascot"><img src="assets/monkey.png" width="256" height="256" alt="" /></div>
           <p>把老师布置的中文或英文句子粘贴上去吧～<br /><strong>我会帮你拆出每一个英文单词</strong></p>
         </div>
       </div>
@@ -115,7 +116,7 @@ const structuredData = [
       </section>
     </div>
 
-    <div class="page" id="pg-wordbook">
+    <div class="page" id="pg-wordbook" role="tabpanel" aria-labelledby="nav-wordbook" hidden>
       <section class="hero" style="padding-top:0">
         <h1 class="hero-title">我的生词本</h1>
         <p class="hero-sub">把不熟的单词都收在这里，<br />常常翻翻就记住啦</p>
@@ -144,7 +145,7 @@ const structuredData = [
       <div class="word-list" id="wb-list"></div>
     </div>
 
-    <div class="page" id="pg-quiz">
+    <div class="page" id="pg-quiz" role="tabpanel" aria-labelledby="nav-quiz" hidden>
       <section class="hero" style="padding-top:0">
         <h1 class="hero-title">单词测验</h1>
         <p class="hero-sub">用生词本里的单词出题，<br />读一读、听一听、选一选</p>
@@ -153,7 +154,7 @@ const structuredData = [
       <div id="quiz-content"></div>
     </div>
 
-    <div class="page" id="pg-templates">
+    <div class="page" id="pg-templates" role="tabpanel" aria-labelledby="nav-templates" hidden>
       <section class="hero" style="padding-top:0">
         <h1 class="hero-title">老师常说的话</h1>
         <p class="hero-sub">美国小学课堂里最常听到的指令<br />遇到了不慌张</p>
@@ -163,7 +164,7 @@ const structuredData = [
       <div class="tpl-list" id="tpl-list"></div>
     </div>
 
-    <div class="page" id="pg-settings">
+    <div class="page" id="pg-settings" role="tabpanel" aria-labelledby="nav-settings" hidden>
       <section class="hero" style="padding-top:0">
         <h1 class="hero-title">设置</h1>
         <p class="hero-sub">调一调，更顺手</p>
@@ -199,9 +200,9 @@ const structuredData = [
       </div>
 
       <div class="about">
-        <div class="about-mascot"><img src="assets/lucia.png" alt="" /></div>
+        <div class="about-mascot"><img src="assets/lucia.png" width="768" height="768" loading="lazy" alt="" /></div>
         <div class="about-name">Lucia's Dictionary</div>
-        <div class="about-ver">v2.5 · 2026</div>
+        <div class="about-ver">v{packageJson.version} · 2026</div>
         <div class="about-tag">For Lucia's elementary school studies</div>
 
         <div class="about-stats">
@@ -223,34 +224,34 @@ const structuredData = [
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
-  <nav class="nav">
-    <button class="nav-item active" data-pg="home">
+  <nav class="nav" aria-label="主要功能" role="tablist">
+    <button class="nav-item active" id="nav-home" data-pg="home" type="button" role="tab" aria-controls="pg-home" aria-selected="true" aria-current="page">
       <span class="icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
       </span>
       首页
     </button>
-    <button class="nav-item" data-pg="wordbook">
+    <button class="nav-item" id="nav-wordbook" data-pg="wordbook" type="button" role="tab" aria-controls="pg-wordbook" aria-selected="false">
       <span class="icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
       </span>
       生词本
     </button>
-    <button class="nav-item" data-pg="quiz">
+    <button class="nav-item" id="nav-quiz" data-pg="quiz" type="button" role="tab" aria-controls="pg-quiz" aria-selected="false">
       <span class="icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="18" rx="2"></rect><path d="M9 4a3 3 0 0 1 6 0"></path><path d="M9 12l2 2 4-4"></path><path d="M9 18h6"></path></svg>
       </span>
       测验
     </button>
-    <button class="nav-item" data-pg="templates">
+    <button class="nav-item" id="nav-templates" data-pg="templates" type="button" role="tab" aria-controls="pg-templates" aria-selected="false">
       <span class="icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
       </span>
       常用句
     </button>
-    <button class="nav-item" data-pg="settings">
+    <button class="nav-item" id="nav-settings" data-pg="settings" type="button" role="tab" aria-controls="pg-settings" aria-selected="false">
       <span class="icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </span>

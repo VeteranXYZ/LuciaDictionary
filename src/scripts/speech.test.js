@@ -4,7 +4,7 @@ import {
   renderSpeakableText,
   resetSentenceSpeech,
   startSentenceSpeech,
-  toggleSentenceSpeech
+  toggleSentenceSpeech,
 } from "./speech.js";
 
 const originalDocument = globalThis.document;
@@ -22,14 +22,14 @@ afterEach(() => {
 function makeClassList() {
   const classes = new Set();
   return {
-    add: cls => classes.add(cls),
-    remove: cls => classes.delete(cls),
+    add: (cls) => classes.add(cls),
+    remove: (cls) => classes.delete(cls),
     toggle(cls, force) {
       if (force) classes.add(cls);
       else classes.delete(cls);
     },
-    contains: cls => classes.has(cls),
-    toString: () => Array.from(classes).join(" ")
+    contains: (cls) => classes.has(cls),
+    toString: () => Array.from(classes).join(" "),
   };
 }
 
@@ -41,7 +41,7 @@ function makeElement() {
     classList: makeClassList(),
     replaceChildren(...nodes) {
       this.children = nodes;
-      this.textContent = nodes.map(node => node.textContent || "").join("");
+      this.textContent = nodes.map((node) => node.textContent || "").join("");
     },
     appendChild(node) {
       this.children.push(node);
@@ -49,13 +49,17 @@ function makeElement() {
     },
     querySelectorAll(selector) {
       const matches = [];
-      const visit = node => {
-        if (selector === ".speaking-word" && node.classList?.contains("speaking-word")) matches.push(node);
+      const visit = (node) => {
+        if (
+          selector === ".speaking-word" &&
+          node.classList?.contains("speaking-word")
+        )
+          matches.push(node);
         for (const child of node.children || []) visit(child);
       };
       visit(this);
       return matches;
-    }
+    },
   };
   return el;
 }
@@ -71,7 +75,7 @@ function installSpeech() {
     },
     querySelectorAll() {
       return [];
-    }
+    },
   };
   globalThis.SpeechSynthesisUtterance = class {
     constructor(text) {
@@ -84,7 +88,7 @@ function installSpeech() {
     pause: vi.fn(),
     resume: vi.fn(),
     speak: vi.fn(),
-    getVoices: () => []
+    getVoices: () => [],
   };
   return () => utterance;
 }
@@ -95,14 +99,29 @@ describe("sentence read aloud", () => {
     const textEl = makeElement();
     let state = "idle";
 
-    startSentenceSpeech("Read the words.", { textEl, onStateChange: next => { state = next; } });
+    startSentenceSpeech("Read the words.", {
+      textEl,
+      onStateChange: (next) => {
+        state = next;
+      },
+    });
     expect(getSentenceSpeechLabel(state)).toBe("暂停朗读");
 
-    toggleSentenceSpeech("Read the words.", { textEl, onStateChange: next => { state = next; } });
+    toggleSentenceSpeech("Read the words.", {
+      textEl,
+      onStateChange: (next) => {
+        state = next;
+      },
+    });
     expect(globalThis.speechSynthesis.pause).toHaveBeenCalled();
     expect(getSentenceSpeechLabel(state)).toBe("继续朗读");
 
-    toggleSentenceSpeech("Read the words.", { textEl, onStateChange: next => { state = next; } });
+    toggleSentenceSpeech("Read the words.", {
+      textEl,
+      onStateChange: (next) => {
+        state = next;
+      },
+    });
     expect(globalThis.speechSynthesis.resume).toHaveBeenCalled();
     expect(getSentenceSpeechLabel(state)).toBe("暂停朗读");
 
@@ -150,7 +169,8 @@ describe("sentence read aloud", () => {
   it("renderSpeakableText preserves long original text content", () => {
     installSpeech();
     const textEl = makeElement();
-    const text = "This is a long sentence, with punctuation and many words for Lucia.";
+    const text =
+      "This is a long sentence, with punctuation and many words for Lucia.";
 
     renderSpeakableText(textEl, text);
 

@@ -6,7 +6,7 @@ const description = "Review the data-source model for Lucia's Dictionary, includ
 ---
 
 <MainLayout title={title} description={description} canonicalPath="/sources/" ogTitle={title} appScript={false}>
-  <main class="info-page">
+  <main class="info-page" id="main-content">
     <a class="back-link" href="/">Lucia's Dictionary</a>
     <h1>Dictionary Sources and Attribution</h1>
     <p>
@@ -16,15 +16,17 @@ const description = "Review the data-source model for Lucia's Dictionary, includ
     <section>
       <h2>Local App Data</h2>
       <p>
-        The app uses bundled JSON assets for a basic dictionary, a core English lexicon, classroom phrase matching,
-        and phonetic hints. These files support the in-browser learning workflow.
+        The app publishes a compact runtime lexicon, a basic fallback dictionary, classroom phrasebook data, and
+        phonetic hints. Full generated source data and translation overrides remain in the repository for audits and
+        reproducible rebuilds, but are not all shipped to every browser.
       </p>
     </section>
     <section>
       <h2>Lexicon Inputs</h2>
       <p>
         The repository documentation identifies high-frequency-vocabulary and ECDICT as source inputs for building the
-        generated core lexicon. Large temporary source files are not committed; the generated app data is committed.
+        generated core lexicon. Runtime entries are assigned frequency-derived learning bands for display; these bands
+        are learning aids, not standardized grade-level certifications.
       </p>
     </section>
     <section>

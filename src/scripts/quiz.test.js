@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { handleQuizAnswer, quizState } from "./quiz.js";
+import { createQuizQuestion, handleQuizAnswer, quizState } from "./quiz.js";
 import { getWordbook, saveWordbook } from "./wordbook.js";
 
 function installStorage() {
@@ -8,11 +8,11 @@ function installStorage() {
     configurable: true,
     writable: true,
     value: {
-    getItem: key => data.get(key) ?? null,
-    setItem: (key, value) => data.set(key, String(value)),
-    removeItem: key => data.delete(key),
-    clear: () => data.clear()
-    }
+      getItem: (key) => data.get(key) ?? null,
+      setItem: (key, value) => data.set(key, String(value)),
+      removeItem: (key) => data.delete(key),
+      clear: () => data.clear(),
+    },
   });
 }
 
@@ -34,5 +34,17 @@ describe("quiz answer handling", () => {
     expect(handleQuizAnswer("read", "write")).toBe(false);
     expect(quizState).toMatchObject({ score: 0, total: 1 });
     expect(getWordbook()[0]).toMatchObject({ correct: 0, wrong: 1, level: 0 });
+  });
+});
+
+describe("spaced review question selection", () => {
+  it("selects an overdue word before future reviews", () => {
+    const words = [
+      { w: "read", m: "阅读", nextReviewAt: 10 },
+      { w: "write", m: "写", nextReviewAt: 10000 },
+      { w: "draw", m: "画", nextReviewAt: 10000 },
+      { w: "solve", m: "解答", nextReviewAt: 10000 },
+    ];
+    expect(createQuizQuestion(words, () => 0, 100).correct.w).toBe("read");
   });
 });

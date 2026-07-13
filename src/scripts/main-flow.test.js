@@ -13,7 +13,9 @@ describe("main analysis flow source", () => {
     const markup = fs.readFileSync("src/pages/index.astro", "utf8");
     expect(source).not.toContain("createCameraCaptureController");
     expect(source).toContain("imageInput.click()");
-    expect(markup).toContain('type="file" id="image-input" accept="image/*" hidden');
+    expect(markup).toContain(
+      'type="file" id="image-input" accept="image/*" hidden',
+    );
     expect(markup).not.toContain("capture=");
   });
 
@@ -40,6 +42,8 @@ describe("main analysis flow source", () => {
 
   it("counts unique local dictionary words in settings", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
-    expect(source).toContain("new Set([...Object.keys(dictData), ...Object.keys(coreLexicon)]).size");
+    expect(source).toMatch(
+      /new Set\(\[\s*\.\.\.Object\.keys\(dictData\),\s*\.\.\.Object\.keys\(coreLexicon\),?\s*\]\)\.size/,
+    );
   });
 });

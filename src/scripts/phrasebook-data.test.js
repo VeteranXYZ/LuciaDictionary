@@ -2,7 +2,9 @@ import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { normalizePhrasebookEntry } from "./translation.js";
 
-const phrasebook = JSON.parse(fs.readFileSync("public/assets/phrasebook.json", "utf8"));
+const phrasebook = JSON.parse(
+  fs.readFileSync("public/assets/phrasebook.json", "utf8"),
+);
 
 const REQUIRED_CATEGORIES = [
   "Classroom Behavior",
@@ -18,13 +20,13 @@ const REQUIRED_CATEGORIES = [
   "PE / Outdoor",
   "Permission Slip / Parent Signature",
   "Classmate Talk",
-  "Help / Safety / Emergency"
+  "Help / Safety / Emergency",
 ];
 
 describe("public phrasebook data", () => {
   it("contains the expanded school coverage", () => {
     expect(phrasebook.length).toBeGreaterThanOrEqual(220);
-    const categories = new Set(phrasebook.map(item => item.cat));
+    const categories = new Set(phrasebook.map((item) => item.cat));
     for (const category of REQUIRED_CATEGORIES) {
       expect(categories.has(category)).toBe(true);
     }

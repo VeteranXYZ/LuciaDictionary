@@ -19,15 +19,13 @@ const NOISY_MEANING_MARKERS = [
   "后端",
   "汇合指令",
   "实用程序",
-  "制造自动化协议"
+  "制造自动化协议",
 ];
 
-const NOISY_MEANING_PATTERNS = [
-  /按任意键继续/
-];
+const NOISY_MEANING_PATTERNS = [/按任意键继续/];
 
 const WORD_SPECIFIC_NOISY_PARTS = {
-  a: ["地址", "振幅", "模拟", "区域", "面积", "组件", "异步"]
+  a: ["地址", "振幅", "模拟", "区域", "面积", "组件", "异步"],
 };
 
 export function cleanDisplayTranslation(cn, word = "") {
@@ -39,12 +37,16 @@ export function cleanDisplayTranslation(cn, word = "") {
   const seen = new Set();
   const parts = raw
     .split(/[;；,，]/)
-    .map(part => part.trim())
+    .map((part) => part.trim())
     .filter(Boolean)
-    .filter(part => !NOISY_MEANING_MARKERS.some(marker => part.includes(marker)))
-    .filter(part => !NOISY_MEANING_PATTERNS.some(pattern => pattern.test(part)))
-    .filter(part => !wordSpecificNoisyParts.includes(part))
-    .filter(part => {
+    .filter(
+      (part) => !NOISY_MEANING_MARKERS.some((marker) => part.includes(marker)),
+    )
+    .filter(
+      (part) => !NOISY_MEANING_PATTERNS.some((pattern) => pattern.test(part)),
+    )
+    .filter((part) => !wordSpecificNoisyParts.includes(part))
+    .filter((part) => {
       const key = part.toLowerCase();
       if (seen.has(key)) return false;
       seen.add(key);

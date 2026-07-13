@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "luciadictionary",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-07-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "upload_source_maps": true,
+  "send_metrics": false,
+  "placement": {
+    "mode": "off",
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.05,
+    },
+  },
+  "ratelimits": [
+    {
+      "name": "OCR_RATE_LIMITER",
+      "namespace_id": "17012026",
+      "simple": {
+        "limit": 12,
+        "period": 60,
+      },
+    },
+  ],
+  "env": {
+    "production": {
+      "placement": {
+        "mode": "smart",
+      },
+    },
+  },
+}
