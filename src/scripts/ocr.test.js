@@ -60,6 +60,8 @@ describe("OCR error helpers", () => {
 
   it("accepts only upload types supported by the server", () => {
     expect(isSupportedOcrImage({ type: "image/jpeg" })).toBe(true);
-    expect(isSupportedOcrImage({ type: "image/heic" })).toBe(false);
+    expect(isSupportedOcrImage({ type: "image/heic" })).toBe(true);
+    expect(isSupportedOcrImage({ type: "", name: "camera.HEIC" })).toBe(true);
+    expect(isSupportedOcrImage({ type: "image/gif" })).toBe(false);
   });
 });
