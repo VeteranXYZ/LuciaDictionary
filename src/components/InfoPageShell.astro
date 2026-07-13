@@ -1,0 +1,67 @@
+---
+interface Props {
+  title: string;
+  titleZh: string;
+  eyebrow?: string;
+  current?: "about" | "how-to" | "sources" | "privacy" | "accessibility";
+}
+
+const {
+  title,
+  titleZh,
+  eyebrow = "家长信息 · Family guide",
+  current
+} = Astro.props;
+
+const pages = [
+  { id: "about", href: "/about/", label: "关于", labelEn: "About" },
+  { id: "how-to", href: "/how-to/", label: "使用方法", labelEn: "How to Use" },
+  { id: "sources", href: "/sources/", label: "数据来源", labelEn: "Sources" },
+  { id: "privacy", href: "/privacy/", label: "隐私", labelEn: "Privacy" },
+  { id: "accessibility", href: "/accessibility/", label: "无障碍", labelEn: "Accessibility" }
+];
+---
+
+<main class="info-page" id="main-content">
+  <header class="info-topbar">
+    <a class="info-brand" href="/" aria-label="返回 Lucia's Dictionary 首页">
+      <img src="/assets/logo.png" width="512" height="512" alt="" />
+      <span>
+        <strong>Lucia's Dictionary</strong>
+        <small>Lucia 的小学英语学习伙伴</small>
+      </span>
+    </a>
+    <a class="info-back" href="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      <span>返回词典</span>
+    </a>
+  </header>
+
+  <article class="info-card">
+    <div class="info-hero">
+      <div class="info-eyebrow">{eyebrow}</div>
+      <h1>{titleZh}</h1>
+      <p class="info-title-en" lang="en">{title}</p>
+    </div>
+
+    <div class="info-content">
+      <slot />
+    </div>
+  </article>
+
+  <nav class="info-links" aria-label="家长信息页面">
+    {pages.map(page => (
+      <a href={page.href} aria-current={current === page.id ? "page" : undefined}>
+        <span>{page.label}</span>
+        <small>{page.labelEn}</small>
+      </a>
+    ))}
+  </nav>
+
+  <a class="info-mobile-home" href="/">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path><path d="M9 21v-7h6v7"></path></svg>
+    打开词典
+  </a>
+
+  <footer class="info-footer">© 2026 Lucia &amp; Rayna · Powered by HIEI</footer>
+</main>
