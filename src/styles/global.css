@@ -5,10 +5,10 @@
 
 :root {
   /* —— Brand —— */
-  --ink: #7d4aa8; /* main brand · 明亮詹紫 */
-  --ink-deep: #6b4396; /* hover / pressed */
-  --ink-soft: #f1e8f7; /* tint background */
-  --ink-50: #f8f2fb;
+  --ink: #77509d; /* main brand · Lucia purple */
+  --ink-deep: #603d84; /* hover / pressed */
+  --ink-soft: #f0e9f6; /* tint background */
+  --ink-50: #f8f4fa;
 
   /* —— Accents —— */
   --moss: #587a48; /* 朗读 · 听 · 正向 */
@@ -21,12 +21,12 @@
   --brick: #c85a4a; /* 警告 · 删除 */
 
   /* —— Neutrals · 纸感 —— */
-  --paper: #fdfbf5; /* 整页底（更明亮的浅米） */
-  --paper-deep: #f5efdf;
+  --paper: #fbfaf6; /* warm reading surface */
+  --paper-deep: #f3eee4;
   --cream: #ffffff; /* 卡片底 · 纯白 */
   --cream-2: #fbf7ec;
-  --line: #ede6d4;
-  --line-soft: #f4ecdb;
+  --line: #e9e3d8;
+  --line-soft: #f2eee6;
 
   /* —— Text —— */
   --ink-text: #2b2620; /* primary */
@@ -38,25 +38,24 @@
   --font-sans:
     system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Microsoft YaHei", sans-serif;
-  --font-rounded:
-    ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font-sans);
+  --font-rounded: var(--font-sans);
 
   /* —— Shape —— */
-  --r-sm: 12px;
-  --r-md: 18px;
-  --r-lg: 24px;
-  --r-xl: 32px;
+  --r-sm: 11px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
   --r-pill: 999px;
 
   /* —— Sticker —— */
   --sticker-border: 3px;
   --sticker-shadow:
-    0 6px 0 rgba(43, 38, 32, 0.07), 0 12px 28px -8px rgba(82, 103, 176, 0.18);
+    0 2px 3px rgba(43, 38, 32, 0.06), 0 12px 30px -12px rgba(96, 61, 132, 0.2);
   --card-shadow:
-    0 2px 0 rgba(43, 38, 32, 0.04), 0 8px 24px -10px rgba(43, 38, 32, 0.12);
+    0 1px 2px rgba(43, 38, 32, 0.04), 0 10px 28px -16px rgba(43, 38, 32, 0.2);
   --card-shadow-hover:
-    0 3px 0 rgba(43, 38, 32, 0.06), 0 14px 32px -10px rgba(139, 92, 184, 0.22);
-  --shadow-purple-soft: 0 8px 18px -6px rgba(139, 92, 184, 0.25);
+    0 2px 4px rgba(43, 38, 32, 0.05), 0 16px 36px -18px rgba(96, 61, 132, 0.28);
+  --shadow-purple-soft: 0 10px 24px -12px rgba(96, 61, 132, 0.32);
 
   /* —— Layout —— */
   --nav-h: 76px;
@@ -95,17 +94,19 @@ body {
   overflow-x: hidden;
   overscroll-behavior-x: none;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
   position: relative;
   /* paper texture */
   background-image:
     radial-gradient(
       circle at 20% 10%,
-      rgba(232, 165, 180, 0.08),
+      rgba(232, 165, 180, 0.07),
       transparent 40%
     ),
     radial-gradient(
       circle at 85% 70%,
-      rgba(82, 103, 176, 0.06),
+      rgba(119, 80, 157, 0.045),
       transparent 45%
     ),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .28 0 0 0 0 .2 0 0 0 .07 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
@@ -350,7 +351,7 @@ textarea {
 
 .hero-title {
   font-size: 1.5rem;
-  font-weight: 900;
+  font-weight: 850;
   color: var(--ink);
   margin-bottom: 6px;
   letter-spacing: -0.3px;
@@ -359,8 +360,25 @@ textarea {
 .hero-sub {
   font-size: 0.95rem;
   color: var(--mute);
-  font-weight: 600;
+  font-weight: 550;
   line-height: 1.5;
+}
+
+.page:not(#pg-home) > .hero {
+  margin-bottom: 16px;
+  padding: 18px 16px !important;
+  background: var(--ink-50);
+  border: 1px solid var(--ink-soft);
+  border-radius: var(--r-lg);
+}
+
+.page:not(#pg-home) > .hero .hero-title {
+  font-size: 1.35rem;
+  margin-bottom: 4px;
+}
+
+.page:not(#pg-home) > .hero .hero-sub {
+  font-size: 0.85rem;
 }
 
 /* ============================================================
@@ -372,7 +390,7 @@ textarea {
   border-radius: var(--r-lg);
   padding: 16px;
   margin: 8px 0 20px;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   box-shadow: var(--card-shadow);
   position: relative;
   overflow: hidden;
@@ -412,7 +430,7 @@ textarea {
 textarea#sentence-input {
   width: 100%;
   min-width: 0;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 10px 14px;
   font-size: 0.94rem;
@@ -538,7 +556,7 @@ textarea#sentence-input::placeholder {
 .sentence-bar {
   display: none;
   background: var(--ink-soft);
-  border: 2px dashed var(--ink);
+  border: 1px dashed var(--ink);
   border-radius: var(--r-md);
   padding: 14px 18px;
   margin-bottom: 16px;
@@ -619,7 +637,7 @@ textarea#sentence-input::placeholder {
   background: var(--cream);
   border-radius: var(--r-lg);
   padding: 16px 18px;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   box-shadow: var(--card-shadow);
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -690,7 +708,7 @@ textarea#sentence-input::placeholder {
 }
 .word-en {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 750;
   color: var(--ink);
   letter-spacing: -0.3px;
   line-height: 1.1;
@@ -923,7 +941,7 @@ textarea#sentence-input::placeholder {
   text-align: center;
   padding: 36px 20px;
   background: var(--cream-2);
-  border: 2px dashed var(--line);
+  border: 1px dashed var(--line);
   border-radius: var(--r-lg);
 }
 .empty-mascot {
@@ -966,7 +984,7 @@ textarea#sentence-input::placeholder {
 .tip {
   margin-top: 20px;
   background: var(--ink-50);
-  border: 2px solid var(--ink-soft);
+  border: 1px solid var(--ink-soft);
   border-radius: var(--r-md);
   padding: 12px 46px 12px 14px;
   font-size: 0.82rem;
@@ -1034,128 +1052,9 @@ textarea#sentence-input::placeholder {
   transform: scale(0.94);
 }
 
-.public-summary {
-  margin: 20px 0 8px;
-  padding: 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(248, 242, 251, 0.94),
-    rgba(255, 255, 255, 0.9)
-  );
-  border: 2px solid var(--ink-soft);
-  border-radius: var(--r-md);
-  box-shadow: var(--card-shadow);
-}
-
-.public-summary-head {
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 11px;
-}
-
-.public-summary-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--cream);
-  background: var(--ink);
-  border: 2px solid var(--cream);
-  box-shadow: 0 3px 0 var(--ink-deep);
-  font-family: Georgia, serif;
-  font-weight: 900;
-}
-
-.public-summary h2 {
-  font: 900 0.96rem/1.2 var(--font-rounded);
-  color: var(--ink-text);
-}
-
-.public-summary-head p {
-  margin-top: 3px;
-  color: var(--mute);
-  font-size: 0.76rem;
-  line-height: 1.4;
-}
-
-.public-summary-cta {
-  min-height: 40px;
-  padding: 9px 11px 9px 13px;
-  border-radius: var(--r-pill);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: var(--cream);
-  background: var(--ink);
-  text-decoration: none;
-  font-size: 0.78rem;
-  font-weight: 900;
-  box-shadow: 0 3px 0 var(--ink-deep);
-}
-
-.public-summary-cta svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.public-summary-note {
-  margin: 13px 2px 0;
-  padding-top: 11px;
-  border-top: 1px dashed var(--line);
-  color: var(--mute);
-  font-size: 0.74rem;
-  line-height: 1.5;
-}
-
-.public-links,
 .info-links {
   display: grid;
   gap: 10px;
-}
-
-.public-links {
-  grid-template-columns: repeat(4, 1fr);
-  margin-top: 11px;
-}
-
-.public-links a {
-  min-height: 48px;
-  padding: 7px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  color: var(--ink-deep);
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
-  text-decoration: none;
-  font-size: 0.77rem;
-  font-weight: 900;
-  transition:
-    transform 0.2s var(--bounce),
-    border-color 0.2s,
-    background 0.2s;
-}
-
-.public-links small {
-  color: var(--whisper);
-  font-size: 0.6rem;
-  font-weight: 700;
-}
-
-.public-links a:hover {
-  transform: translateY(-2px);
-  border-color: var(--ink);
-  background: var(--cream);
 }
 
 .info-page {
@@ -1174,12 +1073,12 @@ textarea#sentence-input::placeholder {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid var(--cream);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sticker-shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .info-brand {
@@ -1209,7 +1108,9 @@ textarea#sentence-input::placeholder {
 .info-brand strong {
   overflow: hidden;
   color: var(--ink);
-  font: 900 0.95rem/1.2 var(--font-rounded);
+  font-size: 0.95rem;
+  font-weight: 850;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1229,7 +1130,7 @@ textarea#sentence-input::placeholder {
   color: var(--cream);
   background: var(--ink);
   text-decoration: none;
-  font-weight: 900;
+  font-weight: 800;
   box-shadow: 0 3px 0 var(--ink-deep);
 }
 
@@ -1257,7 +1158,7 @@ textarea#sentence-input::placeholder {
   margin-top: 20px;
   overflow: hidden;
   background: var(--cream);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
   box-shadow: var(--card-shadow);
 }
@@ -1266,14 +1167,8 @@ textarea#sentence-input::placeholder {
   position: relative;
   padding: 30px 30px 25px;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 88% 12%,
-      rgba(232, 165, 180, 0.28),
-      transparent 29%
-    ),
-    linear-gradient(135deg, var(--ink-50), var(--cream-2));
-  border-bottom: 2px dashed var(--line);
+  background: var(--ink-50);
+  border-bottom: 1px dashed var(--line);
 }
 
 .info-hero::after {
@@ -1296,7 +1191,7 @@ textarea#sentence-input::placeholder {
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
   font-size: 0.7rem;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.04em;
 }
 
@@ -1304,8 +1199,10 @@ textarea#sentence-input::placeholder {
   max-width: 85%;
   margin-top: 13px;
   color: var(--ink);
-  font: 900 clamp(1.7rem, 5vw, 2.35rem)/1.1 var(--font-rounded);
-  letter-spacing: -0.03em;
+  font-size: clamp(1.7rem, 5vw, 2.25rem);
+  font-weight: 850;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
 .info-title-en {
@@ -1313,7 +1210,7 @@ textarea#sentence-input::placeholder {
   margin-top: 7px;
   color: var(--mute);
   font-size: 0.9rem;
-  font-weight: 750;
+  font-weight: 650;
   line-height: 1.4;
 }
 
@@ -1326,7 +1223,8 @@ textarea#sentence-input::placeholder {
   margin-bottom: 9px;
   padding-left: 12px;
   border-left: 4px solid var(--sakura);
-  font: 900 1.02rem/1.25 var(--font-rounded);
+  font-size: 1.02rem;
+  font-weight: 800;
   line-height: 1.25;
   color: var(--ink-text);
 }
@@ -1379,10 +1277,10 @@ textarea#sentence-input::placeholder {
   place-items: center;
   color: var(--cream);
   background: var(--ink);
-  border: 2px solid var(--cream);
+  border: 1px solid var(--cream);
   border-radius: 50%;
   box-shadow: 0 3px 0 var(--ink-deep);
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .info-links {
@@ -1405,7 +1303,7 @@ textarea#sentence-input::placeholder {
   text-align: center;
   text-decoration: none;
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 800;
   transition:
     transform 0.2s var(--bounce),
     border-color 0.2s,
@@ -1471,7 +1369,7 @@ textarea#sentence-input::placeholder {
 
 .wb-stats {
   background: var(--cream);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 14px 16px;
   margin-bottom: 14px;
@@ -1739,7 +1637,7 @@ textarea#sentence-input::placeholder {
   background: var(--cream);
   border-radius: var(--r-md);
   padding: 14px 16px;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   box-shadow: var(--card-shadow);
   transition:
     transform 0.2s,
@@ -1779,7 +1677,7 @@ textarea#sentence-input::placeholder {
 
 .quiz-card {
   background: var(--cream);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
   padding: 18px;
   box-shadow: var(--card-shadow);
@@ -1823,7 +1721,7 @@ textarea#sentence-input::placeholder {
 .quiz-opt {
   min-height: 58px;
   padding: 13px 10px;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--cream-2);
   color: var(--ink-text);
@@ -1917,7 +1815,7 @@ textarea#sentence-input::placeholder {
 
 .set-card {
   background: var(--cream);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
   padding: 18px;
   margin-bottom: 14px;
@@ -1925,10 +1823,16 @@ textarea#sentence-input::placeholder {
 }
 
 .set-group {
-  margin-bottom: 18px;
+  margin-bottom: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-soft);
 }
 .set-group:last-child {
-  margin-bottom: 0;
+  padding-bottom: 2px;
+  border-bottom: 0;
+}
+.set-group:first-child {
+  padding-top: 2px;
 }
 
 .set-label {
@@ -1972,7 +1876,7 @@ textarea#sentence-input::placeholder {
 
 .set-btn {
   background: var(--paper);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-pill);
   padding: 9px 18px;
   font-weight: 700;
@@ -1998,7 +1902,7 @@ textarea#sentence-input::placeholder {
 
 .about {
   background: var(--cream);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
   padding: 22px 20px 20px;
   margin-top: 14px;
@@ -2040,7 +1944,7 @@ textarea#sentence-input::placeholder {
 }
 .about-name {
   font-size: 1.1rem;
-  font-weight: 900;
+  font-weight: 850;
   color: var(--ink);
   letter-spacing: -0.3px;
   margin-bottom: 2px;
@@ -2078,6 +1982,94 @@ textarea#sentence-input::placeholder {
   font-weight: 700;
   margin-top: 4px;
   letter-spacing: 0.5px;
+}
+.settings-info {
+  margin: 4px 0 18px;
+  padding: 16px;
+  background: var(--ink-50);
+  border: 1px solid var(--ink-soft);
+  border-radius: var(--r-md);
+  text-align: left;
+}
+.settings-info-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-info-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.settings-info-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.settings-info h2 {
+  color: var(--ink-text);
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.settings-info-head p {
+  margin-top: 2px;
+  color: var(--mute);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.settings-info-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 13px;
+}
+.settings-info-links a {
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--ink-text);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  font-size: 0.76rem;
+  font-weight: 750;
+  transition:
+    border-color 0.18s,
+    background 0.18s,
+    transform 0.18s var(--ease);
+}
+.settings-info-links a:hover {
+  border-color: var(--ink);
+  background: #fff;
+  transform: translateY(-1px);
+}
+.settings-info-links small {
+  margin-top: 1px;
+  color: var(--whisper);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+.settings-info-links a:last-child {
+  grid-column: 1 / -1;
+}
+.settings-info-note {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  color: var(--whisper);
+  font-size: 0.65rem;
+  line-height: 1.5;
 }
 .about-divider {
   height: 1px;
@@ -2138,14 +2130,16 @@ textarea#sentence-input::placeholder {
   bottom: 0;
   width: 100%;
   min-height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
-  background: var(--cream);
-  border-top: 2px solid var(--line);
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid var(--line);
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 4px 8px env(safe-area-inset-bottom, 0px);
   z-index: 100;
-  box-shadow: 0 -4px 24px -8px rgba(43, 38, 32, 0.1);
+  box-shadow: 0 -10px 30px -20px rgba(43, 38, 32, 0.3);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
 }
@@ -2161,7 +2155,7 @@ textarea#sentence-input::placeholder {
   gap: 4px;
   padding: 8px 12px;
   color: var(--whisper);
-  font-weight: 800;
+  font-weight: 750;
   font-size: 0.7rem;
   transition: color 0.2s;
   position: relative;
@@ -2192,9 +2186,9 @@ textarea#sentence-input::placeholder {
 .nav-item.active .icon-wrap {
   background: var(--ink);
   color: var(--cream);
-  transform: translateY(-3px);
-  border: 2px solid var(--cream);
-  box-shadow: 0 3px 0 var(--ink-deep);
+  transform: translateY(-2px);
+  border: 1px solid var(--cream);
+  box-shadow: 0 3px 8px rgba(96, 61, 132, 0.28);
 }
 
 /* ============================================================
@@ -2429,34 +2423,11 @@ textarea#sentence-input::placeholder {
     font-size: 0.78rem;
   }
 
-  .public-summary {
-    margin-top: 16px;
-    padding: 13px;
+  html:has(.info-page) {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
   }
-  .public-summary-head {
-    grid-template-columns: 34px minmax(0, 1fr);
-    gap: 9px;
-  }
-  .public-summary-icon {
-    width: 34px;
-    height: 34px;
-  }
-  .public-summary-cta {
-    grid-column: 1 / -1;
-    width: 100%;
-    margin-top: 3px;
-  }
-  .public-summary-note {
-    font-size: 0.7rem;
-  }
-  .public-links {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 7px;
-  }
-  .public-links a {
-    min-height: 46px;
-  }
-
   body:has(.info-page) {
     height: auto;
     min-height: 100%;
@@ -2466,6 +2437,7 @@ textarea#sentence-input::placeholder {
   }
   .info-page {
     width: min(100% - 24px, 720px);
+    min-height: 100dvh;
     padding-top: 10px;
   }
   .info-topbar {
@@ -2534,6 +2506,9 @@ textarea#sentence-input::placeholder {
   }
   .info-links a {
     min-height: 52px;
+  }
+  .info-links a:last-child {
+    grid-column: 1 / -1;
   }
   .info-mobile-home {
     display: inline-flex;

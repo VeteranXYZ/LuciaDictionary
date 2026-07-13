@@ -52,7 +52,7 @@ const structuredData = [
         <div class="hero-center">
           <div class="hero-mascot"><img src="assets/lucia.png" width="768" height="768" fetchpriority="high" alt="Lucia" /></div>
           <div class="hero-copy">
-            <h1 class="hero-title">Lucia's Dictionary</h1>
+            <h1 class="hero-title">今天想读懂哪句话？</h1>
             <p class="hero-sub">输入中文或英文课堂句子，<br />把它拆成可朗读、可复习的单词卡</p>
           </div>
         </div>
@@ -100,28 +100,6 @@ const structuredData = [
         <button class="tip-close" id="tip-close-btn" type="button" aria-label="关闭小提示">×</button>
       </div>
 
-      <aside class="public-summary" aria-labelledby="public-summary-title">
-        <div class="public-summary-head">
-          <div class="public-summary-icon" aria-hidden="true">i</div>
-          <div>
-            <h2 id="public-summary-title">给家长的说明</h2>
-            <p>了解使用方法、词典数据与孩子的隐私保护</p>
-          </div>
-          <a class="public-summary-cta" href="/how-to/" aria-label="查看 Lucia's Dictionary 使用方法">
-            查看指南
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
-          </a>
-        </div>
-        <p class="public-summary-note" lang="en">
-          A sentence-first dictionary that helps Chinese-speaking families understand English homework and classroom instructions.
-        </p>
-        <nav class="public-links" aria-label="词典信息">
-          <a href="/about/"><span>关于</span><small>About</small></a>
-          <a href="/sources/"><span>数据来源</span><small>Sources</small></a>
-          <a href="/privacy/"><span>隐私</span><small>Privacy</small></a>
-          <a href="/accessibility/"><span>无障碍</span><small>Accessibility</small></a>
-        </nav>
-      </aside>
     </div>
 
     <div class="page" id="pg-wordbook" role="tabpanel" aria-labelledby="nav-wordbook" hidden>
@@ -223,6 +201,28 @@ const structuredData = [
             <div class="l">已收藏单词</div>
           </div>
         </div>
+
+        <section class="settings-info" aria-labelledby="settings-info-title">
+          <div class="settings-info-head">
+            <div class="settings-info-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 8h.01"></path></svg>
+            </div>
+            <div>
+              <h2 id="settings-info-title">产品与使用帮助</h2>
+              <p>使用说明、数据来源与隐私保护</p>
+            </div>
+          </div>
+          <nav class="settings-info-links" aria-label="产品信息与帮助">
+            <a href="/about/"><span>关于词典</span><small>About</small></a>
+            <a href="/how-to/"><span>使用方法</span><small>How to Use</small></a>
+            <a href="/sources/"><span>数据来源</span><small>Sources</small></a>
+            <a href="/privacy/"><span>隐私保护</span><small>Privacy</small></a>
+            <a href="/accessibility/"><span>无障碍</span><small>Accessibility</small></a>
+          </nav>
+          <p class="settings-info-note" lang="en">
+            A sentence-first dictionary for Chinese-speaking families learning classroom English.
+          </p>
+        </section>
 
         <div class="about-divider"></div>
 
