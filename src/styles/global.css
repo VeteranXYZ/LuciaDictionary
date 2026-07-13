@@ -1864,6 +1864,7 @@ textarea#sentence-input::placeholder {
   margin-bottom: 0;
   padding: 16px 0;
   border-bottom: 1px solid var(--line-soft);
+  text-align: center;
 }
 .set-group:last-child {
   padding-bottom: 2px;
@@ -1880,6 +1881,7 @@ textarea#sentence-input::placeholder {
   margin-bottom: 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 .set-label svg {
@@ -1898,6 +1900,7 @@ textarea#sentence-input::placeholder {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 .cache-clear-btn {
   margin-top: 2px;
