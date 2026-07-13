@@ -700,6 +700,11 @@ textarea#sentence-input::placeholder {
   border-radius: 0.35em;
   padding: 0 0.12em;
 }
+.sentence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .sentence-bar .speak-btn {
   display: inline-flex;
   align-items: center;

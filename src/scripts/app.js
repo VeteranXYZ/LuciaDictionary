@@ -65,6 +65,11 @@ let dictionaryReady = null;
 let phrasebookReady = null;
 let activeNetworkRequests = 0;
 const networkQueue = [];
+let copyFeedbackTimer = null;
+
+const COPY_ICON =
+  '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2h9a2 2 0 0 1 2 2v1"></path>';
+const COPIED_ICON = '<path d="m5 12 4 4L19 6"></path>';
 
 function enqueueNetwork(task) {
   return new Promise((resolve, reject) => {
@@ -122,6 +127,39 @@ function setSentenceText(text) {
   const sentenceText = document.getElementById("sentence-text");
   curSentenceDisplay = text;
   if (sentenceText) renderSpeakableText(sentenceText, text);
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.append(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) throw new Error("Copy command was unavailable");
+}
+
+function showCopyFeedback(copied) {
+  const button = document.getElementById("copy-sentence-btn");
+  const label = document.getElementById("copy-sentence-label");
+  const icon = document.getElementById("copy-sentence-icon");
+  if (!button || !label || !icon) return;
+
+  clearTimeout(copyFeedbackTimer);
+  button.classList.toggle("is-copied", copied);
+  label.textContent = copied ? "已复制" : "复制文本";
+  icon.innerHTML = copied ? COPIED_ICON : COPY_ICON;
+  if (copied) {
+    copyFeedbackTimer = setTimeout(() => showCopyFeedback(false), 2000);
+  }
 }
 
 function announce(message) {
@@ -814,6 +852,19 @@ function init() {
           setSentenceSpeakLabel(getSentenceSpeechLabel(state)),
         onUnavailable: () => setOcrStatus("当前浏览器不支持朗读。", "warning"),
       });
+    });
+  document
+    .getElementById("copy-sentence-btn")
+    ?.addEventListener("click", async () => {
+      const text = curSentenceDisplay || curSentence;
+      if (!text) return;
+      try {
+        await copyText(text);
+        showCopyFeedback(true);
+        announce("原句已复制到剪贴板。");
+      } catch {
+        announce("复制失败，请手动选择原句复制。");
+      }
     });
   document
     .getElementById("sentence-input")
