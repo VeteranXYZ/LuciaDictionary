@@ -100,20 +100,28 @@ const structuredData = [
         <button class="tip-close" id="tip-close-btn" type="button" aria-label="关闭小提示">×</button>
       </div>
 
-      <section class="public-summary" aria-labelledby="public-summary-title">
-        <h2 id="public-summary-title">A sentence-first online dictionary for classroom English</h2>
-        <p>
-          Lucia's Dictionary helps Chinese-speaking families understand English homework and classroom instructions.
-          Paste a sentence, review the extracted words, listen to pronunciations, and save unfamiliar words in this browser.
+      <aside class="public-summary" aria-labelledby="public-summary-title">
+        <div class="public-summary-head">
+          <div class="public-summary-icon" aria-hidden="true">i</div>
+          <div>
+            <h2 id="public-summary-title">给家长的说明</h2>
+            <p>了解使用方法、词典数据与孩子的隐私保护</p>
+          </div>
+          <a class="public-summary-cta" href="/how-to/" aria-label="查看 Lucia's Dictionary 使用方法">
+            查看指南
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          </a>
+        </div>
+        <p class="public-summary-note" lang="en">
+          A sentence-first dictionary that helps Chinese-speaking families understand English homework and classroom instructions.
         </p>
-        <nav class="public-links" aria-label="Dictionary information">
-          <a href="/about/">About</a>
-          <a href="/how-to/">How to Use</a>
-          <a href="/sources/">Sources</a>
-          <a href="/privacy/">Privacy</a>
-          <a href="/accessibility/">Accessibility</a>
+        <nav class="public-links" aria-label="词典信息">
+          <a href="/about/"><span>关于</span><small>About</small></a>
+          <a href="/sources/"><span>数据来源</span><small>Sources</small></a>
+          <a href="/privacy/"><span>隐私</span><small>Privacy</small></a>
+          <a href="/accessibility/"><span>无障碍</span><small>Accessibility</small></a>
         </nav>
-      </section>
+      </aside>
     </div>
 
     <div class="page" id="pg-wordbook" role="tabpanel" aria-labelledby="nav-wordbook" hidden>

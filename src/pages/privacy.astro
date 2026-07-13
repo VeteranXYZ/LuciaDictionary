@@ -1,14 +1,13 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
+import InfoPageShell from "../components/InfoPageShell.astro";
 
 const title = "Privacy";
 const description = "Lucia's Dictionary stores wordbook items, settings, and lookup caches in the browser and does not provide accounts, public profiles, or advertising tracking.";
 ---
 
 <MainLayout title={title} description={description} canonicalPath="/privacy/" ogTitle={title} appScript={false}>
-  <main class="info-page" id="main-content">
-    <a class="back-link" href="/">Lucia's Dictionary</a>
-    <h1>Privacy</h1>
+  <InfoPageShell title="Privacy" titleZh="隐私与数据" current="privacy">
     <p>
       Lucia's Dictionary is designed as a simple local-first learning tool. It does not provide accounts, public user
       profiles, search-history sharing, personalized advertising, or a backend wordbook sync feature.
@@ -49,11 +48,5 @@ const description = "Lucia's Dictionary stores wordbook items, settings, and loo
         sentence is sufficient.
       </p>
     </section>
-    <nav class="info-links" aria-label="Public pages">
-      <a href="/">Open Dictionary</a>
-      <a href="/about/">About</a>
-      <a href="/sources/">Sources</a>
-      <a href="/accessibility/">Accessibility</a>
-    </nav>
-  </main>
+  </InfoPageShell>
 </MainLayout>

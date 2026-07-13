@@ -1,14 +1,13 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
+import InfoPageShell from "../components/InfoPageShell.astro";
 
 const title = "How to Use Lucia's Dictionary";
 const description = "Use Lucia's Dictionary by entering a Chinese or English classroom sentence, reviewing word cards, listening to pronunciation, and saving words for local review.";
 ---
 
 <MainLayout title={title} description={description} canonicalPath="/how-to/" ogTitle={title} appScript={false}>
-  <main class="info-page" id="main-content">
-    <a class="back-link" href="/">Lucia's Dictionary</a>
-    <h1>How to Use Lucia's Dictionary</h1>
+  <InfoPageShell title="How to Use Lucia's Dictionary" titleZh="使用方法" current="how-to">
     <ol class="steps">
       <li>Enter or paste a Chinese or English classroom sentence.</li>
       <li>Use the action button to create word cards.</li>
@@ -30,11 +29,5 @@ const description = "Use Lucia's Dictionary by entering a Chinese or English cla
         search histories.
       </p>
     </section>
-    <nav class="info-links" aria-label="Public pages">
-      <a href="/">Open Dictionary</a>
-      <a href="/about/">About</a>
-      <a href="/sources/">Sources</a>
-      <a href="/privacy/">Privacy</a>
-    </nav>
-  </main>
+  </InfoPageShell>
 </MainLayout>

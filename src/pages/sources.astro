@@ -1,14 +1,13 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
+import InfoPageShell from "../components/InfoPageShell.astro";
 
 const title = "Dictionary Sources and Attribution";
 const description = "Review the data-source model for Lucia's Dictionary, including local lexicon files, classroom phrase data, phonetics, and online fallback services.";
 ---
 
 <MainLayout title={title} description={description} canonicalPath="/sources/" ogTitle={title} appScript={false}>
-  <main class="info-page" id="main-content">
-    <a class="back-link" href="/">Lucia's Dictionary</a>
-    <h1>Dictionary Sources and Attribution</h1>
+  <InfoPageShell title="Dictionary Sources and Attribution" titleZh="词典数据来源" current="sources">
     <p>
       Lucia's Dictionary combines local public app data with optional online fallback services. The internal vocabulary
       files are application data, not a promise that every word has a public web page.
@@ -36,11 +35,5 @@ const description = "Review the data-source model for Lucia's Dictionary, includ
         results can vary and are cached locally in the current browser.
       </p>
     </section>
-    <nav class="info-links" aria-label="Public pages">
-      <a href="/">Open Dictionary</a>
-      <a href="/about/">About</a>
-      <a href="/privacy/">Privacy</a>
-      <a href="/accessibility/">Accessibility</a>
-    </nav>
-  </main>
+  </InfoPageShell>
 </MainLayout>
