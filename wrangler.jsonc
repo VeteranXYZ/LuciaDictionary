@@ -9,27 +9,6 @@
   "placement": {
     "mode": "off",
   },
-  "observability": {
-    "enabled": true,
-    "logs": {
-      "enabled": true,
-      "head_sampling_rate": 1,
-    },
-    "traces": {
-      "enabled": true,
-      "head_sampling_rate": 0.05,
-    },
-  },
-  "ratelimits": [
-    {
-      "name": "OCR_RATE_LIMITER",
-      "namespace_id": "17012026",
-      "simple": {
-        "limit": 12,
-        "period": 60,
-      },
-    },
-  ],
   "env": {
     "production": {
       "placement": {
