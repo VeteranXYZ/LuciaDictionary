@@ -55,6 +55,13 @@ describe("main analysis flow source", () => {
     );
   });
 
+  it("keeps the mobile sentence input at a size that does not trigger iOS zoom", () => {
+    const styles = fs.readFileSync("src/styles/global.css", "utf8");
+    expect(styles).toMatch(
+      /@media \(max-width: 560px\)[\s\S]*textarea#sentence-input[\s\S]*font-size: 16px/,
+    );
+  });
+
   it("counts unique local dictionary words in settings", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
     expect(source).toMatch(
