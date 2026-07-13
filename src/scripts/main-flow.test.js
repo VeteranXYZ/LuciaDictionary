@@ -51,7 +51,7 @@ describe("main analysis flow source", () => {
     expect(styles).toContain(".sentence-actions");
     expect(source).toContain("navigator.clipboard?.writeText");
     expect(source).toContain(
-      'label.textContent = copied ? "已复制" : "复制文本"',
+      'label.textContent = copied ? "完成复制" : "复制文本"',
     );
   });
 

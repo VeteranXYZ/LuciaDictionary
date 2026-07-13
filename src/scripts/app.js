@@ -155,7 +155,7 @@ function showCopyFeedback(copied) {
 
   clearTimeout(copyFeedbackTimer);
   button.classList.toggle("is-copied", copied);
-  label.textContent = copied ? "已复制" : "复制文本";
+  label.textContent = copied ? "完成复制" : "复制文本";
   icon.innerHTML = copied ? COPIED_ICON : COPY_ICON;
   if (copied) {
     copyFeedbackTimer = setTimeout(() => showCopyFeedback(false), 2000);
