@@ -1,6 +1,14 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { createDictionaryService, extractLookupTerms, extractWordTerms, lookup, lookupBaseWord, lookupLayered, buildCoreFormIndex } from "./dictionary.js";
+import {
+  createDictionaryService,
+  extractLookupTerms,
+  extractWordTerms,
+  lookup,
+  lookupBaseWord,
+  lookupLayered,
+  buildCoreFormIndex,
+} from "./dictionary.js";
 
 const dict = {
   go: "去",
@@ -18,7 +26,7 @@ const dict = {
   write: "写",
   see: "看见",
   quick: "快的",
-  work: "工作"
+  work: "工作",
 };
 
 describe("dictionary lookup", () => {
@@ -42,12 +50,22 @@ describe("dictionary lookup", () => {
   });
 
   it("returns the normalized base word when found", () => {
-    expect(lookupBaseWord(dict, "bought")).toEqual({ base: "buy", modifier: "(变化形式)" });
+    expect(lookupBaseWord(dict, "bought")).toEqual({
+      base: "buy",
+      modifier: "(变化形式)",
+    });
   });
 });
 
-const coreLexicon = JSON.parse(fs.readFileSync("public/assets/lexicon/core-lexicon.json", "utf8"));
-const phraseLexicon = JSON.parse(fs.readFileSync("public/assets/phrase-lexicon.json", "utf8"));
+const coreLexicon = JSON.parse(
+  fs.readFileSync("public/assets/lexicon/core-lexicon.json", "utf8"),
+);
+const sourceCoreLexicon = JSON.parse(
+  fs.readFileSync("tools/lexicon-data/core-lexicon.source.json", "utf8"),
+);
+const phraseLexicon = JSON.parse(
+  fs.readFileSync("tools/lexicon-data/phrase-lexicon.json", "utf8"),
+);
 const formIndex = buildCoreFormIndex(coreLexicon);
 
 describe("local lexicon layers", () => {
@@ -57,8 +75,8 @@ describe("local lexicon layers", () => {
     formIndex,
     dict: {
       address: "旧地址释义",
-      tips: "尖端"
-    }
+      tips: "尖端",
+    },
   };
 
   it("finds required common words locally", () => {
@@ -111,10 +129,12 @@ describe("local lexicon layers", () => {
   });
 
   it("keeps explicit phrase extraction available outside the main flow", () => {
-    expect(extractLookupTerms("Write your email address and read the privacy policy.", phraseLexicon).slice(0, 2)).toEqual([
-      "email address",
-      "privacy policy"
-    ]);
+    expect(
+      extractLookupTerms(
+        "Write your email address and read the privacy policy.",
+        phraseLexicon,
+      ).slice(0, 2),
+    ).toEqual(["email address", "privacy policy"]);
   });
 
   it("main analysis extracts word cards only instead of phrase cards", () => {
@@ -124,28 +144,49 @@ describe("local lexicon layers", () => {
       phraseLexicon,
       phonetics: {},
       translateText: async () => "",
-      enqueueNetwork: async task => task(),
+      enqueueNetwork: async (task) => task(),
       getCachedOnlineWord: () => null,
-      setCachedOnlineWord: () => {}
+      setCachedOnlineWord: () => {},
     });
 
-    expect(service.extractLookupTerms("grow together")).toEqual(["grow", "together"]);
-    expect(service.extractLookupTerms("email address")).toEqual(["email", "address"]);
-    expect(service.extractLookupTerms("privacy policy")).toEqual(["privacy", "policy"]);
-    expect(service.extractLookupTerms("grow together")).not.toContain("grow together");
-    expect(service.extractLookupTerms("email address")).not.toContain("email address");
-    expect(service.extractLookupTerms("privacy policy")).not.toContain("privacy policy");
+    expect(service.extractLookupTerms("grow together")).toEqual([
+      "grow",
+      "together",
+    ]);
+    expect(service.extractLookupTerms("email address")).toEqual([
+      "email",
+      "address",
+    ]);
+    expect(service.extractLookupTerms("privacy policy")).toEqual([
+      "privacy",
+      "policy",
+    ]);
+    expect(service.extractLookupTerms("grow together")).not.toContain(
+      "grow together",
+    );
+    expect(service.extractLookupTerms("email address")).not.toContain(
+      "email address",
+    );
+    expect(service.extractLookupTerms("privacy policy")).not.toContain(
+      "privacy policy",
+    );
   });
 
   it("filters isolated OCR noise while keeping a and I", () => {
-    expect(extractWordTerms("a I g u x r plant 2024 ©")).toEqual(["a", "I", "plant"]);
+    expect(extractWordTerms("a I g u x r plant 2024 ©")).toEqual([
+      "a",
+      "I",
+      "plant",
+    ]);
   });
 
   it("keeps Lucia and Rayna project names as known local cards", () => {
     expect(lookupLayered(layers, "lucia")).toBe("Lucia，角色名");
     expect(lookupLayered(layers, "rayna")).toBe("Rayna，角色名");
     expect(lookupLayered(layers, "lucia&rayna")).toBe("Lucia & Rayna，品牌名");
-    expect(lookupLayered(layers, "luciaandrayna")).toBe("Lucia & Rayna，品牌名");
+    expect(lookupLayered(layers, "luciaandrayna")).toBe(
+      "Lucia & Rayna，品牌名",
+    );
   });
 
   it("extracts Lucia and Rayna project names without creating unknown tokens", () => {
@@ -155,12 +196,14 @@ describe("local lexicon layers", () => {
       phraseLexicon,
       phonetics: {},
       translateText: async () => "",
-      enqueueNetwork: async task => task(),
+      enqueueNetwork: async (task) => task(),
       getCachedOnlineWord: () => null,
-      setCachedOnlineWord: () => {}
+      setCachedOnlineWord: () => {},
     });
 
-    expect(service.extractLookupTerms("Lucia&Rayna Rayna Lucia luciaandrayna")).toEqual(["lucia&rayna", "rayna", "lucia", "luciaandrayna"]);
+    expect(
+      service.extractLookupTerms("Lucia&Rayna Rayna Lucia luciaandrayna"),
+    ).toEqual(["lucia&rayna", "rayna", "lucia", "luciaandrayna"]);
   });
 
   it("does not query online for Lucia and Rayna project names", async () => {
@@ -171,12 +214,12 @@ describe("local lexicon layers", () => {
       phraseLexicon,
       phonetics: {},
       translateText: async () => "",
-      enqueueNetwork: async task => {
+      enqueueNetwork: async (task) => {
         networkCalls++;
         return task();
       },
       getCachedOnlineWord: () => null,
-      setCachedOnlineWord: () => {}
+      setCachedOnlineWord: () => {},
     });
 
     expect(await service.lookupOnlineData("rayna")).toBe(null);
@@ -192,12 +235,12 @@ describe("local lexicon layers", () => {
       phraseLexicon,
       phonetics: {},
       translateText: async () => "",
-      enqueueNetwork: async task => {
+      enqueueNetwork: async (task) => {
         networkCalls++;
         return task();
       },
       getCachedOnlineWord: () => null,
-      setCachedOnlineWord: () => {}
+      setCachedOnlineWord: () => {},
     });
 
     expect(service.lookup("address")).toContain("住址");
@@ -214,15 +257,25 @@ describe("local lexicon layers", () => {
       phraseLexicon,
       phonetics: {},
       translateText: async () => "",
-      enqueueNetwork: async task => {
+      enqueueNetwork: async (task) => {
         networkCalls++;
         return task();
       },
       getCachedOnlineWord: () => null,
-      setCachedOnlineWord: () => {}
+      setCachedOnlineWord: () => {},
     });
 
-    for (const word of ["address", "activity", "privacy", "policy", "thoughtful", "supportive", "fun", "lab", "inbox"]) {
+    for (const word of [
+      "address",
+      "activity",
+      "privacy",
+      "policy",
+      "thoughtful",
+      "supportive",
+      "fun",
+      "lab",
+      "inbox",
+    ]) {
       expect(service.lookup(word)).toBeTruthy();
       expect(await service.lookupOnlineData(word)).toBe(null);
     }
@@ -230,10 +283,27 @@ describe("local lexicon layers", () => {
   });
 
   it("does not output empty-cn core entries", () => {
-    expect(Object.entries(coreLexicon).filter(([, entry]) => !String(entry.cn || "").trim())).toEqual([]);
+    expect(
+      Object.entries(sourceCoreLexicon).filter(
+        ([, entry]) => !String(entry.cn || "").trim(),
+      ),
+    ).toEqual([]);
   });
 
   it("does not ship generated examples or simple definitions in core entries", () => {
-    expect(Object.entries(coreLexicon).filter(([, entry]) => "examples" in entry || "simple" in entry || "source" in entry)).toEqual([]);
+    expect(
+      Object.entries(sourceCoreLexicon).filter(
+        ([, entry]) =>
+          "examples" in entry || "simple" in entry || "source" in entry,
+      ),
+    ).toEqual([]);
+  });
+
+  it("ships a learning band with every compact runtime entry", () => {
+    expect(
+      Object.values(coreLexicon).every((entry) =>
+        ["foundation", "developing", "expanding"].includes(entry[4]),
+      ),
+    ).toBe(true);
   });
 });

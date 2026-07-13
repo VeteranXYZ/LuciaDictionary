@@ -1,10 +1,51 @@
 import { cleanDisplayTranslation } from "./meaningCleaner.js";
+import { fetchWithPolicy } from "./network.js";
 import { cleanPhonetic } from "./phonetic.js";
 
 export const STOP_WORDS = new Set([
-  "a","an","the","and","or","but","to","of","in","on","at","for","with","by","from",
-  "is","am","are","was","were","be","been","being","do","does","did","it","this","that",
-  "these","those","i","you","he","she","we","they","my","your","his","her","our","their"
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "to",
+  "of",
+  "in",
+  "on",
+  "at",
+  "for",
+  "with",
+  "by",
+  "from",
+  "is",
+  "am",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "do",
+  "does",
+  "did",
+  "it",
+  "this",
+  "that",
+  "these",
+  "those",
+  "i",
+  "you",
+  "he",
+  "she",
+  "we",
+  "they",
+  "my",
+  "your",
+  "his",
+  "her",
+  "our",
+  "their",
 ]);
 
 export const POS_CN = {
@@ -15,7 +56,7 @@ export const POS_CN = {
   pronoun: "代词",
   preposition: "介词",
   conjunction: "连词",
-  interjection: "感叹词"
+  interjection: "感叹词",
 };
 
 export const IRREGULAR_BASES = {
@@ -40,24 +81,50 @@ export const IRREGULAR_BASES = {
   wrote: "write",
   written: "write",
   saw: "see",
-  seen: "see"
+  seen: "see",
 };
 
 export const OCR_NOISE_FRAGMENTS = new Set([
-  "b","c","d","e","f","g","h","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
-  "re","ve","ll"
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "y",
+  "z",
+  "re",
+  "ve",
+  "ll",
 ]);
 
 export const RESERVED_PROJECT_NAMES = {
   lucia: { cn: "Lucia，角色名", ph: "", pos: "name" },
   rayna: { cn: "Rayna，角色名", ph: "", pos: "name" },
   luciaandrayna: { cn: "Lucia & Rayna，品牌名", ph: "", pos: "name" },
-  "lucia&rayna": { cn: "Lucia & Rayna，品牌名", ph: "", pos: "name" }
+  "lucia&rayna": { cn: "Lucia & Rayna，品牌名", ph: "", pos: "name" },
 };
 
 export function getMeaningValue(entry) {
   if (!entry) return null;
   if (typeof entry === "string") return entry;
+  if (Array.isArray(entry)) return entry[0] || null;
   return entry.cn || entry.meaning || null;
 }
 
@@ -67,15 +134,35 @@ export function cleanMeaningForDisplay(meaning, word = "") {
 
 export function getPhoneticValue(entry) {
   if (!entry || typeof entry === "string") return "";
-  return cleanPhonetic(entry.ph || entry.phonetic || entry.us || entry.uk || "");
+  if (Array.isArray(entry)) return cleanPhonetic(entry[1] || "");
+  return cleanPhonetic(
+    entry.ph || entry.phonetic || entry.us || entry.uk || "",
+  );
+}
+
+export function getEntryForms(entry) {
+  if (Array.isArray(entry)) return Array.isArray(entry[3]) ? entry[3] : [];
+  return Array.isArray(entry?.forms) ? entry.forms : [];
+}
+
+export function getLearningBand(entry) {
+  if (Array.isArray(entry)) return entry[4] || "";
+  return entry?.level || "";
 }
 
 export function normalizeLookupTerm(term) {
-  return String(term || "").toLowerCase().replace(/[“”‘’"'.,!?;:()[\]{}]/g, " ").replace(/\s+/g, " ").trim();
+  return String(term || "")
+    .toLowerCase()
+    .replace(/[“”‘’"'.,!?;:()[\]{}]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function normalizeReservedNameTerm(term) {
-  return String(term || "").toLowerCase().replace(/\s+/g, "").replace(/[^a-z&]/g, "");
+  return String(term || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z&]/g, "");
 }
 
 export function getReservedProjectName(term) {
@@ -91,7 +178,7 @@ export function getPhraseMeaning(phraseLexicon, term) {
 export function buildCoreFormIndex(coreLexicon = {}) {
   const forms = {};
   for (const [base, entry] of Object.entries(coreLexicon || {})) {
-    for (const form of entry?.forms || []) {
+    for (const form of getEntryForms(entry)) {
       if (form && !forms[form]) forms[form.toLowerCase()] = base;
     }
   }
@@ -101,7 +188,8 @@ export function buildCoreFormIndex(coreLexicon = {}) {
 export function lookupCoreBase(coreLexicon, formIndex, word) {
   const w = normalizeLookupTerm(word);
   if (!w || w.includes(" ")) return null;
-  if (getReservedProjectName(w)) return { base: w, modifier: "", reserved: true };
+  if (getReservedProjectName(w))
+    return { base: w, modifier: "", reserved: true };
   if (coreLexicon?.[w]) return { base: w, modifier: "" };
   const base = formIndex?.[w];
   if (base && coreLexicon?.[base]) return { base, modifier: "" };
@@ -115,26 +203,35 @@ export function lookupBaseWord(dict, word) {
 
   const irregularBase = IRREGULAR_BASES[w];
   if (irregularBase && dict[irregularBase]) {
-    return { base: irregularBase, modifier: irregularModifier(w, irregularBase) };
+    return {
+      base: irregularBase,
+      modifier: irregularModifier(w, irregularBase),
+    };
   }
 
   const candidates = [];
-  if (w.length > 2 && w.endsWith("ly")) candidates.push({ base: w.slice(0, -2), modifier: "地" });
-  if (w.length > 3 && w.endsWith("ies")) candidates.push({ base: w.slice(0, -3) + "y", modifier: "" });
-  if (w.length > 2 && w.endsWith("es")) candidates.push({ base: w.slice(0, -2), modifier: "" });
-  if (w.length > 1 && w.endsWith("s")) candidates.push({ base: w.slice(0, -1), modifier: "" });
+  if (w.length > 2 && w.endsWith("ly"))
+    candidates.push({ base: w.slice(0, -2), modifier: "地" });
+  if (w.length > 3 && w.endsWith("ies"))
+    candidates.push({ base: w.slice(0, -3) + "y", modifier: "" });
+  if (w.length > 2 && w.endsWith("es"))
+    candidates.push({ base: w.slice(0, -2), modifier: "" });
+  if (w.length > 1 && w.endsWith("s"))
+    candidates.push({ base: w.slice(0, -1), modifier: "" });
   if (w.length > 2 && w.endsWith("ed")) {
     candidates.push({ base: w.slice(0, -2), modifier: "(过去式)" });
     candidates.push({ base: w.slice(0, -1), modifier: "(过去式)" });
   }
-  if (w.length > 2 && w.endsWith("er")) candidates.push({ base: w.slice(0, -2), modifier: "更" });
-  if (w.length > 3 && w.endsWith("est")) candidates.push({ base: w.slice(0, -3), modifier: "最" });
+  if (w.length > 2 && w.endsWith("er"))
+    candidates.push({ base: w.slice(0, -2), modifier: "更" });
+  if (w.length > 3 && w.endsWith("est"))
+    candidates.push({ base: w.slice(0, -3), modifier: "最" });
   if (w.length > 3 && w.endsWith("ing")) {
     candidates.push({ base: w.slice(0, -3), modifier: "正在" });
     candidates.push({ base: w.slice(0, -3) + "e", modifier: "正在" });
   }
 
-  return candidates.find(item => dict[item.base]) || null;
+  return candidates.find((item) => dict[item.base]) || null;
 }
 
 export function lookup(dict, word) {
@@ -144,13 +241,20 @@ export function lookup(dict, word) {
   if (!meaning) return null;
   if (!resolved.modifier) return meaning;
   if (resolved.modifier === "地") return meaning + resolved.modifier;
-  if (resolved.modifier === "更" || resolved.modifier === "最" || resolved.modifier === "正在") {
+  if (
+    resolved.modifier === "更" ||
+    resolved.modifier === "最" ||
+    resolved.modifier === "正在"
+  ) {
     return resolved.modifier + meaning;
   }
   return meaning + resolved.modifier;
 }
 
-export function lookupLayered({ phraseLexicon = {}, coreLexicon = {}, formIndex = {}, dict = {} }, term) {
+export function lookupLayered(
+  { phraseLexicon = {}, coreLexicon = {}, formIndex = {}, dict = {} },
+  term,
+) {
   const reserved = getReservedProjectName(term);
   if (reserved) return reserved.cn;
 
@@ -159,26 +263,41 @@ export function lookupLayered({ phraseLexicon = {}, coreLexicon = {}, formIndex 
 
   const coreResolved = lookupCoreBase(coreLexicon, formIndex, term);
   if (coreResolved) {
-    if (coreResolved.reserved) return getReservedProjectName(coreResolved.base)?.cn || null;
-    return cleanMeaningForDisplay(getMeaningValue(coreLexicon[coreResolved.base]), coreResolved.base);
+    if (coreResolved.reserved)
+      return getReservedProjectName(coreResolved.base)?.cn || null;
+    return cleanMeaningForDisplay(
+      getMeaningValue(coreLexicon[coreResolved.base]),
+      coreResolved.base,
+    );
   }
 
   return cleanMeaningForDisplay(lookup(dict, term), term);
 }
 
-export function lookupLocalPhonetic(dict, phonetics, word, coreLexicon = {}, formIndex = {}) {
+export function lookupLocalPhonetic(
+  dict,
+  phonetics,
+  word,
+  coreLexicon = {},
+  formIndex = {},
+) {
   const w = normalizeLookupTerm(word);
   const reserved = getReservedProjectName(word);
   if (reserved) return reserved.ph || "";
   const coreResolved = lookupCoreBase(coreLexicon, formIndex, w);
   if (coreResolved) {
-    return getPhoneticValue(coreLexicon[coreResolved.base]) || cleanPhonetic(phonetics[coreResolved.base]) || "";
+    return (
+      getPhoneticValue(coreLexicon[coreResolved.base]) ||
+      cleanPhonetic(phonetics[coreResolved.base]) ||
+      ""
+    );
   }
   if (w.includes(" ")) return "";
   if (dict[w]) return getPhoneticValue(dict[w]);
   if (phonetics[w]) return cleanPhonetic(phonetics[w]);
   const resolved = lookupBaseWord(dict, w);
-  if (resolved?.base && phonetics[resolved.base]) return cleanPhonetic(phonetics[resolved.base]);
+  if (resolved?.base && phonetics[resolved.base])
+    return cleanPhonetic(phonetics[resolved.base]);
   return "";
 }
 
@@ -191,8 +310,11 @@ export function reverseLookupChineseWords(dict, text) {
     if (STOP_WORDS.has(word)) continue;
     const meaning = getMeaningValue(entry);
     if (!meaning || meaning.length < 2) continue;
-    const candidates = meaning.split(/[;；,，、/]/).map(item => item.trim()).filter(Boolean);
-    if (candidates.some(item => source.includes(item)) && !seen.has(word)) {
+    const candidates = meaning
+      .split(/[;；,，、/]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (candidates.some((item) => source.includes(item)) && !seen.has(word)) {
       seen.add(word);
       hits.push(word);
       if (hits.length >= 12) break;
@@ -206,14 +328,22 @@ export function findPhraseMatches(phraseLexicon, text) {
   const source = String(text || "").toLowerCase();
   const matches = [];
   for (const phrase of Object.keys(phraseLexicon || {})) {
-    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+    const escaped = phrase
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+");
     const re = new RegExp(`\\b${escaped}\\b`, "i");
     const match = source.match(re);
     if (match?.index != null) {
-      matches.push({ term: phrase, index: match.index, end: match.index + match[0].length });
+      matches.push({
+        term: phrase,
+        index: match.index,
+        end: match.index + match[0].length,
+      });
     }
   }
-  return matches.sort((a, b) => a.index - b.index || b.term.length - a.term.length);
+  return matches.sort(
+    (a, b) => a.index - b.index || b.term.length - a.term.length,
+  );
 }
 
 export function extractLookupTerms(text, phraseLexicon = {}) {
@@ -221,7 +351,13 @@ export function extractLookupTerms(text, phraseLexicon = {}) {
   const phraseMatches = [];
   const occupied = [];
   for (const match of findPhraseMatches(phraseLexicon, source)) {
-    if (occupied.some(range => Math.max(range[0], match.index) < Math.min(range[1], match.end))) continue;
+    if (
+      occupied.some(
+        (range) =>
+          Math.max(range[0], match.index) < Math.min(range[1], match.end),
+      )
+    )
+      continue;
     occupied.push([match.index, match.end]);
     phraseMatches.push(match);
   }
@@ -252,7 +388,9 @@ export function extractLookupTerms(text, phraseLexicon = {}) {
 export function extractWordTerms(text) {
   const terms = [];
   const seen = new Set();
-  for (const raw of String(text || "").match(/[a-zA-Z]+(?:&[a-zA-Z]+)?(?:'[a-zA-Z]+)?/g) || []) {
+  for (const raw of String(text || "").match(
+    /[a-zA-Z]+(?:&[a-zA-Z]+)?(?:'[a-zA-Z]+)?/g,
+  ) || []) {
     for (const part of raw.split("'")) {
       const reservedKey = normalizeReservedNameTerm(part);
       if (getReservedProjectName(reservedKey) && !seen.has(reservedKey)) {
@@ -287,7 +425,16 @@ export function pickPhonetic(entry) {
   return cleanPhonetic(candidates.find(Boolean) || "");
 }
 
-export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon = {}, phonetics, translateText, enqueueNetwork, getCachedOnlineWord, setCachedOnlineWord }) {
+export function createDictionaryService({
+  dict,
+  coreLexicon = {},
+  phraseLexicon = {},
+  phonetics,
+  translateText,
+  enqueueNetwork,
+  getCachedOnlineWord,
+  setCachedOnlineWord,
+}) {
   const formIndex = buildCoreFormIndex(coreLexicon);
   const lookupLayers = { phraseLexicon, coreLexicon, formIndex, dict };
 
@@ -299,7 +446,14 @@ export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon 
     const cached = getCachedOnlineWord(w);
     if (cached) return cached;
 
-    const res = await enqueueNetwork(() => fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(w)));
+    const res = await enqueueNetwork(() =>
+      fetchWithPolicy(
+        "https://api.dictionaryapi.dev/api/v2/entries/en/" +
+          encodeURIComponent(w),
+        {},
+        { timeoutMs: 8000, retries: 1 },
+      ),
+    );
     const data = await res.json();
     if (!res.ok || !Array.isArray(data) || data.title) return null;
 
@@ -312,7 +466,7 @@ export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon 
       if (definition) {
         definitions.push({
           pos: POS_CN[meaning.partOfSpeech] || meaning.partOfSpeech || "释义",
-          en: definition
+          en: definition,
         });
       }
     }
@@ -320,7 +474,10 @@ export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon 
     const translated = [];
     for (const item of definitions) {
       try {
-        translated.push({ pos: item.pos, cn: await translateText(item.en, "en", "zh-CN") });
+        translated.push({
+          pos: item.pos,
+          cn: await translateText(item.en, "en", "zh-CN"),
+        });
       } catch (e) {
         translated.push({ pos: item.pos, cn: "中文释义暂时不可用" });
       }
@@ -329,25 +486,52 @@ export function createDictionaryService({ dict, coreLexicon = {}, phraseLexicon 
     const result = {
       phonetic,
       definitions: translated,
-      meaning: translated.map(item => `${item.pos}：${item.cn}`).join("；")
+      meaning: translated.map((item) => `${item.pos}：${item.cn}`).join("；"),
     };
     setCachedOnlineWord(w, result);
     return result;
   }
 
   return {
-    lookup: word => lookupLayered(lookupLayers, word),
-    lookupLocalPhonetic: word => lookupLocalPhonetic(dict, phonetics, word, coreLexicon, formIndex),
-    reverseLookupChineseWords: text => reverseLookupChineseWords({ ...dict, ...coreLexicon }, text),
-    extractLookupTerms: text => extractWordTerms(text),
-    lookupOnlineData
+    lookup: (word) => lookupLayered(lookupLayers, word),
+    lookupLearningBand: (word) => {
+      const resolved = lookupCoreBase(coreLexicon, formIndex, word);
+      return resolved && !resolved.reserved
+        ? getLearningBand(coreLexicon[resolved.base])
+        : "";
+    },
+    lookupLocalPhonetic: (word) =>
+      lookupLocalPhonetic(dict, phonetics, word, coreLexicon, formIndex),
+    reverseLookupChineseWords: (text) =>
+      reverseLookupChineseWords({ ...dict, ...coreLexicon }, text),
+    extractLookupTerms: (text) => extractWordTerms(text),
+    lookupOnlineData,
   };
 }
 
 function irregularModifier(word, base) {
-  if (["went", "gone", "did", "done", "ran", "bought", "brought", "thought", "made", "took", "taken", "wrote", "written", "saw", "seen"].includes(word)) {
+  if (
+    [
+      "went",
+      "gone",
+      "did",
+      "done",
+      "ran",
+      "bought",
+      "brought",
+      "thought",
+      "made",
+      "took",
+      "taken",
+      "wrote",
+      "written",
+      "saw",
+      "seen",
+    ].includes(word)
+  ) {
     return "(变化形式)";
   }
-  if ((word === "better" || word === "best") && base === "good") return word === "better" ? "更" : "最";
+  if ((word === "better" || word === "best") && base === "good")
+    return word === "better" ? "更" : "最";
   return "";
 }

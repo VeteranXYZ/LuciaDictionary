@@ -5,12 +5,12 @@ import {
   findPhraseMatches,
   lookupBaseWord,
   lookupCoreBase,
-  normalizeLookupTerm
+  normalizeLookupTerm,
 } from "../src/scripts/dictionary.js";
 
 const samplePath = "tools/ocr-samples/lucia-webpage.txt";
-const phraseLexiconPath = "public/assets/phrase-lexicon.json";
-const coreLexiconPath = "public/assets/lexicon/core-lexicon.json";
+const phraseLexiconPath = "tools/lexicon-data/phrase-lexicon.json";
+const coreLexiconPath = "tools/lexicon-data/core-lexicon.source.json";
 const oldDictPath = "public/assets/dict.json";
 
 const requiredLocalWords = [
@@ -22,26 +22,12 @@ const requiredLocalWords = [
   "supportive",
   "fun",
   "lab",
-  "inbox"
+  "inbox",
 ];
 
-const ignoredTokens = new Set([
-  "lucia",
-  "rayna",
-  "apr",
-  "c",
-  "cm"
-]);
+const ignoredTokens = new Set(["lucia", "rayna", "apr", "c", "cm"]);
 
-const contractionFragments = new Set([
-  "d",
-  "ll",
-  "m",
-  "re",
-  "s",
-  "t",
-  "ve"
-]);
+const contractionFragments = new Set(["d", "ll", "m", "re", "s", "t", "ve"]);
 
 function loadJson(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -59,7 +45,7 @@ function detectPhrases(phraseLexicon, source) {
   const occupied = [];
   for (const match of findPhraseMatches(phraseLexicon, source)) {
     const range = [match.index, match.end];
-    if (occupied.some(item => overlaps(item, range))) continue;
+    if (occupied.some((item) => overlaps(item, range))) continue;
     occupied.push(range);
     accepted.push(match);
   }
@@ -67,7 +53,9 @@ function detectPhrases(phraseLexicon, source) {
 }
 
 function tokenInPhrase(token, phraseMatches) {
-  return phraseMatches.some(match => token.index >= match.index && token.end <= match.end);
+  return phraseMatches.some(
+    (match) => token.index >= match.index && token.end <= match.end,
+  );
 }
 
 function tokenize(source) {
@@ -83,7 +71,7 @@ function tokenize(source) {
         raw: part,
         word: normalized,
         index: match.index,
-        end: match.index + raw.length
+        end: match.index + raw.length,
       });
     }
   }
@@ -120,8 +108,10 @@ const oldDict = loadJson(oldDictPath);
 const formIndex = buildCoreFormIndex(coreLexicon);
 
 const phraseMatches = detectPhrases(phraseLexicon, source);
-const tokens = tokenize(source).filter(token => !ignoredTokens.has(token.word));
-const uniqueWords = new Set(tokens.map(token => token.word));
+const tokens = tokenize(source).filter(
+  (token) => !ignoredTokens.has(token.word),
+);
+const uniqueWords = new Set(tokens.map((token) => token.word));
 
 let phraseHits = 0;
 let coreHits = 0;
@@ -161,12 +151,27 @@ for (const token of tokens) {
 const covered = phraseHits + coreHits + oldDictHits;
 const coverage = tokens.length ? covered / tokens.length : 0;
 const fallbackRate = tokens.length ? fallbackNeeded / tokens.length : 0;
-const requiredFallback = requiredLocalWords.filter(word => resolveWord(word, coreLexicon, formIndex, oldDict).layer === "fallback");
+const requiredFallback = requiredLocalWords.filter(
+  (word) =>
+    resolveWord(word, coreLexicon, formIndex, oldDict).layer === "fallback",
+);
 const failures = [];
 
-assertPass(coverage >= 0.85, `Coverage ${formatPercent(coverage)} is below 85%`, failures);
-assertPass(fallbackRate < 0.1, `Online fallback rate ${formatPercent(fallbackRate)} is not below 10%`, failures);
-assertPass(!requiredFallback.length, `Required local words fell back online: ${requiredFallback.join(", ")}`, failures);
+assertPass(
+  coverage >= 0.85,
+  `Coverage ${formatPercent(coverage)} is below 85%`,
+  failures,
+);
+assertPass(
+  fallbackRate < 0.1,
+  `Online fallback rate ${formatPercent(fallbackRate)} is not below 10%`,
+  failures,
+);
+assertPass(
+  !requiredFallback.length,
+  `Required local words fell back online: ${requiredFallback.join(", ")}`,
+  failures,
+);
 
 function formatPercent(value) {
   return `${(value * 100).toFixed(2)}%`;
@@ -187,7 +192,7 @@ const report = {
   topMissingWords: topEntries(missingWords),
   wordsThatStillRelyOnOnlineFallback: topEntries(fallbackWords, 50),
   phraseTerms: topEntries(phraseTerms, 30),
-  requiredFallback
+  requiredFallback,
 };
 
 console.log(`OCR sample: ${report.sample}`);
@@ -201,8 +206,12 @@ console.log(`online fallback needed: ${report.onlineFallbackNeeded}`);
 console.log(`coverage: ${report.coverage}`);
 console.log(`online fallback rate: ${report.onlineFallbackRate}`);
 console.log(`missing words count: ${report.missingWordsCount}`);
-console.log(`top missing words: ${report.topMissingWords.join(", ") || "none"}`);
-console.log(`words that still rely on online fallback: ${report.wordsThatStillRelyOnOnlineFallback.join(", ") || "none"}`);
+console.log(
+  `top missing words: ${report.topMissingWords.join(", ") || "none"}`,
+);
+console.log(
+  `words that still rely on online fallback: ${report.wordsThatStillRelyOnOnlineFallback.join(", ") || "none"}`,
+);
 console.log(`phrase terms: ${report.phraseTerms.join(", ") || "none"}`);
 
 if (failures.length) {

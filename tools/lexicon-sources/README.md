@@ -32,5 +32,5 @@ The build script reads Chinese translations, phonetics, POS data, and exchange/f
 Do not commit huge temporary source files if they are too large for the app repo. The generated public file is committed instead:
 
 ```text
-public/assets/lexicon/core-lexicon.json
+tools/lexicon-data/core-lexicon.source.json
 ```

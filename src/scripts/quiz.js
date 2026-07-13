@@ -1,4 +1,4 @@
-import { recordQuizAnswer } from "./wordbook.js";
+import { getDueWords, recordQuizAnswer } from "./wordbook.js";
 import { SPEAKER_SVG, createEmptyState, showCelebration } from "./ui.js";
 
 export const quizState = { current: null, score: 0, total: 0 };
@@ -12,12 +12,29 @@ export function getQuizOptionLabel(entry, flipped) {
   return getQuizMeaning(entry) || entry.w;
 }
 
-export function createQuizQuestion(wordbook, random = Math.random) {
-  const wb = (wordbook || []).filter(item => item?.w);
+function shuffle(items, random) {
+  const result = items.slice();
+  for (let index = result.length - 1; index > 0; index--) {
+    const target = Math.floor(random() * (index + 1));
+    [result[index], result[target]] = [result[target], result[index]];
+  }
+  return result;
+}
+
+export function createQuizQuestion(
+  wordbook,
+  random = Math.random,
+  now = Date.now(),
+) {
+  const wb = (wordbook || []).filter((item) => item?.w);
   if (wb.length < 4) return null;
-  const shuffled = wb.slice().sort(() => random() - 0.5);
-  const correct = shuffled[0];
-  const options = shuffled.slice(0, 4).sort(() => random() - 0.5);
+  const due = getDueWords(wb, now);
+  const correct = shuffle(due.length ? due : wb, random)[0];
+  const distractors = shuffle(
+    wb.filter((item) => item.w !== correct.w),
+    random,
+  ).slice(0, 3);
+  const options = shuffle([correct, ...distractors], random);
   const type = random() > 0.5 ? "listen" : "read";
   const correctMeaning = getQuizMeaning(correct);
   const flipped = type === "read" && !correctMeaning;
@@ -33,12 +50,19 @@ export function handleQuizAnswer(word, correctWord) {
 }
 
 export function renderQuiz({ getWordbook, speak }) {
-  const wb = getWordbook().filter(item => item?.w);
+  const wb = getWordbook().filter((item) => item?.w);
   const container = document.getElementById("quiz-content");
   if (!container) return;
 
-  document.querySelectorAll(".quiz-opt").forEach(el => {
-    el.classList.remove("correct", "wrong", "selected", "active", "chosen", "on");
+  document.querySelectorAll(".quiz-opt").forEach((el) => {
+    el.classList.remove(
+      "correct",
+      "wrong",
+      "selected",
+      "active",
+      "chosen",
+      "on",
+    );
     el.disabled = false;
     el.style.removeProperty("background");
     el.style.removeProperty("border-color");
@@ -46,7 +70,12 @@ export function renderQuiz({ getWordbook, speak }) {
   });
 
   if (wb.length < 4) {
-    container.replaceChildren(createEmptyState("生词本至少需要 4 个单词才能开始测验", "先在首页收藏一些单词吧"));
+    container.replaceChildren(
+      createEmptyState(
+        "生词本至少需要 4 个单词才能开始测验",
+        "先在首页收藏一些单词吧",
+      ),
+    );
     return;
   }
 
@@ -108,7 +137,7 @@ export function renderQuiz({ getWordbook, speak }) {
       }
 
       btn.classList.add("wrong");
-      document.querySelectorAll(".quiz-opt").forEach(option => {
+      document.querySelectorAll(".quiz-opt").forEach((option) => {
         if (option.dataset.word === correct.w) option.classList.add("correct");
         option.disabled = true;
       });

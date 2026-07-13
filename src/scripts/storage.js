@@ -1,7 +1,10 @@
+import { fetchWithPolicy } from "./network.js";
+
 export const ONLINE_DICT_CACHE = "lucia-online-dict-v1";
 export const TRANSLATE_CACHE = "lucia-translate-v1";
 export const TIP_DISMISSED_KEY = "lucia-learning-tip-dismissed";
 export const WORDBOOK_KEY = "lucia-wordbook";
+export const CLIENT_ID_KEY = "lucia-client-id";
 
 export const DEFAULT_SETTINGS = { speed: "normal", repeat: 3 };
 export const CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
@@ -41,7 +44,7 @@ export function trimCacheEntries(value, maxItems = CACHE_MAX_ITEMS) {
         const bt = b[1] && typeof b[1] === "object" ? b[1].cachedAt || 0 : 0;
         return bt - at;
       })
-      .slice(0, maxItems)
+      .slice(0, maxItems),
   );
 }
 
@@ -64,7 +67,10 @@ export function readCache(key, options = {}) {
 }
 
 export function writeCache(key, value, options = {}) {
-  writeStoredJson(key, trimCacheEntries(value, options.maxItems ?? CACHE_MAX_ITEMS));
+  writeStoredJson(
+    key,
+    trimCacheEntries(value, options.maxItems ?? CACHE_MAX_ITEMS),
+  );
 }
 
 export function clearLookupCaches() {
@@ -74,9 +80,29 @@ export function clearLookupCaches() {
   } catch (e) {}
 }
 
+export function getClientId(
+  storage = globalThis.localStorage,
+  cryptoImpl = globalThis.crypto,
+) {
+  try {
+    const existing = storage.getItem(CLIENT_ID_KEY);
+    if (/^[a-z0-9-]{8,64}$/i.test(existing || "")) return existing;
+    if (typeof cryptoImpl?.randomUUID !== "function") return "";
+    const created = cryptoImpl.randomUUID();
+    storage.setItem(CLIENT_ID_KEY, created);
+    return created;
+  } catch {
+    return "";
+  }
+}
+
 export async function loadJsonAsset(path, fallback) {
   try {
-    const res = await fetch(path);
+    const res = await fetchWithPolicy(
+      path,
+      {},
+      { timeoutMs: 15000, retries: 1 },
+    );
     if (!res.ok) return fallback;
     return await res.json();
   } catch (e) {

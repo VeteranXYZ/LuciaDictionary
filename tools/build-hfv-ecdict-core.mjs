@@ -2,41 +2,236 @@ import fs from "node:fs";
 
 const HFV_PATH = "tools/lexicon-sources/high-frequency-vocabulary/30k.txt";
 const ECDICT_PATH = "tools/lexicon-sources/ecdict/ecdict.csv";
-const OUT_PATH = "public/assets/lexicon/core-lexicon.json";
+const OUT_PATH = "tools/lexicon-data/core-lexicon.source.json";
 const TOP_CANDIDATES = 15000;
 
 const REQUIRED_WORDS = [
-  "address", "activity", "thing", "fun", "lab", "inbox", "privacy", "policy",
-  "support", "supportive", "thoughtful", "adventurous", "energetic", "exciting",
-  "resource", "journey", "creature", "challenge", "clue", "treasure", "forest",
-  "woods", "guide", "tip", "favorite", "subscribe", "contact", "email", "parent",
-  "birthday", "height", "centimeter", "page", "worksheet", "assignment", "passage",
-  "evidence", "compare", "contrast", "estimate", "observe", "record", "conclusion",
-  "permission", "signature", "field", "trip", "chaperone", "dismissal", "folder",
-  "backpack", "supplies", "main", "idea", "character", "setting", "problem",
-  "solution", "paragraph", "sentence", "punctuation", "revise", "edit", "draft",
-  "explain", "describe", "summarize", "predict", "analyze", "identify", "complete",
-  "answer", "question", "circle", "underline", "label", "match", "solve"
+  "address",
+  "activity",
+  "thing",
+  "fun",
+  "lab",
+  "inbox",
+  "privacy",
+  "policy",
+  "support",
+  "supportive",
+  "thoughtful",
+  "adventurous",
+  "energetic",
+  "exciting",
+  "resource",
+  "journey",
+  "creature",
+  "challenge",
+  "clue",
+  "treasure",
+  "forest",
+  "woods",
+  "guide",
+  "tip",
+  "favorite",
+  "subscribe",
+  "contact",
+  "email",
+  "parent",
+  "birthday",
+  "height",
+  "centimeter",
+  "page",
+  "worksheet",
+  "assignment",
+  "passage",
+  "evidence",
+  "compare",
+  "contrast",
+  "estimate",
+  "observe",
+  "record",
+  "conclusion",
+  "permission",
+  "signature",
+  "field",
+  "trip",
+  "chaperone",
+  "dismissal",
+  "folder",
+  "backpack",
+  "supplies",
+  "main",
+  "idea",
+  "character",
+  "setting",
+  "problem",
+  "solution",
+  "paragraph",
+  "sentence",
+  "punctuation",
+  "revise",
+  "edit",
+  "draft",
+  "explain",
+  "describe",
+  "summarize",
+  "predict",
+  "analyze",
+  "identify",
+  "complete",
+  "answer",
+  "question",
+  "circle",
+  "underline",
+  "label",
+  "match",
+  "solve",
 ];
 
 const REQUIRED_SET = new Set(REQUIRED_WORDS);
 
 const TAG_RULES = [
-  { tag: "school", words: ["school", "teacher", "student", "class", "parent", "backpack", "folder", "supplies", "page"] },
-  { tag: "classroom", words: ["circle", "underline", "label", "match", "complete", "answer", "question"] },
-  { tag: "homework", words: ["homework", "assignment", "worksheet", "draft", "revise", "edit"] },
-  { tag: "worksheet", words: ["worksheet", "page", "answer", "question", "complete", "passage"] },
-  { tag: "reading", words: ["passage", "evidence", "main", "idea", "character", "setting", "summarize", "predict"] },
-  { tag: "writing", words: ["paragraph", "sentence", "punctuation", "revise", "edit", "draft", "describe", "explain"] },
-  { tag: "math", words: ["estimate", "solve", "compare", "contrast", "centimeter", "height"] },
-  { tag: "science", words: ["lab", "observe", "record", "conclusion", "creature", "forest", "woods"] },
-  { tag: "notice", words: ["permission", "signature", "field", "trip", "dismissal", "chaperone"] },
-  { tag: "form", words: ["address", "birthday", "height", "signature", "permission", "contact", "email"] },
-  { tag: "website", words: ["privacy", "policy", "inbox", "subscribe", "email", "contact", "resource"] },
-  { tag: "ocr", words: ["address", "activity", "privacy", "policy", "inbox", "page", "worksheet"] },
-  { tag: "social", words: ["support", "supportive", "thoughtful", "favorite", "fun"] },
-  { tag: "emotion", words: ["supportive", "thoughtful", "adventurous", "energetic", "exciting"] },
-  { tag: "story", words: ["journey", "creature", "challenge", "clue", "treasure", "forest", "woods"] }
+  {
+    tag: "school",
+    words: [
+      "school",
+      "teacher",
+      "student",
+      "class",
+      "parent",
+      "backpack",
+      "folder",
+      "supplies",
+      "page",
+    ],
+  },
+  {
+    tag: "classroom",
+    words: [
+      "circle",
+      "underline",
+      "label",
+      "match",
+      "complete",
+      "answer",
+      "question",
+    ],
+  },
+  {
+    tag: "homework",
+    words: ["homework", "assignment", "worksheet", "draft", "revise", "edit"],
+  },
+  {
+    tag: "worksheet",
+    words: ["worksheet", "page", "answer", "question", "complete", "passage"],
+  },
+  {
+    tag: "reading",
+    words: [
+      "passage",
+      "evidence",
+      "main",
+      "idea",
+      "character",
+      "setting",
+      "summarize",
+      "predict",
+    ],
+  },
+  {
+    tag: "writing",
+    words: [
+      "paragraph",
+      "sentence",
+      "punctuation",
+      "revise",
+      "edit",
+      "draft",
+      "describe",
+      "explain",
+    ],
+  },
+  {
+    tag: "math",
+    words: ["estimate", "solve", "compare", "contrast", "centimeter", "height"],
+  },
+  {
+    tag: "science",
+    words: [
+      "lab",
+      "observe",
+      "record",
+      "conclusion",
+      "creature",
+      "forest",
+      "woods",
+    ],
+  },
+  {
+    tag: "notice",
+    words: [
+      "permission",
+      "signature",
+      "field",
+      "trip",
+      "dismissal",
+      "chaperone",
+    ],
+  },
+  {
+    tag: "form",
+    words: [
+      "address",
+      "birthday",
+      "height",
+      "signature",
+      "permission",
+      "contact",
+      "email",
+    ],
+  },
+  {
+    tag: "website",
+    words: [
+      "privacy",
+      "policy",
+      "inbox",
+      "subscribe",
+      "email",
+      "contact",
+      "resource",
+    ],
+  },
+  {
+    tag: "ocr",
+    words: [
+      "address",
+      "activity",
+      "privacy",
+      "policy",
+      "inbox",
+      "page",
+      "worksheet",
+    ],
+  },
+  {
+    tag: "social",
+    words: ["support", "supportive", "thoughtful", "favorite", "fun"],
+  },
+  {
+    tag: "emotion",
+    words: ["supportive", "thoughtful", "adventurous", "energetic", "exciting"],
+  },
+  {
+    tag: "story",
+    words: [
+      "journey",
+      "creature",
+      "challenge",
+      "clue",
+      "treasure",
+      "forest",
+      "woods",
+    ],
+  },
 ];
 
 const ACADEMIC_TAGS = /\b(cet6|ky|toefl|ielts|gre|sat|gmat|考研)\b/i;
@@ -50,7 +245,9 @@ function assertSource(filePath, label) {
 }
 
 function normalizeWord(raw) {
-  return String(raw || "").trim().toLowerCase();
+  return String(raw || "")
+    .trim()
+    .toLowerCase();
 }
 
 function isCleanWord(word) {
@@ -81,9 +278,9 @@ function* parseCsv(text) {
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if (inQuotes) {
-      if (ch === "\"") {
-        if (text[i + 1] === "\"") {
-          field += "\"";
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
           i++;
         } else {
           inQuotes = false;
@@ -94,7 +291,7 @@ function* parseCsv(text) {
       continue;
     }
 
-    if (ch === "\"") {
+    if (ch === '"') {
       inQuotes = true;
     } else if (ch === ",") {
       row.push(field);
@@ -135,7 +332,7 @@ function parseEcdict() {
       ph: formatPhonetic(row[index.phonetic] || ""),
       pos: normalizePos(row[index.pos] || "", translation),
       exchange: row[index.exchange] || "",
-      rawTag: row[index.tag] || ""
+      rawTag: row[index.tag] || "",
     });
   }
 
@@ -147,14 +344,17 @@ function cleanTranslation(value) {
     .replace(/\\n/g, "\n")
     .replace(/\r/g, "\n")
     .split(/\n+/)
-    .map(line => line.trim())
+    .map((line) => line.trim())
     .filter(Boolean);
   const parts = [];
   const seen = new Set();
   for (const line of lines) {
     if (!CJK_RE.test(line)) continue;
     const cleaned = line
-      .replace(/^(?:abbr|adj|adv|art|aux|conj|int|n|num|pl|prep|pron|v|vi|vt|a|s)\.\s*/i, "")
+      .replace(
+        /^(?:abbr|adj|adv|art|aux|conj|int|n|num|pl|prep|pron|v|vi|vt|a|s)\.\s*/i,
+        "",
+      )
       .replace(/\[[^\]]+\]\s*/g, "")
       .replace(/\s+/g, " ")
       .replace(/[;,]\s*/g, "；")
@@ -181,8 +381,14 @@ function normalizePos(pos, translation) {
     const key = normalizePosToken(item);
     if (key) found.add(key);
   }
-  for (const line of String(translation || "").replace(/\\n/g, "\n").split(/\n+/)) {
-    const match = line.trim().match(/^(abbr|adj|adv|art|aux|conj|int|n|num|pl|prep|pron|v|vi|vt|a|s)\./i);
+  for (const line of String(translation || "")
+    .replace(/\\n/g, "\n")
+    .split(/\n+/)) {
+    const match = line
+      .trim()
+      .match(
+        /^(abbr|adj|adv|art|aux|conj|int|n|num|pl|prep|pron|v|vi|vt|a|s)\./i,
+      );
     const key = normalizePosToken(match?.[1]);
     if (key) found.add(key);
   }
@@ -190,7 +396,9 @@ function normalizePos(pos, translation) {
 }
 
 function normalizePosToken(token) {
-  const key = String(token || "").toLowerCase().replace(/\.$/, "");
+  const key = String(token || "")
+    .toLowerCase()
+    .replace(/\.$/, "");
   const map = {
     a: "adj.",
     adj: "adj.",
@@ -208,7 +416,7 @@ function normalizePosToken(token) {
     v: "v.",
     vi: "vi.",
     vt: "vt.",
-    abbr: "abbr."
+    abbr: "abbr.",
   };
   return map[key] || "";
 }
@@ -228,7 +436,12 @@ function parseExchange(exchange) {
 
 function isCoveredInflectedForm(word, entry, ecdict) {
   const { bases } = parseExchange(entry.exchange);
-  return bases.some(base => base !== word && ecdict.has(base) && parseExchange(ecdict.get(base).exchange).forms.includes(word));
+  return bases.some(
+    (base) =>
+      base !== word &&
+      ecdict.has(base) &&
+      parseExchange(ecdict.get(base).exchange).forms.includes(word),
+  );
 }
 
 function inferTags(word, entry, rank) {
@@ -239,21 +452,41 @@ function inferTags(word, entry, rank) {
   }
   if (ACADEMIC_TAGS.test(entry.rawTag)) tags.add("academic");
   if (SCHOOL_TAGS.test(entry.rawTag)) tags.add("school");
-  return Array.from(tags).filter(tag => [
-    "core", "daily", "school", "classroom", "homework", "worksheet", "reading", "writing",
-    "math", "science", "notice", "form", "website", "ocr", "social", "emotion", "story", "academic"
-  ].includes(tag));
+  return Array.from(tags).filter((tag) =>
+    [
+      "core",
+      "daily",
+      "school",
+      "classroom",
+      "homework",
+      "worksheet",
+      "reading",
+      "writing",
+      "math",
+      "science",
+      "notice",
+      "form",
+      "website",
+      "ocr",
+      "social",
+      "emotion",
+      "story",
+      "academic",
+    ].includes(tag),
+  );
 }
 
 function toOutputEntry(word, entry, rank) {
-  const forms = parseExchange(entry.exchange).forms.filter(form => form !== word);
+  const forms = parseExchange(entry.exchange).forms.filter(
+    (form) => form !== word,
+  );
   return {
     cn: entry.cn,
     ph: entry.ph,
     pos: entry.pos,
     forms,
     rank,
-    tags: inferTags(word, entry, rank)
+    tags: inferTags(word, entry, rank),
   };
 }
 
@@ -296,7 +529,11 @@ for (const word of REQUIRED_WORDS) {
     missingRequired.push(word);
     continue;
   }
-  out[word] = toOutputEntry(word, entry, hfvRank.get(word) || TOP_CANDIDATES + forcedRequired + 1);
+  out[word] = toOutputEntry(
+    word,
+    entry,
+    hfvRank.get(word) || TOP_CANDIDATES + forcedRequired + 1,
+  );
   forcedRequired++;
 }
 

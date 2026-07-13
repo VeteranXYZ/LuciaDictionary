@@ -1,5 +1,11 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { CACHE_MAX_ITEMS, readCache, trimCacheEntries, writeCache } from "./storage.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  CACHE_MAX_ITEMS,
+  getClientId,
+  readCache,
+  trimCacheEntries,
+  writeCache,
+} from "./storage.js";
 
 function installStorage() {
   const data = new Map();
@@ -7,11 +13,11 @@ function installStorage() {
     configurable: true,
     writable: true,
     value: {
-    getItem: key => data.get(key) ?? null,
-    setItem: (key, value) => data.set(key, String(value)),
-    removeItem: key => data.delete(key),
-    clear: () => data.clear()
-    }
+      getItem: (key) => data.get(key) ?? null,
+      setItem: (key, value) => data.set(key, String(value)),
+      removeItem: (key) => data.delete(key),
+      clear: () => data.clear(),
+    },
   });
 }
 
@@ -22,9 +28,12 @@ describe("cache trimming", () => {
     const input = {
       old: { cachedAt: 1 },
       newest: { cachedAt: 3 },
-      middle: { cachedAt: 2 }
+      middle: { cachedAt: 2 },
     };
-    expect(Object.keys(trimCacheEntries(input, 2))).toEqual(["newest", "middle"]);
+    expect(Object.keys(trimCacheEntries(input, 2))).toEqual([
+      "newest",
+      "middle",
+    ]);
   });
 
   it("trims persisted cache to the configured limit", () => {
@@ -36,5 +45,16 @@ describe("cache trimming", () => {
     writeCache("cache", value);
     expect(Object.keys(readCache("cache")).length).toBe(CACHE_MAX_ITEMS);
     expect(readCache("cache")["item-0"]).toBeUndefined();
+  });
+});
+
+describe("client identity", () => {
+  beforeEach(installStorage);
+
+  it("creates and reuses a privacy-preserving local client id", () => {
+    const cryptoImpl = { randomUUID: vi.fn(() => "12345678-test-client") };
+    expect(getClientId(localStorage, cryptoImpl)).toBe("12345678-test-client");
+    expect(getClientId(localStorage, cryptoImpl)).toBe("12345678-test-client");
+    expect(cryptoImpl.randomUUID).toHaveBeenCalledOnce();
   });
 });

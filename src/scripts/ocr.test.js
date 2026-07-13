@@ -5,12 +5,14 @@ import {
   getOcrErrorMessage,
   isSupportedOcrImage,
   mapOcrResponseError,
-  formatBytes
+  formatBytes,
 } from "./ocr.js";
 
 describe("cleanOcrText", () => {
   it("joins OCR lines into a single sentence for the analyzer", () => {
-    expect(cleanOcrText("  Circle the noun.\r\n\nThen write it.  ")).toBe("Circle the noun. Then write it.");
+    expect(cleanOcrText("  Circle the noun.\r\n\nThen write it.  ")).toBe(
+      "Circle the noun. Then write it.",
+    );
   });
 
   it("handles empty OCR responses", () => {
@@ -48,8 +50,12 @@ describe("OCR error helpers", () => {
   });
 
   it("returns parent-friendly Chinese copy", () => {
-    expect(getOcrErrorMessage({ code: "no_text_detected" })).toContain("没有识别到清晰的英文");
-    expect(getOcrErrorMessage({ code: "offline" })).toContain("OCR 需要网络连接");
+    expect(getOcrErrorMessage({ code: "no_text_detected" })).toContain(
+      "没有识别到清晰的英文",
+    );
+    expect(getOcrErrorMessage({ code: "offline" })).toContain(
+      "OCR 需要网络连接",
+    );
   });
 
   it("accepts only upload types supported by the server", () => {

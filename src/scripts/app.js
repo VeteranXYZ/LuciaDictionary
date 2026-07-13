@@ -8,21 +8,32 @@ import {
   loadJsonAsset,
   readCache,
   setSetting,
-  writeCache
+  writeCache,
 } from "./storage.js";
 import { STOP_WORDS, createDictionaryService } from "./dictionary.js";
 import { CHINESE_RE, createTranslationService } from "./translation.js";
-import { getSentenceSpeechLabel, renderSpeakableText, resetSentenceSpeech, setupVoices, speak, speakWordN, toggleSentenceSpeech } from "./speech.js";
+import {
+  getSentenceSpeechLabel,
+  renderSpeakableText,
+  resetSentenceSpeech,
+  setupVoices,
+  speak,
+  speakWordN,
+  toggleSentenceSpeech,
+} from "./speech.js";
 import {
   clearWordbookItems,
   exportWordbookJson,
+  getDueWords,
+  getReviewSummary,
   getWordbook,
   importWordbookFile,
   isStarred,
   removeWord,
+  recordReviewFeedback,
   saveWordbook,
   toggleStar,
-  updateStarredMeaning
+  updateStarredMeaning,
 } from "./wordbook.js";
 import { renderQuiz } from "./quiz.js";
 import { TEMPLATES, renderTemplates } from "./templates.js";
@@ -36,14 +47,13 @@ import {
   createEmptyState,
   hydrateOnlineWord,
   setCardMeaning,
-  setMutedText
+  setMutedText,
 } from "./ui.js";
 
 const NETWORK_CONCURRENCY = 3;
 
 let dictData = {};
 let coreLexicon = {};
-let phraseLexicon = {};
 let phonetics = {};
 let phrasebook = [];
 let curSentence = "";
@@ -51,6 +61,8 @@ let curSentenceDisplay = "";
 let analyzeRunId = 0;
 let dictService = null;
 let translationService = null;
+let dictionaryReady = null;
+let phrasebookReady = null;
 let activeNetworkRequests = 0;
 const networkQueue = [];
 
@@ -110,6 +122,58 @@ function setSentenceText(text) {
   if (sentenceText) renderSpeakableText(sentenceText, text);
 }
 
+function announce(message) {
+  const status = document.getElementById("app-status");
+  if (status) status.textContent = message;
+}
+
+function createCurrentTranslationService() {
+  translationService = createTranslationService({
+    dictService,
+    phrasebook,
+    templateGroups: TEMPLATES,
+    enqueueNetwork,
+  });
+}
+
+async function loadDictionaryServices() {
+  [dictData, coreLexicon, phonetics] = await Promise.all([
+    loadJsonAsset("assets/dict.json", {}),
+    loadJsonAsset("assets/lexicon/core-lexicon.json", {}),
+    loadJsonAsset("assets/phonetics.json", {}),
+  ]);
+  if (!Object.keys(coreLexicon).length)
+    throw new Error("Local dictionary failed to load");
+
+  dictService = createDictionaryService({
+    dict: dictData,
+    coreLexicon,
+    phonetics,
+    translateText: (...args) => translationService.translateText(...args),
+    enqueueNetwork,
+    getCachedOnlineWord,
+    setCachedOnlineWord,
+  });
+  createCurrentTranslationService();
+  renderSettings();
+  announce("本地词典已准备好");
+  return dictService;
+}
+
+async function ensurePhrasebookReady() {
+  if (phrasebook.length) return phrasebook;
+  if (!phrasebookReady) {
+    phrasebookReady = loadJsonAsset("assets/phrasebook.json", []).then(
+      (items) => {
+        phrasebook = Array.isArray(items) ? items : [];
+        createCurrentTranslationService();
+        return phrasebook;
+      },
+    );
+  }
+  return phrasebookReady;
+}
+
 function isCurrentAnalyzeRun(runId) {
   return runId == null || runId === analyzeRunId;
 }
@@ -121,8 +185,8 @@ async function analyzeSentence() {
 
   const runId = ++analyzeRunId;
   const bar = document.getElementById("sentence-bar");
-  const explanationEl = document.getElementById("sentence-explanation");
   const list = document.getElementById("word-list");
+  if (!list) return;
 
   let sentence = raw;
   setAnalyzeBusy(true);
@@ -130,13 +194,23 @@ async function analyzeSentence() {
   resetSentenceSpeech();
   setSentenceText(raw);
   setSentenceSpeakLabel(getSentenceSpeechLabel("idle"));
-  explanationEl?.replaceChildren();
-  if (explanationEl) explanationEl.hidden = true;
+  list.setAttribute("aria-busy", "true");
 
   try {
+    if (!dictService) {
+      list.replaceChildren(
+        createEmptyState("正在准备本地词典", "首次打开只需要一点时间"),
+      );
+      await dictionaryReady;
+      if (runId !== analyzeRunId) return;
+    }
+
     if (CHINESE_RE.test(raw)) {
-      list.replaceChildren(createEmptyState("正在识别中文句子", "优先使用本地短句和词库"));
+      list.replaceChildren(
+        createEmptyState("正在识别中文句子", "优先使用本地短句和词库"),
+      );
       try {
+        await ensurePhrasebookReady();
         const resolved = await translationService.resolveChineseInput(raw);
         if (runId !== analyzeRunId) return;
         sentence = resolved.sentence;
@@ -144,20 +218,26 @@ async function analyzeSentence() {
         setSentenceSpeakLabel("朗读英文句子");
       } catch (e) {
         if (runId !== analyzeRunId) return;
-        list.replaceChildren(createEmptyState("中文识别暂时不可用", "请检查网络，或先输入英文句子"));
+        list.replaceChildren(
+          createEmptyState(
+            "中文识别暂时不可用",
+            "请检查网络，或先输入英文句子",
+          ),
+        );
         return;
       }
     }
 
     if (runId !== analyzeRunId) return;
     curSentence = sentence;
-    explanationEl?.replaceChildren();
-    if (explanationEl) explanationEl.hidden = true;
     const words = dictService.extractLookupTerms(sentence);
     list.replaceChildren();
 
     if (!words.length) {
-      list.replaceChildren(createEmptyState("没有发现英文单词哦", "试试粘贴一句完整的英语吧～"));
+      list.replaceChildren(
+        createEmptyState("没有发现英文单词哦", "试试粘贴一句完整的英语吧～"),
+      );
+      announce("没有发现英文单词");
       return;
     }
 
@@ -175,18 +255,32 @@ async function analyzeSentence() {
       buildWordCard(word, index, dictService.lookup(word), list, {
         stopWords: STOP_WORDS,
         lookupLocalPhonetic: dictService.lookupLocalPhonetic,
+        lookupLearningBand: dictService.lookupLearningBand,
         isStarred,
         toggleStar,
         speakWordN,
         getCachedOnlineWord,
         lookupOnlineData: dictService.lookupOnlineData,
         sourceSentence: () => curSentence,
-        setMeaning: (card, meaning) => setCardMeaning(card, word.toLowerCase(), meaning, updateStarredMeaning),
+        setMeaning: (card, meaning) =>
+          setCardMeaning(
+            card,
+            word.toLowerCase(),
+            meaning,
+            updateStarredMeaning,
+          ),
         isCurrentRun: isCurrentAnalyzeRun,
-        runId
+        runId,
       });
     });
+    announce(`已生成 ${uniqWords.length} 张单词卡`);
+  } catch {
+    list.replaceChildren(
+      createEmptyState("本地词典暂时无法加载", "请刷新页面后再试"),
+    );
+    announce("本地词典加载失败");
   } finally {
+    list.setAttribute("aria-busy", "false");
     if (runId === analyzeRunId) setAnalyzeBusy(false);
   }
 }
@@ -202,24 +296,35 @@ function renderWordbook() {
     stats.style.display = "none";
     actions.style.display = "flex";
     setWordbookActionState(false);
-    list.replaceChildren(createEmptyState("生词本还是空的", "在首页点 ☆ 把单词收藏到这里吧"));
+    list.replaceChildren(
+      createEmptyState("生词本还是空的", "在首页点 ☆ 把单词收藏到这里吧"),
+    );
     return;
   }
 
   stats.style.display = "flex";
   stats.replaceChildren();
-  const statWrap = document.createElement("div");
-  const num = document.createElement("div");
-  num.className = "num";
-  num.textContent = wb.length;
-  const label = document.createElement("div");
-  label.className = "label";
-  label.textContent = "个收藏的单词";
-  const small = document.createElement("small");
-  small.textContent = "点单词卡片可以听发音";
-  label.appendChild(small);
-  statWrap.append(num, label);
-  stats.appendChild(statWrap);
+  const summary = getReviewSummary(wb);
+  for (const [value, text] of [
+    [summary.total, "收藏"],
+    [summary.due, "今日复习"],
+    [summary.mastered, "已掌握"],
+  ]) {
+    const statWrap = document.createElement("div");
+    const num = document.createElement("div");
+    num.className = "num";
+    num.textContent = value;
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = text;
+    statWrap.append(num, label);
+    stats.appendChild(statWrap);
+  }
+  const reviewLabel = document.querySelector("#review-all-btn span");
+  if (reviewLabel)
+    reviewLabel.textContent = summary.due
+      ? `复习 ${summary.due} 个`
+      : "朗读全部";
 
   actions.style.display = "flex";
   setWordbookActionState(true);
@@ -228,7 +333,7 @@ function renderWordbook() {
   wb.forEach((entry, index) => {
     const card = document.createElement("div");
     card.className = "word-card";
-    card.style.animationDelay = (index * 0.04) + "s";
+    card.style.animationDelay = index * 0.04 + "s";
 
     const count = document.createElement("div");
     count.className = "word-num";
@@ -239,6 +344,12 @@ function renderWordbook() {
     const en = document.createElement("div");
     en.className = "word-en";
     en.textContent = entry.w;
+    const band = document.createElement("span");
+    band.className = "word-level";
+    const bandKey = dictService.lookupLearningBand(entry.w);
+    band.textContent =
+      { foundation: "基础", developing: "进阶", expanding: "拓展" }[bandKey] ||
+      "复习";
     const ph = document.createElement("div");
     ph.className = "word-phonetic";
     ph.textContent = dictService.lookupLocalPhonetic(entry.w) || "暂无音标";
@@ -247,7 +358,7 @@ function renderWordbook() {
     if (entry.m) cn.textContent = entry.m;
     else setMutedText(cn, "正在查询中文释义…");
 
-    body.append(en, ph, cn);
+    body.append(en, band, ph, cn);
 
     const acts = document.createElement("div");
     acts.className = "word-actions";
@@ -255,7 +366,7 @@ function renderWordbook() {
     star.className = "btn-star active";
     star.innerHTML = STAR_SVG;
     star.setAttribute("aria-label", "移出生词本");
-    star.addEventListener("click", event => {
+    star.addEventListener("click", (event) => {
       event.stopPropagation();
       removeWord(entry.w);
       renderWordbook();
@@ -265,23 +376,57 @@ function renderWordbook() {
     speakBtn.className = "btn-speak";
     speakBtn.innerHTML = SPEAKER_SVG;
     speakBtn.setAttribute("aria-label", "朗读");
-    speakBtn.addEventListener("click", event => {
+    speakBtn.addEventListener("click", (event) => {
       event.stopPropagation();
       speakWordN(entry.w, card);
     });
 
     acts.append(star, speakBtn);
-    card.append(count, body, acts);
+    const feedback = document.createElement("div");
+    feedback.className = "review-feedback";
+    const reviewMeta = document.createElement("span");
+    reviewMeta.className = "review-meta";
+    const masteryLabel =
+      {
+        new: "新词",
+        learning: "学习中",
+        reviewing: "复习中",
+        mastered: "已掌握",
+      }[entry.mastery] || "新词";
+    reviewMeta.textContent =
+      entry.nextReviewAt > Date.now()
+        ? `${masteryLabel} · ${new Date(entry.nextReviewAt).toLocaleDateString("zh-CN")} 再复习`
+        : `${masteryLabel} · 今天复习`;
+    feedback.appendChild(reviewMeta);
+    for (const [result, text] of [
+      ["know", "会"],
+      ["unsure", "不确定"],
+      ["forgot", "忘记"],
+    ]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `review-btn ${result}`;
+      button.textContent = text;
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        recordReviewFeedback(entry.w, result);
+        announce(`${entry.w} 已记录为${text}`);
+        renderWordbook();
+      });
+      feedback.appendChild(button);
+    }
+    card.append(count, body, acts, feedback);
     setCardMeaning(card, entry.w, entry.m || "", updateStarredMeaning);
     card.addEventListener("click", () => speakWordN(entry.w, card));
     list.appendChild(card);
     hydrateOnlineWord(entry.w, cn, ph, card, {
       getCachedOnlineWord,
       lookupOnlineData: dictService.lookupOnlineData,
-      setMeaning: (target, meaning) => setCardMeaning(target, entry.w, meaning, updateStarredMeaning),
+      setMeaning: (target, meaning) =>
+        setCardMeaning(target, entry.w, meaning, updateStarredMeaning),
       isCurrentRun: () => true,
       fillMeaning: !entry.m,
-      allowNetwork: false
+      allowNetwork: false,
     });
   });
 }
@@ -296,7 +441,9 @@ function setWordbookActionState(hasItems) {
 }
 
 function reviewAll() {
-  const wb = getWordbook();
+  const allWords = getWordbook();
+  const dueWords = getDueWords(allWords);
+  const wb = dueWords.length ? dueWords : allWords;
   if (!wb.length) return;
   let index = 0;
   const next = () => {
@@ -370,13 +517,13 @@ function setupImageOcr() {
       }
 
       const result = await recognizeImageText(file, {
-        onProgress: stage => {
+        onProgress: (stage) => {
           if (stage === "compressing") {
             setOcrStatus("正在处理图片…");
           } else if (stage === "uploading") {
             setOcrStatus("正在识别英文…");
           }
-        }
+        },
       });
 
       if (!result.text) {
@@ -397,7 +544,7 @@ function setupImageOcr() {
     }
   }
 
-  imageInput.addEventListener("change", async event => {
+  imageInput.addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     await processOcrFile(file);
@@ -421,7 +568,10 @@ function setupDailyStreak() {
 }
 
 function renderSettings() {
-  const speeds = [["慢速", "slow"], ["正常", "normal"]];
+  const speeds = [
+    ["慢速", "slow"],
+    ["正常", "normal"],
+  ];
   const repeats = [1, 3, 5];
   const curSpeed = getSetting("speed");
   const curRepeat = getSetting("repeat");
@@ -429,29 +579,33 @@ function renderSettings() {
   const repeatOptions = document.getElementById("repeat-options");
   if (!speedOptions || !repeatOptions) return;
 
-  speedOptions.replaceChildren(...speeds.map(([label, value]) => {
-    const btn = document.createElement("button");
-    btn.className = "set-btn" + (curSpeed === value ? " active" : "");
-    btn.dataset.speed = value;
-    btn.textContent = label;
-    btn.addEventListener("click", () => {
-      setSetting("speed", value);
-      renderSettings();
-    });
-    return btn;
-  }));
+  speedOptions.replaceChildren(
+    ...speeds.map(([label, value]) => {
+      const btn = document.createElement("button");
+      btn.className = "set-btn" + (curSpeed === value ? " active" : "");
+      btn.dataset.speed = value;
+      btn.textContent = label;
+      btn.addEventListener("click", () => {
+        setSetting("speed", value);
+        renderSettings();
+      });
+      return btn;
+    }),
+  );
 
-  repeatOptions.replaceChildren(...repeats.map(value => {
-    const btn = document.createElement("button");
-    btn.className = "set-btn" + (curRepeat === value ? " active" : "");
-    btn.dataset.repeat = value;
-    btn.textContent = `${value} 遍`;
-    btn.addEventListener("click", () => {
-      setSetting("repeat", value);
-      renderSettings();
-    });
-    return btn;
-  }));
+  repeatOptions.replaceChildren(
+    ...repeats.map((value) => {
+      const btn = document.createElement("button");
+      btn.className = "set-btn" + (curRepeat === value ? " active" : "");
+      btn.dataset.repeat = value;
+      btn.textContent = `${value} 遍`;
+      btn.addEventListener("click", () => {
+        setSetting("repeat", value);
+        renderSettings();
+      });
+      return btn;
+    }),
+  );
 
   const clearCacheBtn = document.getElementById("clear-cache-btn");
   if (clearCacheBtn && !clearCacheBtn.dataset.bound) {
@@ -466,7 +620,11 @@ function renderSettings() {
   }
 
   const dictCount = document.getElementById("dict-count");
-  if (dictCount) dictCount.textContent = new Set([...Object.keys(dictData), ...Object.keys(coreLexicon)]).size.toLocaleString();
+  if (dictCount)
+    dictCount.textContent = new Set([
+      ...Object.keys(dictData),
+      ...Object.keys(coreLexicon),
+    ]).size.toLocaleString();
   const wbCount = document.getElementById("about-wb-count");
   if (wbCount) wbCount.textContent = getWordbook().length.toLocaleString();
 }
@@ -502,68 +660,87 @@ function learnTemplateSentence(sentence) {
 }
 
 function navTo(page, opts) {
-  document.querySelectorAll(".page").forEach(item => item.classList.remove("active"));
-  document.getElementById("pg-" + page)?.classList.add("active");
-  document.querySelectorAll(".nav-item").forEach(btn => btn.classList.toggle("active", btn.dataset.pg === page));
+  document.querySelectorAll(".page").forEach((item) => {
+    const active = item.id === "pg-" + page;
+    item.classList.toggle("active", active);
+    item.hidden = !active;
+  });
+  document.querySelectorAll(".nav-item").forEach((btn) => {
+    const active = btn.dataset.pg === page;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-selected", String(active));
+    if (active) btn.setAttribute("aria-current", "page");
+    else btn.removeAttribute("aria-current");
+  });
   if (!opts || !opts.keepScroll) window.scrollTo(0, 0);
-  if (page === "wordbook") renderWordbook();
+  if (page === "wordbook") {
+    if (dictService) renderWordbook();
+    else {
+      document
+        .getElementById("wb-list")
+        ?.replaceChildren(createEmptyState("正在准备本地词典", "马上就好"));
+      dictionaryReady?.then(() => {
+        if (!document.getElementById("pg-wordbook")?.hidden) renderWordbook();
+      });
+    }
+  }
   if (page === "quiz") renderQuiz({ getWordbook, speak });
-  if (page === "templates") renderTemplates({ speak, learnSentence: learnTemplateSentence });
+  if (page === "templates")
+    renderTemplates({ speak, learnSentence: learnTemplateSentence });
   if (page === "settings") renderSettings();
+  if (opts?.focusHeading !== false) {
+    const heading = document.querySelector(`#pg-${page} h1`);
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+  }
 }
 
-async function init() {
-  [dictData, coreLexicon, phraseLexicon, phonetics, phrasebook] = await Promise.all([
-    loadJsonAsset("assets/dict.json", {}),
-    loadJsonAsset("assets/lexicon/core-lexicon.json", {}),
-    loadJsonAsset("assets/phrase-lexicon.json", {}),
-    loadJsonAsset("assets/phonetics.json", {}),
-    loadJsonAsset("assets/phrasebook.json", [])
-  ]);
-
-  dictService = createDictionaryService({
-    dict: dictData,
-    coreLexicon,
-    phraseLexicon,
-    phonetics,
-    translateText: (...args) => translationService.translateText(...args),
-    enqueueNetwork,
-    getCachedOnlineWord,
-    setCachedOnlineWord
-  });
-  translationService = createTranslationService({
-    dictService,
-    phrasebook,
-    templateGroups: TEMPLATES,
-    enqueueNetwork
-  });
-
+function init() {
+  dictionaryReady = loadDictionaryServices();
+  dictionaryReady.catch(() => announce("本地词典加载失败，请刷新页面重试"));
   saveWordbook(getWordbook());
 
-  document.querySelectorAll(".nav-item").forEach(btn => {
+  document.querySelectorAll(".nav-item").forEach((btn) => {
     btn.addEventListener("click", () => navTo(btn.dataset.pg));
   });
-  document.getElementById("brand-home-btn")?.addEventListener("click", () => navTo("home"));
+  document
+    .getElementById("brand-home-btn")
+    ?.addEventListener("click", () => navTo("home"));
   document.getElementById("go-btn")?.addEventListener("click", analyzeSentence);
-  document.getElementById("speak-sentence-btn")?.addEventListener("click", () => {
-    if (!curSentence) return;
-    toggleSentenceSpeech(curSentence, {
-      textEl: document.getElementById("sentence-text"),
-      displayText: curSentenceDisplay || curSentence,
-      onStateChange: state => setSentenceSpeakLabel(getSentenceSpeechLabel(state)),
-      onUnavailable: () => setOcrStatus("当前浏览器不支持朗读。", "warning")
+  document
+    .getElementById("speak-sentence-btn")
+    ?.addEventListener("click", () => {
+      if (!curSentence) return;
+      toggleSentenceSpeech(curSentence, {
+        textEl: document.getElementById("sentence-text"),
+        displayText: curSentenceDisplay || curSentence,
+        onStateChange: (state) =>
+          setSentenceSpeakLabel(getSentenceSpeechLabel(state)),
+        onUnavailable: () => setOcrStatus("当前浏览器不支持朗读。", "warning"),
+      });
     });
-  });
-  document.getElementById("sentence-input")?.addEventListener("keydown", event => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      analyzeSentence();
-    }
-  });
-  document.getElementById("review-all-btn")?.addEventListener("click", reviewAll);
-  document.getElementById("clear-wb-btn")?.addEventListener("click", clearWordbook);
-  document.getElementById("export-wb-btn")?.addEventListener("click", exportWordbook);
-  document.getElementById("import-wb-input")?.addEventListener("change", importWordbook);
+  document
+    .getElementById("sentence-input")
+    ?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        analyzeSentence();
+      }
+    });
+  document
+    .getElementById("review-all-btn")
+    ?.addEventListener("click", reviewAll);
+  document
+    .getElementById("clear-wb-btn")
+    ?.addEventListener("click", clearWordbook);
+  document
+    .getElementById("export-wb-btn")
+    ?.addEventListener("click", exportWordbook);
+  document
+    .getElementById("import-wb-input")
+    ?.addEventListener("change", importWordbook);
   document.getElementById("import-wb-btn")?.addEventListener("click", () => {
     document.getElementById("import-wb-input")?.click();
   });

@@ -8,13 +8,16 @@ const TRAILING_SLASH_PATHS = new Set([
   "/how-to",
   "/sources",
   "/privacy",
-  "/accessibility"
+  "/accessibility",
 ]);
 
 function canonicalPageUrl(url) {
   const canonical = new URL(url);
   canonical.search = "";
-  if (canonical.pathname === "/search" || canonical.pathname.startsWith("/search/")) {
+  if (
+    canonical.pathname === "/search" ||
+    canonical.pathname.startsWith("/search/")
+  ) {
     canonical.pathname = "/";
   } else if (TRAILING_SLASH_PATHS.has(canonical.pathname)) {
     canonical.pathname += "/";
@@ -25,7 +28,11 @@ function canonicalPageUrl(url) {
 export async function onRequest({ request, next }) {
   const url = new URL(request.url);
 
-  if ((request.method === "GET" || request.method === "HEAD") && url.search && isPageRequest(url)) {
+  if (
+    (request.method === "GET" || request.method === "HEAD") &&
+    url.search &&
+    isPageRequest(url)
+  ) {
     return Response.redirect(canonicalPageUrl(url).toString(), 301);
   }
 
@@ -37,6 +44,6 @@ export async function onRequest({ request, next }) {
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
-    headers
+    headers,
   });
 }

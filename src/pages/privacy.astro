@@ -6,7 +6,7 @@ const description = "Lucia's Dictionary stores wordbook items, settings, and loo
 ---
 
 <MainLayout title={title} description={description} canonicalPath="/privacy/" ogTitle={title} appScript={false}>
-  <main class="info-page">
+  <main class="info-page" id="main-content">
     <a class="back-link" href="/">Lucia's Dictionary</a>
     <h1>Privacy</h1>
     <p>
@@ -23,9 +23,15 @@ const description = "Lucia's Dictionary stores wordbook items, settings, and loo
     <section>
       <h2>Network Requests</h2>
       <p>
-        The app can request online dictionary and translation fallbacks when local data is not enough. Photo OCR, when
-        configured, sends the selected image to a same-origin OCR endpoint that forwards it to an OCR service with a
-        server-side key.
+        Most English word cards use bundled data. When local data is not enough, a word may be requested from
+        dictionaryapi.dev and its definition may be translated through Google's translation fallback. Chinese sentence
+        input checks the local phrasebook first and only uses the translation fallback when no local match is available.
+      </p>
+      <p>
+        Photo OCR compresses the selected image in the browser, sends it to the same-origin <code>/api/ocr</code>
+        endpoint, and forwards it to OCR.Space. The app does not save the uploaded image or OCR result on its server, and
+        OCR responses are marked <code>no-store</code>. Cloudflare may process operational security and performance data
+        while serving the site and API.
       </p>
     </section>
     <section>
@@ -33,6 +39,14 @@ const description = "Lucia's Dictionary stores wordbook items, settings, and loo
       <p>
         The public site should not publish private child information such as schools, addresses, birth dates, schedules,
         private photographs, or account details.
+      </p>
+    </section>
+    <section>
+      <h2>Your Controls</h2>
+      <p>
+        You can clear lookup caches from Settings, remove individual saved words, clear the wordbook, export it as JSON,
+        or clear this site's browser data. Do not upload photographs that contain private child information when a typed
+        sentence is sufficient.
       </p>
     </section>
     <nav class="info-links" aria-label="Public pages">

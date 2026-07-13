@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+playwright-report/
+test-results/
+package-lock.json
+public/assets/**/*.json
+tools/lexicon-data/**/*.json
+tools/lexicon-sources/
+worker-configuration.d.ts
