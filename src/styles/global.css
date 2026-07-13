@@ -1822,6 +1822,44 @@ textarea#sentence-input::placeholder {
   box-shadow: var(--card-shadow);
 }
 
+.settings-module-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: center;
+}
+.settings-module-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  background: var(--ink-50);
+  border: 1px solid var(--ink-soft);
+  border-radius: 50%;
+}
+.settings-module-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.settings-module-head h2 {
+  color: var(--ink-text);
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.settings-module-head p {
+  margin-top: 2px;
+  color: var(--mute);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .set-group {
   margin-bottom: 0;
   padding: 16px 0;
@@ -1905,7 +1943,7 @@ textarea#sentence-input::placeholder {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   padding: 22px 20px 20px;
-  margin-top: 14px;
+  margin-top: 0;
   text-align: center;
   box-shadow: var(--card-shadow);
   position: relative;
@@ -1984,11 +2022,12 @@ textarea#sentence-input::placeholder {
   letter-spacing: 0.5px;
 }
 .settings-info {
-  margin: 4px 0 18px;
-  padding: 16px;
-  background: var(--ink-50);
-  border: 1px solid var(--ink-soft);
-  border-radius: var(--r-md);
+  margin: 0 0 14px;
+  padding: 18px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--card-shadow);
   text-align: center;
 }
 .settings-info-head {
@@ -2004,8 +2043,8 @@ textarea#sentence-input::placeholder {
   display: grid;
   place-items: center;
   color: var(--ink);
-  background: var(--cream);
-  border: 1px solid var(--line);
+  background: var(--ink-50);
+  border: 1px solid var(--ink-soft);
   border-radius: 50%;
 }
 .settings-info-icon svg {
@@ -2573,6 +2612,7 @@ textarea#sentence-input::placeholder {
   }
 
   .set-card,
+  .settings-info,
   .about {
     border-radius: var(--r-md);
     padding: 15px;
