@@ -7,6 +7,9 @@
 - Build Week extension: Classroom Relay / 课堂接力
 - Extension version: 3.1.0
 - Implementation date: July 15, 2026
+- Feature commit: `880077b feat: add Classroom Relay learning missions`
+- Production deployment: Cloudflare Pages production deployment sourced from `880077b`
+- Production URL: <https://dict.luciaandrayna.com>
 - Codex `/feedback` Session ID: **pending — export from the current Codex task before Devpost submission**
 
 ## What existed before the submission period
@@ -64,9 +67,9 @@ The implementation was verified through:
 ## Final submission checklist
 
 - [ ] Run `/feedback` in the current Codex task and add the Session ID above and to Devpost.
-- [ ] Commit the extension with a dated message that names Classroom Relay.
-- [ ] Push the repository and confirm the public or reviewer-accessible URL.
+- [x] Commit the extension with a dated message that names Classroom Relay.
+- [x] Push the repository and confirm the public or reviewer-accessible URL.
 - [ ] Add a repository license or keep the repository private and share it with the official reviewer addresses.
-- [ ] Deploy v3.1.0 and run the demo path on the production URL.
+- [x] Deploy v3.1.0 and run the demo path on the production URL.
 - [ ] Record and publish the under-three-minute YouTube demo with audio.
 - [ ] Copy the pre-existing/new-work distinction into the Devpost project description.
