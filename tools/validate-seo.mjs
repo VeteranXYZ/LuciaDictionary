@@ -75,14 +75,44 @@ const routeFiles = new Map([
   ["/accessibility/", "accessibility/index.html"],
 ]);
 
+const infoPageFiles = new Set([
+  "about/index.html",
+  "how-to/index.html",
+  "sources/index.html",
+  "privacy/index.html",
+  "accessibility/index.html",
+]);
+
 for (const [path, file] of routeFiles) {
   const html = readDist(file);
   const canonical = `<link rel="canonical" href="${origin}${path}">`;
   if (!html.includes(canonical))
     fail(`${file} missing canonical ${origin}${path}`);
+  if (
+    !html.includes(
+      `rel="alternate" hreflang="x-default" href="${origin}${path}"`,
+    )
+  )
+    fail(`${file} missing x-default hreflang`);
+  if (
+    !html.includes(`rel="alternate" hreflang="zh-CN" href="${origin}${path}"`)
+  )
+    fail(`${file} missing zh-CN hreflang`);
+  if (!html.includes(`rel="alternate" hreflang="en" href="${origin}${path}"`))
+    fail(`${file} missing en hreflang`);
   if (!html.includes('<meta name="description"'))
     fail(`${file} missing meta description`);
+  if (!html.includes('<meta property="og:locale" content="zh_CN"'))
+    fail(`${file} missing Open Graph locale`);
+  if (!html.includes('<meta name="twitter:title"'))
+    fail(`${file} missing Twitter title`);
+  if (!html.includes('<meta name="twitter:description"'))
+    fail(`${file} missing Twitter description`);
+  if (!html.includes('<meta name="twitter:image"'))
+    fail(`${file} missing Twitter image`);
   if (!html.includes("<h1")) fail(`${file} missing h1`);
+  if (!html.includes('"@type":"Organization"'))
+    fail(`${file} missing Organization structured data`);
   if (!html.includes(`gtag/js?id=${googleAnalyticsId}`))
     fail(`${file} missing Google Analytics tag`);
   if (!html.includes(`gtag("config", "${googleAnalyticsId}"`))
@@ -91,7 +121,23 @@ for (const [path, file] of routeFiles) {
     fail(`${file} missing disabled Google signals config`);
   if (!html.includes("allow_ad_personalization_signals: false"))
     fail(`${file} missing disabled ad personalization config`);
+  if (infoPageFiles.has(file)) {
+    if (!html.includes('"@type":"WebPage"'))
+      fail(`${file} missing WebPage structured data`);
+    if (!html.includes('"@type":"BreadcrumbList"'))
+      fail(`${file} missing BreadcrumbList structured data`);
+  }
 }
+
+const home = readDist("index.html");
+if (!home.includes('"@type":"WebApplication"'))
+  fail("Home page missing WebApplication structured data");
+if (home.includes('"@type":"SearchAction"'))
+  fail("Home page should not declare SearchAction without a public search URL");
+
+const howTo = readDist("how-to/index.html");
+if (!howTo.includes('"@type":"HowTo"'))
+  fail("How-to page missing HowTo structured data");
 
 const notFound = readDist("404.html");
 if (!notFound.includes("noindex,follow"))

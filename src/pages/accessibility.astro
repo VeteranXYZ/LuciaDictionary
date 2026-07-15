@@ -1,31 +1,63 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
+import { buildInfoPageStructuredData } from "../lib/seo.js";
 
 const title = "Accessibility";
-const description = "Accessibility notes for Lucia's Dictionary, including keyboard input, labels, readable layout, speech controls, and current limitations.";
+const description =
+  "Accessibility notes for Lucia's Dictionary, including keyboard input, labels, readable layout, speech controls, and current limitations.";
+const canonicalPath = "/accessibility/";
+const structuredData = buildInfoPageStructuredData({
+  path: canonicalPath,
+  title,
+  description,
+});
 ---
 
-<MainLayout title={title} description={description} canonicalPath="/accessibility/" ogTitle={title} appScript={false}>
-  <InfoPageShell title="Accessibility" titleZh="无障碍使用" current="accessibility">
+<MainLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  ogTitle={title}
+  appScript={false}
+  structuredData={structuredData}
+>
+  <InfoPageShell
+    title="Accessibility"
+    titleZh="无障碍使用"
+    current="accessibility"
+  >
     <p>
-      Lucia's Dictionary is built for quick use on phones and modern browsers, with large controls, readable cards,
-      keyboard-friendly sentence input, and labels for the main input and icon buttons.
+      Lucia's Dictionary is built for quick use on phones and modern browsers,
+      with large controls, readable cards, keyboard-friendly sentence input, and
+      labels for the main input and icon buttons.
     </p>
     <section>
       <h2>Current Support</h2>
       <p>
-        The main sentence field has an accessible label, icon buttons include accessible names, bottom navigation exposes
-        tab state, dynamic results and OCR progress are announced, and all primary actions are keyboard reachable. The
-        interface permits browser zoom and honors reduced-motion preferences.
+        The main sentence field has an accessible label, icon buttons include
+        accessible names, bottom navigation exposes tab state, dynamic results
+        and OCR progress are announced, and all primary actions are keyboard
+        reachable. The interface permits browser zoom and honors reduced-motion
+        preferences.
+      </p>
+    </section>
+    <section>
+      <h2>Learning Support</h2>
+      <p>
+        Word cards pair visual text with speech playback, Chinese meanings, and
+        phonetic hints. This gives families more than one way to review a
+        classroom sentence, while keeping the main workflow short enough for
+        mobile use.
       </p>
     </section>
     <section>
       <h2>Known Limitations</h2>
       <p>
-        Speech quality and word-boundary highlighting depend on the browser and operating system. Automated checks and
-        keyboard testing cannot cover every assistive-technology combination, so issues can be reported through the
-        contact link in the app.
+        Speech quality and word-boundary highlighting depend on the browser and
+        operating system. Automated checks and keyboard testing cannot cover
+        every assistive-technology combination, so issues can be reported
+        through the contact link in the app.
       </p>
     </section>
   </InfoPageShell>

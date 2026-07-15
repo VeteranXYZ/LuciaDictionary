@@ -1203,6 +1203,50 @@ textarea#sentence-input::placeholder {
   transform: scale(0.94);
 }
 
+.public-summary {
+  margin: 12px 0 112px;
+  padding: 22px 22px 24px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--card-shadow);
+}
+
+.public-summary h2 {
+  color: var(--ink);
+  font-size: 1.04rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.public-summary p {
+  margin-top: 10px;
+  color: var(--mute);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.public-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.public-links a {
+  min-height: 38px;
+  padding: 9px 11px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .info-links {
   display: grid;
   gap: 10px;
@@ -1312,6 +1356,25 @@ textarea#sentence-input::placeholder {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   box-shadow: var(--card-shadow);
+}
+
+.info-breadcrumb {
+  padding: 13px 30px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--whisper);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.info-breadcrumb a {
+  color: var(--mute);
+  text-decoration: none;
+}
+
+.info-breadcrumb a:hover {
+  color: var(--ink);
 }
 
 .info-hero {
@@ -2759,6 +2822,25 @@ textarea#sentence-input::placeholder {
     padding: 11px 13px;
     font-size: 0.78rem;
   }
+  .public-summary {
+    margin: 12px 0 96px;
+    padding: 18px 16px 19px;
+    border-radius: var(--r-md);
+  }
+  .public-summary h2 {
+    font-size: 0.96rem;
+  }
+  .public-summary p {
+    font-size: 0.84rem;
+    line-height: 1.65;
+  }
+  .public-links {
+    gap: 7px;
+  }
+  .public-links a {
+    min-height: 36px;
+    font-size: 0.73rem;
+  }
 
   html:has(.info-page) {
     height: auto;
@@ -2813,6 +2895,10 @@ textarea#sentence-input::placeholder {
   .info-card {
     margin-top: 14px;
     border-radius: var(--r-md);
+  }
+  .info-breadcrumb {
+    padding: 11px 20px 0;
+    font-size: 0.68rem;
   }
   .info-hero {
     padding: 23px 20px 21px;

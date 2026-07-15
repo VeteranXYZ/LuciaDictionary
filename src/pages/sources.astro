@@ -1,38 +1,70 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
+import { buildInfoPageStructuredData } from "../lib/seo.js";
 
 const title = "Dictionary Sources and Attribution";
-const description = "Review the data-source model for Lucia's Dictionary, including local lexicon files, classroom phrase data, phonetics, and online fallback services.";
+const description =
+  "Review the data-source model for Lucia's Dictionary, including local lexicon files, classroom phrase data, phonetics, and online fallback services.";
+const canonicalPath = "/sources/";
+const structuredData = buildInfoPageStructuredData({
+  path: canonicalPath,
+  title,
+  description,
+});
 ---
 
-<MainLayout title={title} description={description} canonicalPath="/sources/" ogTitle={title} appScript={false}>
-  <InfoPageShell title="Dictionary Sources and Attribution" titleZh="词典数据来源" current="sources">
+<MainLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  ogTitle={title}
+  appScript={false}
+  structuredData={structuredData}
+>
+  <InfoPageShell
+    title="Dictionary Sources and Attribution"
+    titleZh="词典数据来源"
+    current="sources"
+  >
     <p>
-      Lucia's Dictionary combines local public app data with optional online fallback services. The internal vocabulary
-      files are application data, not a promise that every word has a public web page.
+      Lucia's Dictionary combines local public app data with optional online
+      fallback services. The internal vocabulary files are application data, not
+      a promise that every word has a public web page.
     </p>
     <section>
       <h2>Local App Data</h2>
       <p>
-        The app publishes a compact runtime lexicon, a basic fallback dictionary, classroom phrasebook data, and
-        phonetic hints. Full generated source data and translation overrides remain in the repository for audits and
-        reproducible rebuilds, but are not all shipped to every browser.
+        The app publishes a compact runtime lexicon, a basic fallback
+        dictionary, classroom phrasebook data, and phonetic hints. Full
+        generated source data and translation overrides remain in the repository
+        for audits and reproducible rebuilds, but are not all shipped to every
+        browser.
       </p>
     </section>
     <section>
       <h2>Lexicon Inputs</h2>
       <p>
-        The repository documentation identifies high-frequency-vocabulary and ECDICT as source inputs for building the
-        generated core lexicon. Runtime entries are assigned frequency-derived learning bands for display; these bands
-        are learning aids, not standardized grade-level certifications.
+        The repository documentation identifies high-frequency-vocabulary and
+        ECDICT as source inputs for building the generated core lexicon. Runtime
+        entries are assigned frequency-derived learning bands for display; these
+        bands are learning aids, not standardized grade-level certifications.
+      </p>
+    </section>
+    <section>
+      <h2>Classroom Phrase Data</h2>
+      <p>
+        Phrasebook entries cover common classroom instructions and homework
+        patterns, so short Chinese or English sentences can be matched locally
+        before any online fallback is considered.
       </p>
     </section>
     <section>
       <h2>Online Fallbacks</h2>
       <p>
-        When local data is missing, the app may use dictionaryapi.dev and translation fallback paths. Network fallback
-        results can vary and are cached locally in the current browser.
+        When local data is missing, the app may use dictionaryapi.dev and
+        translation fallback paths. Network fallback results can vary and are
+        cached locally in the current browser.
       </p>
     </section>
   </InfoPageShell>

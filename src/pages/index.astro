@@ -1,6 +1,12 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import packageJson from "../../package.json";
+import {
+  siteAlternateNames,
+  siteLogo,
+  siteName,
+  siteOrigin,
+} from "../lib/seo.js";
 
 const title =
   "Lucia's Dictionary · English Sentence Dictionary for Bilingual Learners";
@@ -10,24 +16,42 @@ const structuredData = [
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Lucia's Dictionary",
-    url: "https://dict.luciaandrayna.com/",
+    name: siteName,
+    alternateName: siteAlternateNames,
+    url: siteOrigin,
     description,
     inLanguage: ["en", "zh-CN"],
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://dict.luciaandrayna.com/",
-      "query-input": "name=sentence",
-    },
   },
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "Lucia's Dictionary",
-    url: "https://dict.luciaandrayna.com/",
+    name: siteName,
+    alternateName: siteAlternateNames,
+    url: siteOrigin,
+    image: siteLogo,
     applicationCategory: "EducationalApplication",
+    applicationSubCategory: "English sentence dictionary",
     operatingSystem: "Any modern web browser",
+    browserRequirements: "Requires a modern browser with JavaScript enabled",
     description,
+    inLanguage: ["en", "zh-CN"],
+    isAccessibleForFree: true,
+    educationalUse: [
+      "English vocabulary practice",
+      "Classroom sentence comprehension",
+      "Pronunciation practice",
+    ],
+    audience: {
+      "@type": "EducationalAudience",
+      educationalRole: ["student", "parent"],
+    },
+    featureList: [
+      "Sentence-first English word cards",
+      "Chinese meanings for classroom vocabulary",
+      "Phonetic hints and speech playback",
+      "Local wordbook review",
+      "Classroom phrase practice",
+    ],
   },
 ];
 ---
@@ -557,6 +581,25 @@ const structuredData = [
         </div>
       </div>
     </div>
+
+    <section class="public-summary" aria-labelledby="public-summary-title">
+      <h2 id="public-summary-title">
+        English sentence dictionary for Chinese-speaking families
+      </h2>
+      <p>
+        Lucia's Dictionary helps bilingual elementary-school learners understand
+        classroom English by turning homework directions, reading prompts, and
+        teacher instructions into word cards with Chinese meanings, phonetic
+        hints, pronunciation practice, and a local wordbook.
+      </p>
+      <nav class="public-links" aria-label="Lucia's Dictionary information">
+        <a href="/about/">About</a>
+        <a href="/how-to/">How to use</a>
+        <a href="/sources/">Sources</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/accessibility/">Accessibility</a>
+      </nav>
+    </section>
   </main>
 
   <nav class="nav" aria-label="主要功能" role="tablist">

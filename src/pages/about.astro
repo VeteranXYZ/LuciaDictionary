@@ -1,34 +1,67 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
+import { buildInfoPageStructuredData } from "../lib/seo.js";
 
 const title = "About Lucia's Dictionary";
-const description = "Learn what Lucia's Dictionary does, who it is for, and how it supports sentence-first English vocabulary practice for bilingual families.";
+const description =
+  "Learn what Lucia's Dictionary does, who it is for, and how it supports sentence-first English vocabulary practice for bilingual families.";
+const canonicalPath = "/about/";
+const structuredData = buildInfoPageStructuredData({
+  path: canonicalPath,
+  title,
+  description,
+});
 ---
 
-<MainLayout title={title} description={description} canonicalPath="/about/" ogTitle={title} appScript={false}>
-  <InfoPageShell title="About Lucia's Dictionary" titleZh="关于 Lucia's Dictionary" current="about">
+<MainLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  ogTitle={title}
+  appScript={false}
+  structuredData={structuredData}
+>
+  <InfoPageShell
+    title="About Lucia's Dictionary"
+    titleZh="关于 Lucia's Dictionary"
+    current="about"
+  >
     <p>
-      Lucia's Dictionary is an online English sentence dictionary for Chinese-speaking families.
-      It is built around classroom sentences, homework instructions, reading prompts, and teacher notes.
+      Lucia's Dictionary is an online English sentence dictionary for
+      Chinese-speaking families. It is built around classroom sentences,
+      homework instructions, reading prompts, and teacher notes.
     </p>
     <p>
-      Instead of starting with one isolated word, the app starts with the full sentence. It extracts the English words,
-      shows Chinese meanings and phonetics where available, reads words aloud, and lets the learner save unfamiliar words
-      in a local wordbook.
+      Instead of starting with one isolated word, the app starts with the full
+      sentence. It extracts the English words, shows Chinese meanings and
+      phonetics where available, reads words aloud, and lets the learner save
+      unfamiliar words in a local wordbook.
     </p>
     <section>
       <h2>Who It Is For</h2>
       <p>
-        The product is intended for bilingual elementary-school learners and parents who want a quick way to understand
-        everyday classroom English. It is not a complete English curriculum or a replacement for teacher guidance.
+        The product is intended for bilingual elementary-school learners and
+        parents who want a quick way to understand everyday classroom English.
+        It is not a complete English curriculum or a replacement for teacher
+        guidance.
+      </p>
+    </section>
+    <section>
+      <h2>What It Helps With</h2>
+      <p>
+        The dictionary is tuned for practical classroom language: directions
+        such as circle, underline, compare, explain, choose, write, read, and
+        answer. Parents can paste a sentence, review the important words, and
+        practice pronunciation before the child starts homework or reading.
       </p>
     </section>
     <section>
       <h2>Product Approach</h2>
       <p>
-        The app is local-first: common classroom phrases, core words, phonetics, settings, cached lookup results, and
-        saved wordbook items are handled in the browser whenever possible.
+        The app is local-first: common classroom phrases, core words, phonetics,
+        settings, cached lookup results, and saved wordbook items are handled in
+        the browser whenever possible.
       </p>
     </section>
   </InfoPageShell>
