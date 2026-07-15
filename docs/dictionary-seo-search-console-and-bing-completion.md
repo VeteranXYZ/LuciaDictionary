@@ -121,6 +121,7 @@ Property:
 
 - Account: `HIEI`
 - Property: `Lucia Dictionary`
+- Property ID: `545706610`
 - Country/timezone/currency: United States, Los Angeles time, USD
 - Industry category: Jobs & Education
 - Business size: Small, 1 to 10 employees
@@ -141,6 +142,14 @@ Privacy and data minimization:
 - The site tag disables ad personalization signals with `allow_ad_personalization_signals: false`.
 - No typed sentences, uploaded images, saved words, wordbook entries, lookup text, user IDs, or custom learning events are sent to GA4.
 - The Privacy page discloses the basic GA4 page-view measurement.
+
+Deployment verification:
+
+- Production HTML contains `gtag/js?id=G-1N76G8G0S5`.
+- Production HTML contains `gtag("config", "G-1N76G8G0S5", ...)`.
+- Production HTML contains `allow_google_signals: false`.
+- Production HTML contains `allow_ad_personalization_signals: false`.
+- After deployment, the GA4 home card for `Lucia Dictionary` showed 7 active users in the past 30 minutes.
 
 ## Validation Commands
 
@@ -174,5 +183,5 @@ Latest GA4 validation results on 2026-07-15:
 - Google indexing is not immediate. The live page is technically indexable, but Search Console currently reports the URL as not indexed.
 - Revisit Google URL Inspection after the daily quota resets if manual indexing request is still desired.
 - Recheck Bing sitemap after processing; initial state is expected to show `Submitted - Processing` with 0 URLs discovered.
-- GA4 can take up to 48 hours to show normal data. The stream initially showed `未收到数据` before the site tag was deployed.
+- GA4 can take up to 48 hours to show normal aggregate reports. Realtime data started appearing after the site tag was deployed.
 - `npm install` reported existing dependency audit findings: 1 low, 5 moderate, and 3 high. No dependency upgrade or `npm audit fix` was run as part of this SEO task.
