@@ -3,6 +3,7 @@ import {
   getWordbook,
   getDueWords,
   getReviewSummary,
+  recordWordEncounter,
   recordQuizAnswer,
   recordReviewFeedback,
   removeWord,
@@ -52,6 +53,31 @@ describe("wordbook CRUD", () => {
       wrong: 0,
       level: 0,
     });
+  });
+
+  it("tracks repeated encounters in real classroom sentences", () => {
+    recordWordEncounter("grow", "生长", "Plants grow.", 100);
+    recordWordEncounter("grow", "生长", "Plants grow.", 200);
+    recordWordEncounter("grow", "生长", "Children grow.", 300);
+
+    expect(getWordbook()[0]).toMatchObject({
+      w: "grow",
+      sourceSentence: "Children grow.",
+    });
+    expect(getWordbook()[0].sourceSentences).toEqual([
+      {
+        text: "Children grow.",
+        firstSeenAt: 300,
+        lastSeenAt: 300,
+        count: 1,
+      },
+      {
+        text: "Plants grow.",
+        firstSeenAt: 100,
+        lastSeenAt: 200,
+        count: 2,
+      },
+    ]);
   });
 
   it("validates imported wordbook shape", () => {

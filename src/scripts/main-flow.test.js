@@ -2,10 +2,12 @@ import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("main analysis flow source", () => {
-  it("does not render the task instruction panel in the homepage flow", () => {
+  it("keeps generic sentence explanation out and adds the local mission flow", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
     expect(source).not.toContain("renderSentenceExplanation(");
     expect(source).toContain("buildWordCard(");
+    expect(source).toContain("renderMissionPreview(");
+    expect(source).toContain("recordWordEncounter(");
   });
 
   it("uses separate native camera and photo-library inputs", () => {
