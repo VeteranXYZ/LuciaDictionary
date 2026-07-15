@@ -12,6 +12,7 @@
 - Production URL: <https://dict.luciaandrayna.com>
 - Codex `/feedback` Session ID: `019f675a-a32d-7eb0-9e13-4d4df7cd9969`
 - Repository license: Apache-2.0
+- Codex credits request: submitted July 15, 2026 through the official Build Week form (entrant-confirmed)
 - Devpost registration: completed July 15, 2026
 - $100 Codex Credits request: submitted July 15, 2026; approval pending
 
@@ -75,6 +76,7 @@ The implementation was verified through:
 - [x] Commit the extension with a dated message that names Classroom Relay.
 - [x] Push the repository and confirm the public or reviewer-accessible URL.
 - [x] License the public repository under Apache-2.0.
+- [x] Join OpenAI Build Week and submit the official Codex credits request.
 - [x] Deploy v3.1.0 and run the demo path on the production URL.
 - [ ] Record and publish the under-three-minute YouTube demo with audio.
 - [ ] Copy the pre-existing/new-work distinction into the Devpost project description.
