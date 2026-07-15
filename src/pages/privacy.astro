@@ -3,7 +3,7 @@ import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 
 const title = "Privacy";
-const description = "Lucia's Dictionary stores wordbook items, settings, and lookup caches in the browser and does not provide accounts, public profiles, or advertising tracking.";
+const description = "Lucia's Dictionary stores wordbook items, settings, and lookup caches in the browser, uses basic Google Analytics page-view measurement, and does not provide accounts, public profiles, or advertising tracking.";
 ---
 
 <MainLayout title={title} description={description} canonicalPath="/privacy/" ogTitle={title} appScript={false}>
@@ -31,6 +31,15 @@ const description = "Lucia's Dictionary stores wordbook items, settings, and loo
         endpoint, and forwards it to OCR.Space. The app does not save the uploaded image or OCR result on its server, and
         OCR responses are marked <code>no-store</code>. Cloudflare may process operational security and performance data
         while serving the site and API.
+      </p>
+    </section>
+    <section>
+      <h2>Analytics</h2>
+      <p>
+        The site uses Google Analytics 4 to measure basic page views and understand whether the public pages are being
+        reached. Enhanced Measurement is disabled in Google Analytics, and the app does not send typed sentences,
+        uploaded images, saved words, wordbook entries, lookup text, user IDs, or custom learning events to Analytics.
+        Google signals and ad personalization signals are disabled in the site tag.
       </p>
     </section>
     <section>

@@ -4,6 +4,7 @@ import { join } from "node:path";
 const root = process.cwd();
 const dist = join(root, "dist");
 const origin = "https://dict.luciaandrayna.com";
+const googleAnalyticsId = "G-1N76G8G0S5";
 const sitemapPaths = [
   "/",
   "/about/",
@@ -82,6 +83,14 @@ for (const [path, file] of routeFiles) {
   if (!html.includes('<meta name="description"'))
     fail(`${file} missing meta description`);
   if (!html.includes("<h1")) fail(`${file} missing h1`);
+  if (!html.includes(`gtag/js?id=${googleAnalyticsId}`))
+    fail(`${file} missing Google Analytics tag`);
+  if (!html.includes(`gtag("config", "${googleAnalyticsId}"`))
+    fail(`${file} missing Google Analytics config`);
+  if (!html.includes("allow_google_signals: false"))
+    fail(`${file} missing disabled Google signals config`);
+  if (!html.includes("allow_ad_personalization_signals: false"))
+    fail(`${file} missing disabled ad personalization config`);
 }
 
 const notFound = readDist("404.html");
