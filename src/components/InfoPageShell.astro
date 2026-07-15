@@ -10,7 +10,7 @@ const {
   title,
   titleZh,
   eyebrow = "家长信息 · Family guide",
-  current
+  current,
 } = Astro.props;
 
 const pages = [
@@ -18,8 +18,14 @@ const pages = [
   { id: "how-to", href: "/how-to/", label: "使用方法", labelEn: "How to Use" },
   { id: "sources", href: "/sources/", label: "数据来源", labelEn: "Sources" },
   { id: "privacy", href: "/privacy/", label: "隐私", labelEn: "Privacy" },
-  { id: "accessibility", href: "/accessibility/", label: "无障碍", labelEn: "Accessibility" }
+  {
+    id: "accessibility",
+    href: "/accessibility/",
+    label: "无障碍",
+    labelEn: "Accessibility",
+  },
 ];
+const currentPage = pages.find((page) => page.id === current);
 ---
 
 <main class="info-page" id="main-content">
@@ -32,12 +38,24 @@ const pages = [
       </span>
     </a>
     <a class="info-back" href="/">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"
+        ><path d="m15 18-6-6 6-6"></path></svg
+      >
       <span>返回词典</span>
     </a>
   </header>
 
   <article class="info-card">
+    {
+      currentPage && (
+        <nav class="info-breadcrumb" aria-label="Breadcrumb">
+          <a href="/">Lucia's Dictionary</a>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{currentPage.labelEn}</span>
+        </nav>
+      )
+    }
+
     <div class="info-hero">
       <div class="info-eyebrow">{eyebrow}</div>
       <h1>{titleZh}</h1>
@@ -50,18 +68,28 @@ const pages = [
   </article>
 
   <nav class="info-links" aria-label="家长信息页面">
-    {pages.map(page => (
-      <a href={page.href} aria-current={current === page.id ? "page" : undefined}>
-        <span>{page.label}</span>
-        <small>{page.labelEn}</small>
-      </a>
-    ))}
+    {
+      pages.map((page) => (
+        <a
+          href={page.href}
+          aria-current={current === page.id ? "page" : undefined}
+        >
+          <span>{page.label}</span>
+          <small>{page.labelEn}</small>
+        </a>
+      ))
+    }
   </nav>
 
   <a class="info-mobile-home" href="/">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path><path d="M9 21v-7h6v7"></path></svg>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"
+      ></path><path d="M9 21v-7h6v7"></path></svg
+    >
     打开词典
   </a>
 
-  <footer class="info-footer">© 2026 Lucia &amp; Rayna · Powered by HIEI</footer>
+  <footer class="info-footer">
+    © 2026 Lucia &amp; Rayna · Powered by HIEI
+  </footer>
 </main>

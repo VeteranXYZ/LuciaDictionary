@@ -1,5 +1,11 @@
 ---
 import packageJson from "../../package.json";
+import {
+  buildOrganizationStructuredData,
+  siteLogo,
+  siteName,
+  siteOrigin,
+} from "../lib/seo.js";
 
 interface Props {
   title?: string;
@@ -18,38 +24,62 @@ const {
   ogTitle = "Lucia's Dictionary",
   noindex = false,
   appScript = true,
-  structuredData = []
+  structuredData = [],
 } = Astro.props;
-const siteOrigin = "https://dict.luciaandrayna.com";
 const appVersion = packageJson.version;
 const googleAnalyticsId = "G-1N76G8G0S5";
 const canonicalUrl = new URL(canonicalPath, siteOrigin).toString();
-const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
-const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData];
+const ogImage = siteLogo;
+const jsonLd = [
+  buildOrganizationStructuredData(),
+  ...(Array.isArray(structuredData) ? structuredData : [structuredData]),
+];
 ---
+
 <!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="application-name" content={siteName} />
+    <meta name="apple-mobile-web-app-title" content={siteName} />
     <meta name="msvalidate.01" content="F0033F6901282859D6F7A01930532E70" />
     {noindex && <meta name="robots" content="noindex,follow" />}
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
+    <link rel="alternate" hreflang="zh-CN" href={canonicalUrl} />
+    <link rel="alternate" hreflang="en" href={canonicalUrl} />
     <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Lucia's Dictionary" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
     <meta name="theme-color" content="#6B8E5A" />
     <link rel="icon" type="image/png" href={`/favicon.png?v=${appVersion}`} />
-    <link rel="shortcut icon" href={`/favicon.ico?v=${appVersion}`} sizes="any" />
+    <link
+      rel="shortcut icon"
+      href={`/favicon.ico?v=${appVersion}`}
+      sizes="any"
+    />
     <link rel="apple-touch-icon" href={`/assets/logo.png?v=${appVersion}`} />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}></script>
+    <script
+      is:inline
+      async
+      src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+    ></script>
     <script
       is:inline
       set:html={`
@@ -63,16 +93,20 @@ const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData]
         });
       `}
     />
-    {jsonLd.map(item => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
+    {
+      jsonLd.map((item) => (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={JSON.stringify(item)}
+        />
+      ))
+    }
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到主要内容</a>
     <slot />
-    {appScript && (
-      <script>
-        import "../scripts/app.js";
-      </script>
-    )}
+    {appScript && <script>import "../scripts/app.js";</script>}
   </body>
 </html>
 

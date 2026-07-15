@@ -1,60 +1,86 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
+import { buildInfoPageStructuredData } from "../lib/seo.js";
 
 const title = "Privacy";
-const description = "Lucia's Dictionary stores wordbook items, settings, and lookup caches in the browser, uses basic Google Analytics page-view measurement, and does not provide accounts, public profiles, or advertising tracking.";
+const description =
+  "Lucia's Dictionary stores wordbook items, settings, and lookup caches in the browser, uses basic Google Analytics page-view measurement, and does not provide accounts, public profiles, or advertising tracking.";
+const canonicalPath = "/privacy/";
+const structuredData = buildInfoPageStructuredData({
+  path: canonicalPath,
+  title,
+  description,
+});
 ---
 
-<MainLayout title={title} description={description} canonicalPath="/privacy/" ogTitle={title} appScript={false}>
+<MainLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  ogTitle={title}
+  appScript={false}
+  structuredData={structuredData}
+>
   <InfoPageShell title="Privacy" titleZh="隐私与数据" current="privacy">
     <p>
-      Lucia's Dictionary is designed as a simple local-first learning tool. It does not provide accounts, public user
-      profiles, search-history sharing, personalized advertising, or a backend wordbook sync feature.
+      Lucia's Dictionary is designed as a simple local-first learning tool. It
+      does not provide accounts, public user profiles, search-history sharing,
+      personalized advertising, or a backend wordbook sync feature.
     </p>
     <section>
       <h2>Browser Storage</h2>
       <p>
-        Saved words, settings, daily-use state, and lookup caches are stored in the current browser through localStorage.
-        Clearing browser data or using another device can remove or separate that local data.
+        Saved words, settings, daily-use state, and lookup caches are stored in
+        the current browser through localStorage. Clearing browser data or using
+        another device can remove or separate that local data.
       </p>
     </section>
     <section>
       <h2>Network Requests</h2>
       <p>
-        Most English word cards use bundled data. When local data is not enough, a word may be requested from
-        dictionaryapi.dev and its definition may be translated through Google's translation fallback. Chinese sentence
-        input checks the local phrasebook first and only uses the translation fallback when no local match is available.
+        Most English word cards use bundled data. When local data is not enough,
+        a word may be requested from dictionaryapi.dev and its definition may be
+        translated through Google's translation fallback. Chinese sentence input
+        checks the local phrasebook first and only uses the translation fallback
+        when no local match is available.
       </p>
       <p>
-        Photo OCR compresses the selected image in the browser, sends it to the same-origin <code>/api/ocr</code>
-        endpoint, and forwards it to OCR.Space. The app does not save the uploaded image or OCR result on its server, and
-        OCR responses are marked <code>no-store</code>. Cloudflare may process operational security and performance data
+        Photo OCR compresses the selected image in the browser, sends it to the
+        same-origin <code>/api/ocr</code>
+        endpoint, and forwards it to OCR.Space. The app does not save the uploaded
+        image or OCR result on its server, and OCR responses are marked <code
+          >no-store</code
+        >. Cloudflare may process operational security and performance data
         while serving the site and API.
       </p>
     </section>
     <section>
       <h2>Analytics</h2>
       <p>
-        The site uses Google Analytics 4 to measure basic page views and understand whether the public pages are being
-        reached. Enhanced Measurement is disabled in Google Analytics, and the app does not send typed sentences,
-        uploaded images, saved words, wordbook entries, lookup text, user IDs, or custom learning events to Analytics.
-        Google signals and ad personalization signals are disabled in the site tag.
+        The site uses Google Analytics 4 to measure basic page views and
+        understand whether the public pages are being reached. Enhanced
+        Measurement is disabled in Google Analytics, and the app does not send
+        typed sentences, uploaded images, saved words, wordbook entries, lookup
+        text, user IDs, or custom learning events to Analytics. Google signals
+        and ad personalization signals are disabled in the site tag.
       </p>
     </section>
     <section>
       <h2>Children's Information</h2>
       <p>
-        The public site should not publish private child information such as schools, addresses, birth dates, schedules,
-        private photographs, or account details.
+        The public site should not publish private child information such as
+        schools, addresses, birth dates, schedules, private photographs, or
+        account details.
       </p>
     </section>
     <section>
       <h2>Your Controls</h2>
       <p>
-        You can clear lookup caches from Settings, remove individual saved words, clear the wordbook, export it as JSON,
-        or clear this site's browser data. Do not upload photographs that contain private child information when a typed
-        sentence is sufficient.
+        You can clear lookup caches from Settings, remove individual saved
+        words, clear the wordbook, export it as JSON, or clear this site's
+        browser data. Do not upload photographs that contain private child
+        information when a typed sentence is sufficient.
       </p>
     </section>
   </InfoPageShell>
