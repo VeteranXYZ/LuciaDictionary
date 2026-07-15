@@ -8,7 +8,7 @@
 - **Website:** <https://dict.luciaandrayna.com>
 - **Repository:** <https://github.com/VeteranXYZ/LuciaDictionary>
 - **Demo video:** pending public YouTube URL
-- **Codex `/feedback` Session ID:** pending export from the current Codex task
+- **Codex `/feedback` Session ID:** `019f675a-a32d-7eb0-9e13-4d4df7cd9969`
 - **Codex model:** confirm the model displayed for the current task before naming it in Devpost or the video
 
 ## Credits request form · 2–3 sentence idea
@@ -52,7 +52,7 @@ Codex was used as an engineering collaborator throughout the Build Week extensio
 
 The human product decisions remained explicit: do not generate homework answers, do not create child accounts, do not send learning events to analytics, and keep the recommendation system visible to parents instead of presenting it as a black box.
 
-Before submission, add the `/feedback` Session ID and the exact Codex model shown for this task.
+The `/feedback` Session ID is recorded above. Before submission, confirm the exact Codex model shown for this task.
 
 ## Challenges we ran into
 
