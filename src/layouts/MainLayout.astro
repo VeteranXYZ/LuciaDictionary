@@ -22,6 +22,7 @@ const {
 } = Astro.props;
 const siteOrigin = "https://dict.luciaandrayna.com";
 const appVersion = packageJson.version;
+const googleAnalyticsId = "G-1N76G8G0S5";
 const canonicalUrl = new URL(canonicalPath, siteOrigin).toString();
 const ogImage = "https://dict.luciaandrayna.com/assets/logo.png";
 const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData];
@@ -48,6 +49,20 @@ const jsonLd = Array.isArray(structuredData) ? structuredData : [structuredData]
     <link rel="shortcut icon" href={`/favicon.ico?v=${appVersion}`} sizes="any" />
     <link rel="apple-touch-icon" href={`/assets/logo.png?v=${appVersion}`} />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}></script>
+    <script
+      is:inline
+      set:html={`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag("js", new Date());
+        gtag("config", "${googleAnalyticsId}", {
+          send_page_view: true,
+          allow_google_signals: false,
+          allow_ad_personalization_signals: false
+        });
+      `}
+    />
     {jsonLd.map(item => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
   </head>
   <body>

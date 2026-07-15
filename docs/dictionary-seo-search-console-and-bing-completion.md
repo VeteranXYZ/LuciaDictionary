@@ -7,6 +7,7 @@ Production origin: https://dict.luciaandrayna.com/
 ## Scope
 
 This report records the SEO, crawl, Google Search Console, and Bing Webmaster Tools work completed for Lucia's Dictionary.
+It also records the GA4 setup completed later for the same production origin.
 
 The Search Console property used was the verified Domain property `luciaandrayna.com`. That property covers subdomains, but the inspected URL and submitted sitemap for this app were specifically for `https://dict.luciaandrayna.com/`.
 
@@ -15,6 +16,7 @@ The Search Console property used was the verified Domain property `luciaandrayna
 - Starting synced commit: `475fb9044fb193a2dee7ea3eb885a0bc17e3a6e3`
 - SEO implementation commit: `81afa976bb678a3b0ef239e6b46505f1e49f526e`
 - Bing verification commit: `9e20177`
+- GA4 implementation: added after the Bing setup as part of the 2026-07-15 update.
 - Branch: `main`
 - Remote: `origin/main`
 - Ignored local state: root-level untracked `favicon.ico` was left untouched.
@@ -57,6 +59,7 @@ Verified after deployment:
 
 - Homepage returns `200`.
 - Homepage contains `<meta name="msvalidate.01" content="F0033F6901282859D6F7A01930532E70">`.
+- Homepage contains the GA4 Google tag for `G-1N76G8G0S5`.
 - `/sitemap.xml` returns `200` with `content-type: application/xml`.
 - `/word/apple` returns `404`.
 - `/api/ocr` returns `405` for GET and includes `X-Robots-Tag: noindex, nofollow`.
@@ -110,6 +113,35 @@ Sitemap submission:
 
 Google Search Console import was not used because it would grant Bing read-only Google Search Console account access and periodic verification access. Manual Bing verification was completed instead.
 
+## Google Analytics 4
+
+GA4 was configured on 2026-07-15.
+
+Property:
+
+- Account: `HIEI`
+- Property: `Lucia Dictionary`
+- Country/timezone/currency: United States, Los Angeles time, USD
+- Industry category: Jobs & Education
+- Business size: Small, 1 to 10 employees
+- Business objective: Understand web and app traffic
+
+Web stream:
+
+- Stream name: `Lucia Dictionary Web`
+- Stream URL: `https://dict.luciaandrayna.com`
+- Stream ID: `15262818588`
+- Measurement ID: `G-1N76G8G0S5`
+
+Privacy and data minimization:
+
+- Enhanced Measurement is disabled in the GA4 stream.
+- The site tag sends basic page views only.
+- The site tag disables Google signals with `allow_google_signals: false`.
+- The site tag disables ad personalization signals with `allow_ad_personalization_signals: false`.
+- No typed sentences, uploaded images, saved words, wordbook entries, lookup text, user IDs, or custom learning events are sent to GA4.
+- The Privacy page discloses the basic GA4 page-view measurement.
+
 ## Validation Commands
 
 All passed after implementation and after the Bing verification meta change:
@@ -125,13 +157,22 @@ Latest local validation results:
 
 - Test files: 15 passed
 - Tests: 85 passed
-- Astro check: 0 errors, 0 warnings, 0 hints
+- Astro check: 0 errors, 0 warnings, 1 existing hint for `document.execCommand`
 - Build: 7 pages built
 - SEO audit: 6 sitemap URLs passed
+
+Latest GA4 validation results on 2026-07-15:
+
+- Unit test files: 16 passed
+- Unit tests: 92 passed
+- Worker test files: 1 passed
+- Worker tests: 6 passed
+- GA4 tag and privacy flags are enforced by `npm run audit:seo`.
 
 ## Known Follow-Ups
 
 - Google indexing is not immediate. The live page is technically indexable, but Search Console currently reports the URL as not indexed.
 - Revisit Google URL Inspection after the daily quota resets if manual indexing request is still desired.
 - Recheck Bing sitemap after processing; initial state is expected to show `Submitted - Processing` with 0 URLs discovered.
+- GA4 can take up to 48 hours to show normal data. The stream initially showed `未收到数据` before the site tag was deployed.
 - `npm install` reported existing dependency audit findings: 1 low, 5 moderate, and 3 high. No dependency upgrade or `npm audit fix` was run as part of this SEO task.
