@@ -12,6 +12,8 @@
 - Production URL: <https://dict.luciaandrayna.com>
 - Codex `/feedback` Session ID: `019f675a-a32d-7eb0-9e13-4d4df7cd9969`
 - Repository license: Apache-2.0
+- Devpost registration: completed July 15, 2026
+- $100 Codex Credits request: submitted July 15, 2026; approval pending
 
 ## What existed before the submission period
 
@@ -67,6 +69,8 @@ The implementation was verified through:
 
 ## Final submission checklist
 
+- [x] Register for OpenAI Build Week on Devpost.
+- [x] Submit the $100 Codex Credits request before the July 17 deadline; approval is pending.
 - [x] Run `/feedback` in the current Codex task and add the Session ID above and to Devpost.
 - [x] Commit the extension with a dated message that names Classroom Relay.
 - [x] Push the repository and confirm the public or reviewer-accessible URL.
