@@ -37,7 +37,7 @@ Lucia's Dictionary existed before the July 13, 2026 submission period. The pre-e
 - a completion summary and immediate parent-child practice prompt;
 - unit and mobile end-to-end coverage for the new learning loop.
 
-This extension was designed and implemented through the current Codex Build Week task. Before Devpost submission, retrieve the task's `/feedback` Session ID and add it to the submission form alongside the dated commit history.
+This extension was designed and implemented through Codex Build Week Session `019f675a-a32d-7eb0-9e13-4d4df7cd9969`, with the dated commit history retained for judging.
 
 ## Architecture
 
@@ -201,3 +201,7 @@ The completed 2026 upgrade, measurements, acceptance gates, and next-stage optio
 ## Author
 
 Lucia's Dictionary was built by VeteranXYZ around Lucia's real classroom learning workflow.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).
