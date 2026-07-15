@@ -27,6 +27,47 @@ test("creates local word cards and completes the review loop", async ({
   await expect(page.locator(".quiz-opt")).toHaveCount(4);
 });
 
+test("turns a classroom sentence into a contextual learning mission", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByLabel("输入中文或英文课堂句子")
+    .fill("Plants need sunlight and water to grow.");
+  await page.getByRole("button", { name: "翻译并学习" }).click();
+
+  const mission = page.locator("#classroom-mission");
+  await expect(mission).toContainText("Classroom Relay · 课堂接力");
+  await expect(mission).toContainText("这是这句话里的新词");
+  await mission.getByRole("button", { name: "开始课堂接力 · 5 个词" }).click();
+
+  for (const [index, word] of [
+    "plants",
+    "need",
+    "water",
+    "grow",
+    "sunlight",
+  ].entries()) {
+    await mission.locator(`.mission-option[data-word="${word}"]`).click();
+    await expect(mission).toContainText(`答对了 · ${word}`);
+    await mission
+      .getByRole("button", {
+        name: index === 4 ? "查看学习结果" : "下一题",
+      })
+      .click();
+  }
+
+  await expect(mission).toContainText("课堂接力完成");
+  await expect(mission).toContainText("家长接力一句话");
+  await expect(mission).toContainText("5 / 5 个词回答正确");
+
+  await page.getByRole("tab", { name: "生词本" }).click();
+  await expect(page.locator("#wb-list .word-card")).toHaveCount(5);
+  await expect(page.locator("#wb-list .word-source").first()).toContainText(
+    "课堂来源 1 条",
+  );
+});
+
 test("exposes accessible navigation and announces dynamic results", async ({
   page,
 }) => {

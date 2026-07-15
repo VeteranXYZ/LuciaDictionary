@@ -7,10 +7,37 @@ Lucia's Dictionary is a mobile-first, local-first English classroom learning too
 1. Enter or photograph a classroom sentence.
 2. Translate Chinese input locally when a known phrase matches, with a bounded online fallback when needed.
 3. Split the English sentence into child-friendly word cards with meanings, phonetics, learning bands, and speech.
-4. Save unfamiliar words to the browser-only wordbook.
-5. Review due words with **会 / 不确定 / 忘记** feedback and lightweight spaced repetition.
+4. Turn the real classroom sentence into a short Classroom Relay mission that explains which words deserve attention and why.
+5. Practice selected words through listening, meaning recall, and a cloze inside the original sentence.
+6. Save encounters and results to the browser-only wordbook and review due words with **会 / 不确定 / 忘记** feedback.
+7. Finish with one simple parent-child prompt that carries the classroom sentence into home practice.
 
 No account is required. Wordbook, review history, preferences, and lookup caches remain in the current browser.
+
+## Classroom Relay
+
+Classroom Relay turns a sentence a child actually encountered at school into a private, explainable micro-lesson. Its local recommendation engine ranks candidate words using the current wordbook, due dates, the last **know / unsure / forgot** result, mastery level, learning band, and repeated classroom encounters. Each recommendation includes a visible reason instead of presenting personalization as a black box.
+
+A mission selects up to five words and rotates through three exercise types:
+
+1. Listen and identify the word.
+2. Match a Chinese meaning to the English word.
+3. Put the word back into the original classroom sentence.
+
+Completing a mission updates the existing spaced-review schedule, records the source sentence for each selected word, stores a bounded local mission history, and produces a parent handoff card. Mission content and learning history stay in `localStorage`; the feature adds no account, child profile, analytics event, or new network request.
+
+## OpenAI Build Week 2026 extension
+
+Lucia's Dictionary existed before the July 13, 2026 submission period. The pre-existing project already supported sentence input, OCR, local word cards, pronunciation, a wordbook, basic spaced review, and quizzes. Work added during Build Week is intentionally separated here for judging:
+
+- the Classroom Relay mission model and bounded local mission history;
+- an explainable word-priority engine based on actual review state;
+- listening, meaning, and original-sentence cloze mission stages;
+- multi-sentence classroom encounter memory for each learned word;
+- a completion summary and immediate parent-child practice prompt;
+- unit and mobile end-to-end coverage for the new learning loop.
+
+This extension was designed and implemented through the current Codex Build Week task. Before Devpost submission, retrieve the task's `/feedback` Session ID and add it to the submission form alongside the dated commit history.
 
 ## Architecture
 
@@ -20,6 +47,7 @@ flowchart LR
   B --> C["Compact runtime lexicon"]
   B --> D["Lazy-loaded phrasebook"]
   B --> E["localStorage wordbook, schedule, settings, cache"]
+  B --> L["Classroom Relay recommendation and mission history"]
   B --> F["Browser speech synthesis"]
   B --> G["Bounded dictionary and translation fallbacks"]
   B --> H["Same-origin /api/ocr"]
@@ -73,7 +101,7 @@ Node.js 22.12 or newer is required; `.node-version` records the CI baseline.
 src/
   layouts/                 shared document layout and metadata
   pages/                   static pages and application shell
-  scripts/                 application features and unit tests
+  scripts/                 application features, Classroom Relay, and unit tests
   styles/                  mobile-first design system
 public/
   assets/                  runtime dictionary, phonetics, phrasebook, and images

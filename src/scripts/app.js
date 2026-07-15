@@ -30,6 +30,7 @@ import {
   importWordbookFile,
   isStarred,
   removeWord,
+  recordWordEncounter,
   recordReviewFeedback,
   saveWordbook,
   toggleStar,
@@ -40,6 +41,11 @@ import { TEMPLATES, renderTemplates } from "./templates.js";
 import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
 import { updateDailyStreak } from "./streak.js";
 import { registerServiceWorker } from "./offline.js";
+import {
+  createLearningMission,
+  saveMissionResult,
+  summarizeMission,
+} from "./mission.js";
 import {
   SPEAKER_SVG,
   STAR_SVG,
@@ -66,6 +72,9 @@ let phrasebookReady = null;
 let activeNetworkRequests = 0;
 const networkQueue = [];
 let copyFeedbackTimer = null;
+let currentMission = null;
+let missionQuestionIndex = 0;
+let missionResults = [];
 
 const COPY_ICON =
   '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2h9a2 2 0 0 1 2 2v1"></path>';
@@ -165,6 +174,245 @@ function showCopyFeedback(copied) {
 function announce(message) {
   const status = document.getElementById("app-status");
   if (status) status.textContent = message;
+}
+
+function missionStageLabel(type) {
+  return (
+    {
+      listen: "听懂",
+      meaning: "认出",
+      cloze: "放回原句",
+    }[type] || "练习"
+  );
+}
+
+function scrollMissionIntoView() {
+  document.getElementById("classroom-mission")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
+function createMissionHeader(eyebrow, title, copy) {
+  const header = document.createElement("div");
+  header.className = "mission-head";
+  const eyebrowEl = document.createElement("div");
+  eyebrowEl.className = "mission-eyebrow";
+  eyebrowEl.textContent = eyebrow;
+  const titleEl = document.createElement("h2");
+  titleEl.textContent = title;
+  const copyEl = document.createElement("p");
+  copyEl.textContent = copy;
+  header.append(eyebrowEl, titleEl, copyEl);
+  return header;
+}
+
+function renderMissionPreview(candidates) {
+  const container = document.getElementById("classroom-mission");
+  if (!container) return;
+  currentMission = createLearningMission({
+    sentence: curSentence,
+    candidates,
+    wordbook: getWordbook(),
+  });
+  missionQuestionIndex = 0;
+  missionResults = [];
+
+  if (!currentMission) {
+    container.hidden = true;
+    container.replaceChildren();
+    return;
+  }
+
+  container.hidden = false;
+  container.className = "classroom-mission mission-preview";
+  const header = createMissionHeader(
+    "Classroom Relay · 课堂接力",
+    "把这句话变成 3 分钟学习任务",
+    "根据生词本和复习记录，优先练习现在最值得学的词。",
+  );
+  const targets = document.createElement("div");
+  targets.className = "mission-targets";
+  for (const target of currentMission.targets) {
+    const item = document.createElement("div");
+    item.className = "mission-target";
+    const word = document.createElement("strong");
+    word.textContent = target.word;
+    const reason = document.createElement("span");
+    reason.textContent = target.reason;
+    item.append(word, reason);
+    targets.appendChild(item);
+  }
+
+  const start = document.createElement("button");
+  start.type = "button";
+  start.className = "mission-primary";
+  start.textContent = `开始课堂接力 · ${currentMission.targets.length} 个词`;
+  start.addEventListener("click", () =>
+    startMission({ recordEncounter: true }),
+  );
+  container.replaceChildren(header, targets, start);
+}
+
+function startMission({ recordEncounter = false } = {}) {
+  if (!currentMission) return;
+  missionQuestionIndex = 0;
+  missionResults = [];
+  if (recordEncounter) {
+    for (const target of currentMission.targets) {
+      recordWordEncounter(target.word, target.meaning, currentMission.sentence);
+    }
+  }
+  renderMissionQuestion();
+  scrollMissionIntoView();
+}
+
+function renderMissionQuestion() {
+  const container = document.getElementById("classroom-mission");
+  const question = currentMission?.questions?.[missionQuestionIndex];
+  if (!container || !question) {
+    finishMission();
+    return;
+  }
+
+  container.hidden = false;
+  container.className = "classroom-mission mission-active";
+  const progress = document.createElement("div");
+  progress.className = "mission-progress";
+  const progressLabel = document.createElement("span");
+  progressLabel.textContent = `${missionQuestionIndex + 1} / ${currentMission.questions.length}`;
+  const track = document.createElement("div");
+  track.className = "mission-progress-track";
+  const fill = document.createElement("div");
+  fill.style.width = `${((missionQuestionIndex + 1) / currentMission.questions.length) * 100}%`;
+  track.appendChild(fill);
+  progress.append(progressLabel, track);
+
+  const type = document.createElement("div");
+  type.className = "mission-question-type";
+  type.textContent = missionStageLabel(question.type);
+  const prompt = document.createElement("div");
+  prompt.className = `mission-question ${question.type}`;
+  prompt.textContent = question.prompt;
+
+  const body = document.createElement("div");
+  body.className = "mission-question-body";
+  body.append(type, prompt);
+  if (question.type === "listen") {
+    const listen = document.createElement("button");
+    listen.type = "button";
+    listen.className = "mission-listen";
+    listen.setAttribute("aria-label", "播放目标单词发音");
+    listen.textContent = "▶ 播放发音";
+    listen.addEventListener("click", () => speak(question.word));
+    body.appendChild(listen);
+    setTimeout(() => speak(question.word), 250);
+  }
+
+  const options = document.createElement("div");
+  options.className = "mission-options";
+  for (const option of question.options) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "mission-option";
+    button.dataset.word = option;
+    button.textContent = option;
+    button.addEventListener("click", () =>
+      answerMissionQuestion(option, options),
+    );
+    options.appendChild(button);
+  }
+  container.replaceChildren(progress, body, options);
+}
+
+function answerMissionQuestion(selectedWord, options) {
+  const question = currentMission?.questions?.[missionQuestionIndex];
+  if (!question || options.dataset.answered === "true") return;
+  options.dataset.answered = "true";
+  const correct = selectedWord === question.word;
+  missionResults.push({ word: question.word, correct });
+  for (const button of options.querySelectorAll("button")) {
+    button.disabled = true;
+    if (button.dataset.word === question.word) button.classList.add("correct");
+    if (button.dataset.word === selectedWord && !correct)
+      button.classList.add("wrong");
+  }
+
+  const feedback = document.createElement("div");
+  feedback.className = `mission-feedback ${correct ? "correct" : "wrong"}`;
+  feedback.textContent = correct
+    ? `答对了 · ${question.word}`
+    : `再记一次 · 正确答案是 ${question.word}`;
+  const next = document.createElement("button");
+  next.type = "button";
+  next.className = "mission-next";
+  next.textContent =
+    missionQuestionIndex + 1 < currentMission.questions.length
+      ? "下一题"
+      : "查看学习结果";
+  next.addEventListener("click", () => {
+    missionQuestionIndex++;
+    renderMissionQuestion();
+  });
+  feedback.appendChild(next);
+  document.getElementById("classroom-mission")?.appendChild(feedback);
+  announce(correct ? "回答正确" : `正确答案是 ${question.word}`);
+}
+
+function finishMission() {
+  const container = document.getElementById("classroom-mission");
+  if (!container || !currentMission || !missionResults.length) return;
+  for (const result of missionResults) {
+    recordReviewFeedback(result.word, result.correct ? "know" : "forgot");
+  }
+  saveMissionResult(currentMission, missionResults);
+  const summary = summarizeMission(currentMission, missionResults);
+  container.className = "classroom-mission mission-complete";
+
+  const header = createMissionHeader(
+    "课堂接力完成",
+    "这句话现在更熟悉了",
+    `${summary.correct} / ${summary.total} 个词回答正确，学习结果已经写入复习计划。`,
+  );
+  const resultGrid = document.createElement("div");
+  resultGrid.className = "mission-result-grid";
+  for (const [label, words, emptyText] of [
+    ["这次答对", summary.learned, "继续积累"],
+    ["需要复习", summary.needsReview, "暂时没有"],
+  ]) {
+    const card = document.createElement("div");
+    const title = document.createElement("span");
+    title.textContent = label;
+    const value = document.createElement("strong");
+    value.textContent = words.length ? words.join(" · ") : emptyText;
+    card.append(title, value);
+    resultGrid.appendChild(card);
+  }
+  const parent = document.createElement("aside");
+  parent.className = "mission-parent-card";
+  const parentLabel = document.createElement("strong");
+  parentLabel.textContent = "家长接力一句话";
+  const parentCopy = document.createElement("p");
+  parentCopy.textContent = summary.parentPrompt;
+  const sentence = document.createElement("blockquote");
+  sentence.textContent = currentMission.sentence;
+  parent.append(parentLabel, parentCopy, sentence);
+
+  const actions = document.createElement("div");
+  actions.className = "mission-complete-actions";
+  const speakSentence = document.createElement("button");
+  speakSentence.type = "button";
+  speakSentence.className = "mission-primary";
+  speakSentence.textContent = "一起朗读原句";
+  speakSentence.addEventListener("click", () => speak(currentMission.sentence));
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.className = "mission-secondary";
+  retry.textContent = "再练一次";
+  retry.addEventListener("click", () => startMission());
+  actions.append(speakSentence, retry);
+  container.replaceChildren(header, resultGrid, parent, actions);
+  announce("课堂接力任务已完成，学习结果已保存");
 }
 
 function createCurrentTranslationService() {
@@ -271,6 +519,7 @@ async function analyzeSentence({ source = "manual" } = {}) {
   const runId = ++analyzeRunId;
   const bar = document.getElementById("sentence-bar");
   const list = document.getElementById("word-list");
+  const missionContainer = document.getElementById("classroom-mission");
   if (!list) return;
 
   let sentence = raw;
@@ -280,6 +529,9 @@ async function analyzeSentence({ source = "manual" } = {}) {
   setSentenceText(raw);
   setSentenceSpeakLabel(getSentenceSpeechLabel("idle"));
   list.setAttribute("aria-busy", "true");
+  currentMission = null;
+  missionContainer?.replaceChildren();
+  if (missionContainer) missionContainer.hidden = true;
 
   try {
     if (!dictService) {
@@ -396,6 +648,15 @@ async function analyzeSentence({ source = "manual" } = {}) {
         }),
       );
     }
+    renderMissionPreview(
+      visibleWords
+        .filter((word) => !STOP_WORDS.has(word.toLowerCase()))
+        .map((word) => ({
+          word,
+          meaning: dictService.lookup(word),
+          band: dictService.lookupLearningBand(word),
+        })),
+    );
     const uncertainNote = uncertainWords.length
       ? `，另收起 ${uncertainWords.length} 个待确认词`
       : "";
@@ -484,7 +745,21 @@ function renderWordbook() {
     if (entry.m) cn.textContent = entry.m;
     else setMutedText(cn, "正在查询中文释义…");
 
-    body.append(en, band, ph, cn);
+    const source = document.createElement("div");
+    source.className = "word-source";
+    const encounterTotal = (entry.sourceSentences || []).reduce(
+      (total, item) => total + Math.max(1, Number(item.count || 1)),
+      0,
+    );
+    if (entry.sourceSentences?.length) {
+      const latestSentence = entry.sourceSentences[0].text;
+      source.textContent = `课堂来源 ${entry.sourceSentences.length} 条 · 遇到 ${encounterTotal} 次 · ${latestSentence}`;
+      source.title = latestSentence;
+    } else {
+      source.hidden = true;
+    }
+
+    body.append(en, band, ph, cn, source);
 
     const acts = document.createElement("div");
     acts.className = "word-actions";

@@ -11,6 +11,54 @@ function masteryForLevel(level) {
   return "new";
 }
 
+function normalizeSourceSentences(item) {
+  const sources = Array.isArray(item?.sourceSentences)
+    ? item.sourceSentences
+    : [];
+  const legacy = String(item?.sourceSentence || "").trim();
+  const normalized = sources
+    .map((source) => ({
+      text: String(source?.text || source || "").trim(),
+      firstSeenAt: Math.max(0, Number(source?.firstSeenAt || item?.t || 0)),
+      lastSeenAt: Math.max(0, Number(source?.lastSeenAt || item?.t || 0)),
+      count: Math.max(1, Number(source?.count || 1)),
+    }))
+    .filter((source) => source.text);
+  if (legacy && !normalized.some((source) => source.text === legacy)) {
+    normalized.push({
+      text: legacy,
+      firstSeenAt: Math.max(0, Number(item?.t || 0)),
+      lastSeenAt: Math.max(0, Number(item?.t || 0)),
+      count: 1,
+    });
+  }
+  return normalized.sort((a, b) => b.lastSeenAt - a.lastSeenAt).slice(0, 12);
+}
+
+function mergeSourceSentences(existing = [], incoming = []) {
+  const byText = new Map();
+  for (const source of [...existing, ...incoming]) {
+    if (!source?.text) continue;
+    const current = byText.get(source.text);
+    if (!current) {
+      byText.set(source.text, { ...source });
+      continue;
+    }
+    const firstSeenValues = [current.firstSeenAt, source.firstSeenAt].filter(
+      (value) => value > 0,
+    );
+    byText.set(source.text, {
+      text: source.text,
+      firstSeenAt: firstSeenValues.length ? Math.min(...firstSeenValues) : 0,
+      lastSeenAt: Math.max(current.lastSeenAt || 0, source.lastSeenAt || 0),
+      count: Math.max(current.count || 1, source.count || 1),
+    });
+  }
+  return Array.from(byText.values())
+    .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+    .slice(0, 12);
+}
+
 export function normalizeWordbookItem(item) {
   const word = String(item?.w || item?.word || "")
     .toLowerCase()
@@ -26,11 +74,15 @@ export function normalizeWordbookItem(item) {
         .filter((review) => review.at > 0 && REVIEW_RESULTS.has(review.result))
         .slice(-20)
     : [];
+  const sourceSentences = normalizeSourceSentences(item);
   return {
     w: word,
     m: String(item?.m || item?.meaning || ""),
     t: Number(item?.t || item?.createdAt || Date.now()),
-    sourceSentence: String(item?.sourceSentence || ""),
+    sourceSentence: String(
+      item?.sourceSentence || sourceSentences[0]?.text || "",
+    ),
+    sourceSentences,
     correct: Math.max(0, Number(item?.correct || 0)),
     wrong: Math.max(0, Number(item?.wrong || 0)),
     lastReviewedAt: item?.lastReviewedAt ? Number(item.lastReviewedAt) : null,
@@ -68,11 +120,19 @@ export function mergeWordbookItem(existing, incoming) {
     (incoming.lastReviewedAt || 0) >= (existing.lastReviewedAt || 0)
       ? incoming
       : existing;
+  const sourceSentences = mergeSourceSentences(
+    existing.sourceSentences,
+    incoming.sourceSentences,
+  );
   return {
     ...existing,
     ...incoming,
     m: incoming.m || existing.m,
-    sourceSentence: incoming.sourceSentence || existing.sourceSentence,
+    sourceSentence:
+      sourceSentences[0]?.text ||
+      incoming.sourceSentence ||
+      existing.sourceSentence,
+    sourceSentences,
     correct: Math.max(existing.correct || 0, incoming.correct || 0),
     wrong: Math.max(existing.wrong || 0, incoming.wrong || 0),
     level: Math.max(existing.level || 0, incoming.level || 0),
@@ -163,6 +223,60 @@ export function toggleStar(word, meaning, sourceSentence = "") {
   );
   saveWordbook(wb);
   return true;
+}
+
+export function recordWordEncounter(
+  word,
+  meaning,
+  sourceSentence,
+  now = Date.now(),
+) {
+  const key = String(word || "")
+    .toLowerCase()
+    .trim();
+  const sentence = String(sourceSentence || "").trim();
+  if (!key || !sentence) return null;
+
+  const wb = getWordbook();
+  let index = wb.findIndex((item) => item.w === key);
+  if (index < 0) {
+    wb.push(
+      normalizeWordbookItem({
+        w: key,
+        m: meaning,
+        t: now,
+      }),
+    );
+    index = wb.length - 1;
+  }
+
+  const item = wb[index];
+  const existingSource = item.sourceSentences.find(
+    (source) => source.text === sentence,
+  );
+  const nextSource = existingSource
+    ? {
+        ...existingSource,
+        count: existingSource.count + 1,
+        lastSeenAt: now,
+      }
+    : {
+        text: sentence,
+        firstSeenAt: now,
+        lastSeenAt: now,
+        count: 1,
+      };
+  wb[index] = normalizeWordbookItem({
+    ...item,
+    m: item.m || meaning,
+    sourceSentence: sentence,
+    sourceSentences: [
+      nextSource,
+      ...item.sourceSentences.filter((source) => source.text !== sentence),
+    ],
+  });
+  saveWordbook(wb);
+  return wb[index];
 }
 
 export function removeWord(word) {
