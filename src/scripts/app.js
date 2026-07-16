@@ -1021,7 +1021,7 @@ function renderSettings() {
       clearLookupCaches();
       clearCacheBtn.textContent = "已清除";
       setTimeout(() => {
-        clearCacheBtn.textContent = "清除查询缓存";
+        clearCacheBtn.textContent = "清除缓存";
       }, 1200);
     });
   }
