@@ -25,6 +25,21 @@ test("creates local word cards and completes the review loop", async ({
 
   await page.getByRole("tab", { name: "测验" }).click();
   await expect(page.locator(".quiz-opt")).toHaveCount(4);
+
+  await page.getByRole("tab", { name: "生词本" }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "清空" }).click();
+  await expect(page.locator("#review-all-btn span")).toHaveText("朗读");
+  await expect(page.locator("#review-all-btn")).toBeDisabled();
+  await expect(page.locator("#export-wb-btn")).toBeDisabled();
+  await expect(page.locator("#clear-wb-btn")).toBeDisabled();
+  await expect(page.locator("#wb-list")).toContainText("生词本还是空的");
+
+  await page.getByRole("tab", { name: "首页" }).click();
+  await expect(page.locator("#word-list .btn-star.active")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "收藏到生词本" })).toHaveCount(
+    5,
+  );
 });
 
 test("turns a classroom sentence into a contextual learning mission", async ({
@@ -89,6 +104,10 @@ test("exposes accessible navigation and announces dynamic results", async ({
     "page",
   );
   await expect(page.locator("#pg-home")).toBeHidden();
+  await expect(page.locator(".settings-info-links a")).toHaveCount(4);
+  await expect(page.locator(".settings-info-links")).toContainText(
+    "使用与无障碍",
+  );
 });
 
 test("handles OCR through the same-origin endpoint", async ({ page }) => {

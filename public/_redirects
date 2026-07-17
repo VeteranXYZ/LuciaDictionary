@@ -2,6 +2,7 @@
 /how-to /how-to/ 301
 /sources /sources/ 301
 /privacy /privacy/ 301
-/accessibility /accessibility/ 301
+/accessibility /how-to/ 301
+/accessibility/* /how-to/ 301
 /search / 301
 /search/* / 301

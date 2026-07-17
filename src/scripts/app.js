@@ -48,6 +48,7 @@ import {
 } from "./mission.js";
 import {
   SPEAKER_SVG,
+  STAR_OUTLINE,
   STAR_SVG,
   buildWordCard,
   createEmptyState,
@@ -672,8 +673,32 @@ async function analyzeSentence({ source = "manual" } = {}) {
   }
 }
 
+function syncWordbookUi(wb = getWordbook()) {
+  const savedWords = new Set(wb.map((entry) => entry.w));
+
+  document.querySelectorAll("#word-list .word-card").forEach((card) => {
+    const star = card.querySelector(".btn-star");
+    if (!star) return;
+    const starred = savedWords.has(card.dataset.word);
+    star.classList.toggle("active", starred);
+    star.innerHTML = starred ? STAR_SVG : STAR_OUTLINE;
+    star.setAttribute(
+      "aria-label",
+      starred
+        ? "移出生词本"
+        : star.disabled
+          ? "找到释义后可以收藏"
+          : "收藏到生词本",
+    );
+  });
+
+  const wordbookCount = document.getElementById("about-wb-count");
+  if (wordbookCount) wordbookCount.textContent = wb.length.toLocaleString();
+}
+
 function renderWordbook() {
   const wb = getWordbook();
+  syncWordbookUi(wb);
   const stats = document.getElementById("wb-stats");
   const actions = document.getElementById("wb-actions");
   const list = document.getElementById("wb-list");
@@ -837,7 +862,11 @@ function setWordbookActionState(hasItems) {
   const review = document.getElementById("review-all-btn");
   const exportBtn = document.getElementById("export-wb-btn");
   const clear = document.getElementById("clear-wb-btn");
-  if (review) review.disabled = !hasItems;
+  if (review) {
+    review.disabled = !hasItems;
+    const label = review.querySelector("span");
+    if (label && !hasItems) label.textContent = "朗读";
+  }
   if (exportBtn) exportBtn.disabled = !hasItems;
   if (clear) clear.disabled = !hasItems;
 }
@@ -866,6 +895,7 @@ function clearWordbook() {
   if (confirm("确定要清空生词本中的全部单词吗？此操作无法撤销。")) {
     clearWordbookItems();
     renderWordbook();
+    announce("生词本已清空");
   }
 }
 
