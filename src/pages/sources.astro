@@ -3,9 +3,9 @@ import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
 
-const title = "Dictionary Sources and Attribution";
+const title = "Lucia's Dictionary 数据来源";
 const description =
-  "Review the data-source model for Lucia's Dictionary, including local lexicon files, classroom phrase data, phonetics, and online fallback services.";
+  "了解 Lucia's Dictionary 使用的本地词典、课堂短句、音标、联网查词、翻译和图片文字识别服务。";
 const canonicalPath = "/sources/";
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
@@ -28,43 +28,41 @@ const structuredData = buildInfoPageStructuredData({
     current="sources"
   >
     <p>
-      Lucia's Dictionary combines local public app data with optional online
-      fallback services. The internal vocabulary files are application data, not
-      a promise that every word has a public web page.
+      Lucia's Dictionary
+      会先使用随应用提供的词典和课堂短句；本地内容不足时，才会按需使用联网查词、翻译或图片文字识别服务。不同来源的结果可能存在差异。
     </p>
     <section>
-      <h2>Local App Data</h2>
+      <h2>本地词典与课堂短句</h2>
       <p>
-        The app publishes a compact runtime lexicon, a basic fallback
-        dictionary, classroom phrasebook data, and phonetic hints. Full
-        generated source data and translation overrides remain in the repository
-        for audits and reproducible rebuilds, but are not all shipped to every
-        browser.
+        应用包含一份适合浏览器使用的核心词典、基础备用词表、常见课堂短句和音标提示。常用内容可以直接在设备上查询，但并不代表所有英文词都一定有完整的本地释义。
       </p>
     </section>
     <section>
-      <h2>Lexicon Inputs</h2>
+      <h2>词典数据来源</h2>
       <p>
-        The repository documentation identifies high-frequency-vocabulary and
-        ECDICT as source inputs for building the generated core lexicon. Runtime
-        entries are assigned frequency-derived learning bands for display; these
-        bands are learning aids, not standardized grade-level certifications.
+        核心词典由高频词汇数据和 ECDICT
+        等公开词典数据整理生成。页面上的“基础词、进阶词、拓展词”用于帮助安排学习顺序，不代表学校年级标准或考试等级认证。
       </p>
     </section>
     <section>
-      <h2>Classroom Phrase Data</h2>
+      <h2>课堂短句</h2>
       <p>
-        Phrasebook entries cover common classroom instructions and homework
-        patterns, so short Chinese or English sentences can be matched locally
-        before any online fallback is considered.
+        课堂短句覆盖常见的作业要求、阅读指令、数学和科学提示以及课堂习惯表达。输入相近的中文或英文短句时，应用会优先在这些内容中查找。
       </p>
     </section>
     <section>
-      <h2>Online Fallbacks</h2>
+      <h2>联网补充</h2>
       <p>
-        When local data is missing, the app may use dictionaryapi.dev and
-        translation fallback paths. Network fallback results can vary and are
-        cached locally in the current browser.
+        本地内容不足时，应用可能通过 dictionaryapi.dev 补充英文释义，并通过
+        Google
+        翻译备用服务生成中文结果。联网结果可能随服务状态而变化，并会缓存在当前浏览器中。
+      </p>
+    </section>
+    <section>
+      <h2>图片文字识别</h2>
+      <p>
+        拍照识别英文时，图片会先在浏览器中压缩，再通过本站接口发送给 OCR.Space
+        完成文字识别。关于图片和识别结果如何处理，请查看“隐私与数据”页面。
       </p>
     </section>
   </InfoPageShell>

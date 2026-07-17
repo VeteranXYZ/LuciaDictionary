@@ -3,17 +3,17 @@ import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData, pageUrl, siteName } from "../lib/seo.js";
 
-const title = "How to Use Lucia's Dictionary";
+const title = "Lucia's Dictionary 使用指南";
 const description =
-  "Use Lucia's Dictionary by entering a classroom sentence, reviewing word cards, completing a contextual Classroom Relay mission, and saving progress locally.";
+  "了解如何输入或拍下课堂英语句子、生成单词卡、收藏生词，并完成 3 分钟课堂小练习。";
 const canonicalPath = "/how-to/";
 const howToSteps = [
-  "Enter or paste a Chinese or English classroom sentence.",
-  "Use the action button to create word cards.",
-  "Review each English word, Chinese meaning, and phonetic hint.",
-  "Start Classroom Relay to see which words are recommended and why.",
-  "Complete listening, meaning, and original-sentence cloze practice.",
-  "Review the parent handoff prompt and revisit due words later.",
+  "输入或粘贴中文、英文课堂句子，也可以拍照识别题目中的英文。",
+  "点击“生成单词卡”，查看句子中的英文单词、中文释义和音标。",
+  "点击单词卡听发音；遇到不熟悉的词，点星标收藏到生词本。",
+  "开始 3 分钟课堂小练习，完成听音、选词和原句填空。",
+  "到生词本标记“会”“不确定”或“忘记”，让复习安排更合适。",
+  "需要更换设备时，先备份生词本，再在新设备中导入备份。",
 ];
 const structuredData = [
   ...buildInfoPageStructuredData({
@@ -24,7 +24,7 @@ const structuredData = [
   {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    name: "How to use Lucia's Dictionary",
+    name: "Lucia's Dictionary 使用指南",
     description,
     url: pageUrl(canonicalPath),
     inLanguage: ["en", "zh-CN"],
@@ -58,19 +58,15 @@ const structuredData = [
       {howToSteps.map((step) => <li>{step}</li>)}
     </ol>
     <section>
-      <h2>What You Can Search</h2>
+      <h2>适合输入什么内容</h2>
       <p>
-        The app works best with classroom sentences, homework directions,
-        reading questions, math prompts, science notes, and short teacher
-        instructions. It can also accept single words, but its main workflow is
-        sentence-first.
+        最适合作业要求、阅读问题、数学题目、科学笔记和老师的简短指令。也可以输入单个英文词，但完整句子能帮助孩子把单词放回真实课堂情境中理解。
       </p>
     </section>
     <section>
-      <h2>Search States</h2>
+      <h2>学习记录保存在哪里</h2>
       <p>
-        Searches happen inside the app. They do not create public word pages,
-        saved search pages, accounts, or shared search histories.
+        生词本、复习记录和朗读设置保存在当前浏览器中，不会生成公开的搜索页面或共享的搜索历史。清除浏览器数据前，建议先备份生词本。
       </p>
     </section>
   </InfoPageShell>

@@ -7,7 +7,7 @@ test("creates local word cards and completes the review loop", async ({
   await page
     .getByLabel("输入中文或英文课堂句子")
     .fill("Read write draw and solve.");
-  await page.getByRole("button", { name: "翻译并学习" }).click();
+  await page.getByRole("button", { name: "生成单词卡" }).click();
 
   const cards = page.locator("#word-list .word-card");
   await expect(cards).toHaveCount(5);
@@ -34,12 +34,12 @@ test("turns a classroom sentence into a contextual learning mission", async ({
   await page
     .getByLabel("输入中文或英文课堂句子")
     .fill("Plants need sunlight and water to grow.");
-  await page.getByRole("button", { name: "翻译并学习" }).click();
+  await page.getByRole("button", { name: "生成单词卡" }).click();
 
   const mission = page.locator("#classroom-mission");
-  await expect(mission).toContainText("Classroom Relay · 课堂接力");
+  await expect(mission).toContainText("3 分钟课堂小练习");
   await expect(mission).toContainText("这是这句话里的新词");
-  await mission.getByRole("button", { name: "开始课堂接力 · 5 个词" }).click();
+  await mission.getByRole("button", { name: "开始练习 · 5 个词" }).click();
 
   for (const [index, word] of [
     "plants",
@@ -57,14 +57,14 @@ test("turns a classroom sentence into a contextual learning mission", async ({
       .click();
   }
 
-  await expect(mission).toContainText("课堂接力完成");
-  await expect(mission).toContainText("家长接力一句话");
-  await expect(mission).toContainText("5 / 5 个词回答正确");
+  await expect(mission).toContainText("练习完成");
+  await expect(mission).toContainText("和孩子再练一句");
+  await expect(mission).toContainText("答对 5 / 5 个词");
 
   await page.getByRole("tab", { name: "生词本" }).click();
   await expect(page.locator("#wb-list .word-card")).toHaveCount(5);
   await expect(page.locator("#wb-list .word-source").first()).toContainText(
-    "课堂来源 1 条",
+    "来自 1 个课堂句子",
   );
 });
 
@@ -80,7 +80,7 @@ test("exposes accessible navigation and announces dynamic results", async ({
   );
 
   await page.getByLabel("输入中文或英文课堂句子").fill("Circle the answer.");
-  await page.getByRole("button", { name: "翻译并学习" }).click();
+  await page.getByRole("button", { name: "生成单词卡" }).click();
   await expect(page.locator("#app-status")).toContainText("已生成 3 张单词卡");
 
   await page.getByRole("tab", { name: "设置" }).click();
@@ -125,7 +125,7 @@ test("keeps uncertain OCR tokens compact until individually confirmed", async ({
     "已收起 2 个可能识别有误的词",
   );
   await expect(page.locator(".ocr-uncertain-chip")).toHaveCount(2);
-  await expect(page.locator("#word-list")).not.toContainText("联网查询失败");
+  await expect(page.locator("#word-list")).not.toContainText("联网查词失败");
 });
 
 test("starts and analyzes a local sentence while offline", async ({
@@ -151,7 +151,7 @@ test("starts and analyzes a local sentence while offline", async ({
 
     await expect(page.getByLabel("输入中文或英文课堂句子")).toBeVisible();
     await page.getByLabel("输入中文或英文课堂句子").fill("Read the book.");
-    await page.getByRole("button", { name: "翻译并学习" }).click();
+    await page.getByRole("button", { name: "生成单词卡" }).click();
     await expect(page.locator("#word-list .word-card")).toHaveCount(3);
   } finally {
     await context.setOffline(false);

@@ -4,6 +4,7 @@ export const siteAlternateNames = [
   "Lucia Dictionary",
   "Lucia's English Dictionary",
   "Lucia 的英语词典",
+  "Lucia 课堂英语词典",
 ];
 export const siteLogo = `${siteOrigin}/assets/logo.png`;
 

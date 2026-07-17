@@ -28,13 +28,13 @@ describe("main analysis flow source", () => {
     expect(markup).not.toContain("只拍英文题目区域");
   });
 
-  it("keeps mobile OCR buttons horizontal and shortens crowded labels", () => {
+  it("keeps mobile OCR buttons horizontal and uses concise labels", () => {
     const markup = fs.readFileSync("src/pages/index.astro", "utf8");
     const styles = fs.readFileSync("src/styles/global.css", "utf8");
     expect(markup).toContain('class="hero-center"');
     expect(markup).toContain('class="hero-copy"');
     expect(markup).toContain("<span>朗读</span>");
-    expect(markup).toContain("已收藏单词");
+    expect(markup).toContain("生词本收藏");
     expect(styles).toContain(".hero-center");
     expect(styles).toContain("display: inline-flex");
     expect(styles).toContain("grid-template-columns: 1fr 1fr");
@@ -53,7 +53,7 @@ describe("main analysis flow source", () => {
     expect(styles).toContain(".sentence-actions");
     expect(source).toContain("navigator.clipboard?.writeText");
     expect(source).toContain(
-      'label.textContent = copied ? "完成复制" : "复制文本"',
+      'label.textContent = copied ? "已复制" : "复制文本"',
     );
   });
 

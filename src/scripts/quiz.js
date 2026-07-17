@@ -89,7 +89,7 @@ export function renderQuiz({ getWordbook, speak }) {
 
   const score = document.createElement("div");
   score.className = "quiz-score";
-  score.textContent = `得分 ${quizState.score} / ${quizState.total}`;
+  score.textContent = `本轮答对 ${quizState.score} / ${quizState.total}`;
   card.appendChild(score);
 
   const prompt = document.createElement("div");

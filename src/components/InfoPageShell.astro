@@ -9,19 +9,19 @@ interface Props {
 const {
   title,
   titleZh,
-  eyebrow = "家长信息 · Family guide",
+  eyebrow = "家长指南 · Family Guide",
   current,
 } = Astro.props;
 
 const pages = [
   { id: "about", href: "/about/", label: "关于", labelEn: "About" },
-  { id: "how-to", href: "/how-to/", label: "使用方法", labelEn: "How to Use" },
+  { id: "how-to", href: "/how-to/", label: "使用指南", labelEn: "How to Use" },
   { id: "sources", href: "/sources/", label: "数据来源", labelEn: "Sources" },
-  { id: "privacy", href: "/privacy/", label: "隐私", labelEn: "Privacy" },
+  { id: "privacy", href: "/privacy/", label: "隐私与数据", labelEn: "Privacy" },
   {
     id: "accessibility",
     href: "/accessibility/",
-    label: "无障碍",
+    label: "无障碍使用",
     labelEn: "Accessibility",
   },
 ];
@@ -48,10 +48,10 @@ const currentPage = pages.find((page) => page.id === current);
   <article class="info-card">
     {
       currentPage && (
-        <nav class="info-breadcrumb" aria-label="Breadcrumb">
+        <nav class="info-breadcrumb" aria-label="页面位置">
           <a href="/">Lucia's Dictionary</a>
           <span aria-hidden="true">/</span>
-          <span aria-current="page">{currentPage.labelEn}</span>
+          <span aria-current="page">{currentPage.label}</span>
         </nav>
       )
     }
@@ -67,7 +67,7 @@ const currentPage = pages.find((page) => page.id === current);
     </div>
   </article>
 
-  <nav class="info-links" aria-label="家长信息页面">
+  <nav class="info-links" aria-label="家长指南页面">
     {
       pages.map((page) => (
         <a
@@ -86,7 +86,7 @@ const currentPage = pages.find((page) => page.id === current);
       ><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"
       ></path><path d="M9 21v-7h6v7"></path></svg
     >
-    打开词典
+    返回词典首页
   </a>
 
   <footer class="info-footer">

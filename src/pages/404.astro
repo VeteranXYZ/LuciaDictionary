@@ -2,16 +2,26 @@
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 
-const title = "Page Not Found";
-const description = "The requested Lucia's Dictionary page was not found.";
+const title = "页面未找到｜Lucia's Dictionary";
+const description = "没有找到你要访问的 Lucia's Dictionary 页面。";
 ---
 
-<MainLayout title={title} description={description} canonicalPath="/" ogTitle={title} noindex={true} appScript={false}>
-  <InfoPageShell title="Page Not Found" titleZh="这个页面走丢了" eyebrow="404 · Page not found">
+<MainLayout
+  title={title}
+  description={description}
+  canonicalPath="/"
+  ogTitle={title}
+  noindex={true}
+  appScript={false}
+>
+  <InfoPageShell
+    title="Page Not Found"
+    titleZh="这个页面走丢了"
+    eyebrow="404 · 页面未找到"
+  >
     <p>
-      This dictionary does not publish arbitrary search-result, query, or word-entry URLs. Use the main dictionary page
-      to search a classroom sentence.
+      你访问的页面不存在，或者地址已经发生变化。返回词典首页，就可以继续输入课堂句子、查看单词卡和复习生词。
     </p>
-    <p><a class="primary-link" href="/">Open the Dictionary</a></p>
+    <p><a class="primary-link" href="/">返回词典首页</a></p>
   </InfoPageShell>
 </MainLayout>

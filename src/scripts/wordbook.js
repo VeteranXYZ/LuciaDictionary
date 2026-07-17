@@ -348,10 +348,10 @@ export function getReviewSummary(wordbook = getWordbook(), now = Date.now()) {
 
 export function validateImportedWordbook(value) {
   if (!Array.isArray(value))
-    return { ok: false, error: "导入文件必须是数组格式" };
+    return { ok: false, error: "这不是有效的生词本备份文件" };
   const normalized = normalizeWordbook(value);
   if (!normalized.length && value.length)
-    return { ok: false, error: "没有找到有效的单词项目" };
+    return { ok: false, error: "备份文件中没有找到可导入的单词" };
   return { ok: true, items: normalized };
 }
 

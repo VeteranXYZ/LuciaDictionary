@@ -3,9 +3,9 @@ import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
 
-const title = "About Lucia's Dictionary";
+const title = "关于 Lucia's Dictionary｜课堂英语句子学习词典";
 const description =
-  "Learn what Lucia's Dictionary does, who it is for, and how it supports sentence-first English vocabulary practice for bilingual families.";
+  "了解 Lucia's Dictionary 如何帮助中文家庭读懂课堂英语句子、学习重点单词并在本地复习。";
 const canonicalPath = "/about/";
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
@@ -28,40 +28,28 @@ const structuredData = buildInfoPageStructuredData({
     current="about"
   >
     <p>
-      Lucia's Dictionary is an online English sentence dictionary for
-      Chinese-speaking families. It is built around classroom sentences,
-      homework instructions, reading prompts, and teacher notes.
+      Lucia's Dictionary
+      是为中文家庭设计的课堂英语句子学习词典。它特别关注作业要求、阅读题目、数学和科学提示，以及老师在课堂上常说的话。
     </p>
     <p>
-      Instead of starting with one isolated word, the app starts with the full
-      sentence. It extracts the English words, shows Chinese meanings and
-      phonetics where available, reads words aloud, and lets the learner save
-      unfamiliar words in a local wordbook.
+      学习从完整句子开始。输入、粘贴或拍下课堂内容后，词典会拆出英文单词，显示中文释义和音标，提供发音，并把不熟悉的词保存到生词本中继续复习。
     </p>
     <section>
-      <h2>Who It Is For</h2>
+      <h2>适合谁使用</h2>
       <p>
-        The product is intended for bilingual elementary-school learners and
-        parents who want a quick way to understand everyday classroom English.
-        It is not a complete English curriculum or a replacement for teacher
-        guidance.
+        适合正在美国小学学习、需要中文辅助理解课堂英语的孩子，也适合希望快速看懂作业要求并陪孩子练习的家长。它是一件学习辅助工具，不是完整的英语课程，也不能替代老师的指导。
       </p>
     </section>
     <section>
-      <h2>What It Helps With</h2>
+      <h2>它能帮你做什么</h2>
       <p>
-        The dictionary is tuned for practical classroom language: directions
-        such as circle, underline, compare, explain, choose, write, read, and
-        answer. Parents can paste a sentence, review the important words, and
-        practice pronunciation before the child starts homework or reading.
+        词典重点覆盖课堂中常见的动作词和指令，例如圈出、画线、比较、解释、选择、书写、阅读和回答。开始作业或阅读前，家长可以和孩子一起看懂原句、听单词发音，再练习其中最重要的词。
       </p>
     </section>
     <section>
-      <h2>Product Approach</h2>
+      <h2>学习数据怎样保存</h2>
       <p>
-        The app is local-first: common classroom phrases, core words, phonetics,
-        settings, cached lookup results, and saved wordbook items are handled in
-        the browser whenever possible.
+        常见课堂短句、核心词汇、音标、朗读设置、查询缓存和生词本会尽量在当前浏览器中处理和保存。无需注册账号；更换设备或清除浏览器数据后，本地学习记录可能不会保留。
       </p>
     </section>
   </InfoPageShell>

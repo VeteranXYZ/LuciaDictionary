@@ -107,8 +107,8 @@ describe("lookup fallback messages", () => {
     ).toBe(ONLINE_FAILURE_MESSAGE);
   });
 
-  it("uses the full online lookup button label", () => {
-    expect(ONLINE_LOOKUP_BUTTON_LABEL).toBe("联网查询");
+  it("uses the concise online lookup button label", () => {
+    expect(ONLINE_LOOKUP_BUTTON_LABEL).toBe("联网查词");
   });
 
   it("does not call online lookup during normal analysis hydration", async () => {
