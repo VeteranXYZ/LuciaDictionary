@@ -3,11 +3,8 @@
 import {
   ONLINE_DICT_CACHE,
   TIP_DISMISSED_KEY,
-  clearLookupCaches,
-  getSetting,
   loadJsonAsset,
   readCache,
-  setSetting,
   writeCache,
 } from "./storage.js";
 import { STOP_WORDS, createDictionaryService } from "./dictionary.js";
@@ -22,40 +19,21 @@ import {
   toggleSentenceSpeech,
 } from "./speech.js";
 import {
-  clearWordbookItems,
-  exportWordbookJson,
-  getDueWords,
-  getReviewSummary,
   getWordbook,
-  importWordbookFile,
   isStarred,
-  removeWord,
-  recordWordEncounter,
-  recordReviewFeedback,
   saveWordbook,
   toggleStar,
   updateStarredMeaning,
 } from "./wordbook.js";
-import { renderQuiz } from "./quiz.js";
-import { TEMPLATES, renderTemplates } from "./templates.js";
+import { TEMPLATES } from "./templates.js";
 import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
-import { updateDailyStreak } from "./streak.js";
 import { registerServiceWorker } from "./offline.js";
-import {
-  createLearningMission,
-  saveMissionResult,
-  summarizeMission,
-} from "./mission.js";
-import {
-  SPEAKER_SVG,
-  STAR_OUTLINE,
-  STAR_SVG,
-  buildWordCard,
-  createEmptyState,
-  hydrateOnlineWord,
-  setCardMeaning,
-  setMutedText,
-} from "./ui.js";
+import { buildWordCard, createEmptyState, setCardMeaning } from "./ui.js";
+import { getAppState, subscribeAppState } from "./app-state.js";
+import { createMissionController } from "./controllers/mission-controller.js";
+import { createNavigationController } from "./controllers/navigation-controller.js";
+import { createSettingsController } from "./controllers/settings-controller.js";
+import { createWordbookController } from "./controllers/wordbook-controller.js";
 
 const NETWORK_CONCURRENCY = 3;
 
@@ -73,9 +51,10 @@ let phrasebookReady = null;
 let activeNetworkRequests = 0;
 const networkQueue = [];
 let copyFeedbackTimer = null;
-let currentMission = null;
-let missionQuestionIndex = 0;
-let missionResults = [];
+let missionController = null;
+let navigationController = null;
+let settingsController = null;
+let wordbookController = null;
 
 const COPY_ICON =
   '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2h9a2 2 0 0 1 2 2v1"></path>';
@@ -177,245 +156,6 @@ function announce(message) {
   if (status) status.textContent = message;
 }
 
-function missionStageLabel(type) {
-  return (
-    {
-      listen: "听音辨词",
-      meaning: "看义选词",
-      cloze: "放回原句",
-    }[type] || "练习"
-  );
-}
-
-function scrollMissionIntoView() {
-  document.getElementById("classroom-mission")?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-}
-
-function createMissionHeader(eyebrow, title, copy) {
-  const header = document.createElement("div");
-  header.className = "mission-head";
-  const eyebrowEl = document.createElement("div");
-  eyebrowEl.className = "mission-eyebrow";
-  eyebrowEl.textContent = eyebrow;
-  const titleEl = document.createElement("h2");
-  titleEl.textContent = title;
-  const copyEl = document.createElement("p");
-  copyEl.textContent = copy;
-  header.append(eyebrowEl, titleEl, copyEl);
-  return header;
-}
-
-function renderMissionPreview(candidates) {
-  const container = document.getElementById("classroom-mission");
-  if (!container) return;
-  currentMission = createLearningMission({
-    sentence: curSentence,
-    candidates,
-    wordbook: getWordbook(),
-  });
-  missionQuestionIndex = 0;
-  missionResults = [];
-
-  if (!currentMission) {
-    container.hidden = true;
-    container.replaceChildren();
-    return;
-  }
-
-  container.hidden = false;
-  container.className = "classroom-mission mission-preview";
-  const header = createMissionHeader(
-    "3 分钟课堂小练习",
-    "用 3 分钟练熟这句话",
-    "会根据生词本和复习记录，先练现在最需要记住的词。",
-  );
-  const targets = document.createElement("div");
-  targets.className = "mission-targets";
-  for (const target of currentMission.targets) {
-    const item = document.createElement("div");
-    item.className = "mission-target";
-    const word = document.createElement("strong");
-    word.textContent = target.word;
-    const reason = document.createElement("span");
-    reason.textContent = target.reason;
-    item.append(word, reason);
-    targets.appendChild(item);
-  }
-
-  const start = document.createElement("button");
-  start.type = "button";
-  start.className = "mission-primary";
-  start.textContent = `开始练习 · ${currentMission.targets.length} 个词`;
-  start.addEventListener("click", () =>
-    startMission({ recordEncounter: true }),
-  );
-  container.replaceChildren(header, targets, start);
-}
-
-function startMission({ recordEncounter = false } = {}) {
-  if (!currentMission) return;
-  missionQuestionIndex = 0;
-  missionResults = [];
-  if (recordEncounter) {
-    for (const target of currentMission.targets) {
-      recordWordEncounter(target.word, target.meaning, currentMission.sentence);
-    }
-  }
-  renderMissionQuestion();
-  scrollMissionIntoView();
-}
-
-function renderMissionQuestion() {
-  const container = document.getElementById("classroom-mission");
-  const question = currentMission?.questions?.[missionQuestionIndex];
-  if (!container || !question) {
-    finishMission();
-    return;
-  }
-
-  container.hidden = false;
-  container.className = "classroom-mission mission-active";
-  const progress = document.createElement("div");
-  progress.className = "mission-progress";
-  const progressLabel = document.createElement("span");
-  progressLabel.textContent = `${missionQuestionIndex + 1} / ${currentMission.questions.length}`;
-  const track = document.createElement("div");
-  track.className = "mission-progress-track";
-  const fill = document.createElement("div");
-  fill.style.width = `${((missionQuestionIndex + 1) / currentMission.questions.length) * 100}%`;
-  track.appendChild(fill);
-  progress.append(progressLabel, track);
-
-  const type = document.createElement("div");
-  type.className = "mission-question-type";
-  type.textContent = missionStageLabel(question.type);
-  const prompt = document.createElement("div");
-  prompt.className = `mission-question ${question.type}`;
-  prompt.textContent = question.prompt;
-
-  const body = document.createElement("div");
-  body.className = "mission-question-body";
-  body.append(type, prompt);
-  if (question.type === "listen") {
-    const listen = document.createElement("button");
-    listen.type = "button";
-    listen.className = "mission-listen";
-    listen.setAttribute("aria-label", "播放目标单词发音");
-    listen.textContent = "▶ 播放发音";
-    listen.addEventListener("click", () => speak(question.word));
-    body.appendChild(listen);
-    setTimeout(() => speak(question.word), 250);
-  }
-
-  const options = document.createElement("div");
-  options.className = "mission-options";
-  for (const option of question.options) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "mission-option";
-    button.dataset.word = option;
-    button.textContent = option;
-    button.addEventListener("click", () =>
-      answerMissionQuestion(option, options),
-    );
-    options.appendChild(button);
-  }
-  container.replaceChildren(progress, body, options);
-}
-
-function answerMissionQuestion(selectedWord, options) {
-  const question = currentMission?.questions?.[missionQuestionIndex];
-  if (!question || options.dataset.answered === "true") return;
-  options.dataset.answered = "true";
-  const correct = selectedWord === question.word;
-  missionResults.push({ word: question.word, correct });
-  for (const button of options.querySelectorAll("button")) {
-    button.disabled = true;
-    if (button.dataset.word === question.word) button.classList.add("correct");
-    if (button.dataset.word === selectedWord && !correct)
-      button.classList.add("wrong");
-  }
-
-  const feedback = document.createElement("div");
-  feedback.className = `mission-feedback ${correct ? "correct" : "wrong"}`;
-  feedback.textContent = correct
-    ? `答对了 · ${question.word}`
-    : `再记一次 · 正确答案是 ${question.word}`;
-  const next = document.createElement("button");
-  next.type = "button";
-  next.className = "mission-next";
-  next.textContent =
-    missionQuestionIndex + 1 < currentMission.questions.length
-      ? "下一题"
-      : "查看学习结果";
-  next.addEventListener("click", () => {
-    missionQuestionIndex++;
-    renderMissionQuestion();
-  });
-  feedback.appendChild(next);
-  document.getElementById("classroom-mission")?.appendChild(feedback);
-  announce(correct ? "回答正确" : `正确答案是 ${question.word}`);
-}
-
-function finishMission() {
-  const container = document.getElementById("classroom-mission");
-  if (!container || !currentMission || !missionResults.length) return;
-  for (const result of missionResults) {
-    recordReviewFeedback(result.word, result.correct ? "know" : "forgot");
-  }
-  saveMissionResult(currentMission, missionResults);
-  const summary = summarizeMission(currentMission, missionResults);
-  container.className = "classroom-mission mission-complete";
-
-  const header = createMissionHeader(
-    "练习完成",
-    "这句话现在更熟悉了",
-    `答对 ${summary.correct} / ${summary.total} 个词。结果已保存，下次会优先复习没记住的词。`,
-  );
-  const resultGrid = document.createElement("div");
-  resultGrid.className = "mission-result-grid";
-  for (const [label, words, emptyText] of [
-    ["这次记住了", summary.learned, "继续加油"],
-    ["下次再复习", summary.needsReview, "全部答对啦"],
-  ]) {
-    const card = document.createElement("div");
-    const title = document.createElement("span");
-    title.textContent = label;
-    const value = document.createElement("strong");
-    value.textContent = words.length ? words.join(" · ") : emptyText;
-    card.append(title, value);
-    resultGrid.appendChild(card);
-  }
-  const parent = document.createElement("aside");
-  parent.className = "mission-parent-card";
-  const parentLabel = document.createElement("strong");
-  parentLabel.textContent = "和孩子再练一句";
-  const parentCopy = document.createElement("p");
-  parentCopy.textContent = summary.parentPrompt;
-  const sentence = document.createElement("blockquote");
-  sentence.textContent = currentMission.sentence;
-  parent.append(parentLabel, parentCopy, sentence);
-
-  const actions = document.createElement("div");
-  actions.className = "mission-complete-actions";
-  const speakSentence = document.createElement("button");
-  speakSentence.type = "button";
-  speakSentence.className = "mission-primary";
-  speakSentence.textContent = "一起朗读原句";
-  speakSentence.addEventListener("click", () => speak(currentMission.sentence));
-  const retry = document.createElement("button");
-  retry.type = "button";
-  retry.className = "mission-secondary";
-  retry.textContent = "再练一次";
-  retry.addEventListener("click", () => startMission());
-  actions.append(speakSentence, retry);
-  container.replaceChildren(header, resultGrid, parent, actions);
-  announce("课堂小练习已完成，答题结果已保存");
-}
-
 function createCurrentTranslationService() {
   translationService = createTranslationService({
     dictService,
@@ -444,7 +184,7 @@ async function loadDictionaryServices() {
     setCachedOnlineWord,
   });
   createCurrentTranslationService();
-  renderSettings();
+  settingsController?.render(getAppState());
   announce("词典已准备好");
   return dictService;
 }
@@ -530,7 +270,6 @@ async function analyzeSentence({ source = "manual" } = {}) {
   setSentenceText(raw);
   setSentenceSpeakLabel(getSentenceSpeechLabel("idle"));
   list.setAttribute("aria-busy", "true");
-  currentMission = null;
   missionContainer?.replaceChildren();
   if (missionContainer) missionContainer.hidden = true;
 
@@ -649,7 +388,7 @@ async function analyzeSentence({ source = "manual" } = {}) {
         }),
       );
     }
-    renderMissionPreview(
+    missionController.renderPreview(
       visibleWords
         .filter((word) => !STOP_WORDS.has(word.toLowerCase()))
         .map((word) => ({
@@ -670,258 +409,6 @@ async function analyzeSentence({ source = "manual" } = {}) {
   } finally {
     list.setAttribute("aria-busy", "false");
     if (runId === analyzeRunId) setAnalyzeBusy(false);
-  }
-}
-
-function syncWordbookUi(wb = getWordbook()) {
-  const savedWords = new Set(wb.map((entry) => entry.w));
-
-  document.querySelectorAll("#word-list .word-card").forEach((card) => {
-    const star = card.querySelector(".btn-star");
-    if (!star) return;
-    const starred = savedWords.has(card.dataset.word);
-    star.classList.toggle("active", starred);
-    star.innerHTML = starred ? STAR_SVG : STAR_OUTLINE;
-    star.setAttribute(
-      "aria-label",
-      starred
-        ? "移出生词本"
-        : star.disabled
-          ? "找到释义后可以收藏"
-          : "收藏到生词本",
-    );
-  });
-
-  const wordbookCount = document.getElementById("about-wb-count");
-  if (wordbookCount) wordbookCount.textContent = wb.length.toLocaleString();
-}
-
-function renderWordbook() {
-  const wb = getWordbook();
-  syncWordbookUi(wb);
-  const stats = document.getElementById("wb-stats");
-  const actions = document.getElementById("wb-actions");
-  const list = document.getElementById("wb-list");
-  if (!stats || !actions || !list) return;
-
-  if (!wb.length) {
-    stats.style.display = "none";
-    actions.style.display = "flex";
-    setWordbookActionState(false);
-    list.replaceChildren(
-      createEmptyState("生词本还是空的", "在首页点 ☆ 把单词收藏到这里吧"),
-    );
-    return;
-  }
-
-  stats.style.display = "flex";
-  stats.replaceChildren();
-  const summary = getReviewSummary(wb);
-  for (const [value, text] of [
-    [summary.total, "收藏"],
-    [summary.due, "今日复习"],
-    [summary.mastered, "已掌握"],
-  ]) {
-    const statWrap = document.createElement("div");
-    const num = document.createElement("div");
-    num.className = "num";
-    num.textContent = value;
-    const label = document.createElement("div");
-    label.className = "label";
-    label.textContent = text;
-    statWrap.append(num, label);
-    stats.appendChild(statWrap);
-  }
-  const reviewLabel = document.querySelector("#review-all-btn span");
-  if (reviewLabel)
-    reviewLabel.textContent = summary.due
-      ? `复习 ${summary.due} 个`
-      : "朗读全部";
-
-  actions.style.display = "flex";
-  setWordbookActionState(true);
-  list.replaceChildren();
-
-  wb.forEach((entry, index) => {
-    const card = document.createElement("div");
-    card.className = "word-card";
-    card.style.animationDelay = index * 0.04 + "s";
-
-    const count = document.createElement("div");
-    count.className = "word-num";
-    count.textContent = index + 1;
-
-    const body = document.createElement("div");
-    body.className = "word-body";
-    const en = document.createElement("div");
-    en.className = "word-en";
-    en.textContent = entry.w;
-    const band = document.createElement("span");
-    band.className = "word-level";
-    const bandKey = dictService.lookupLearningBand(entry.w);
-    band.textContent =
-      { foundation: "基础词", developing: "进阶词", expanding: "拓展词" }[
-        bandKey
-      ] || "复习词";
-    const ph = document.createElement("div");
-    ph.className = "word-phonetic";
-    ph.textContent = dictService.lookupLocalPhonetic(entry.w) || "暂无音标";
-    const cn = document.createElement("div");
-    cn.className = "word-cn";
-    if (entry.m) cn.textContent = entry.m;
-    else setMutedText(cn, "正在查找中文释义…");
-
-    const source = document.createElement("div");
-    source.className = "word-source";
-    const encounterTotal = (entry.sourceSentences || []).reduce(
-      (total, item) => total + Math.max(1, Number(item.count || 1)),
-      0,
-    );
-    if (entry.sourceSentences?.length) {
-      const latestSentence = entry.sourceSentences[0].text;
-      source.textContent = `来自 ${entry.sourceSentences.length} 个课堂句子 · 已遇到 ${encounterTotal} 次 · ${latestSentence}`;
-      source.title = latestSentence;
-    } else {
-      source.hidden = true;
-    }
-
-    body.append(en, band, ph, cn, source);
-
-    const acts = document.createElement("div");
-    acts.className = "word-actions";
-    const star = document.createElement("button");
-    star.className = "btn-star active";
-    star.innerHTML = STAR_SVG;
-    star.setAttribute("aria-label", "移出生词本");
-    star.addEventListener("click", (event) => {
-      event.stopPropagation();
-      removeWord(entry.w);
-      renderWordbook();
-    });
-
-    const speakBtn = document.createElement("button");
-    speakBtn.className = "btn-speak";
-    speakBtn.innerHTML = SPEAKER_SVG;
-    speakBtn.setAttribute("aria-label", "朗读");
-    speakBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      speakWordN(entry.w, card);
-    });
-
-    acts.append(star, speakBtn);
-    const feedback = document.createElement("div");
-    feedback.className = "review-feedback";
-    const reviewMeta = document.createElement("span");
-    reviewMeta.className = "review-meta";
-    const masteryLabel =
-      {
-        new: "新词",
-        learning: "学习中",
-        reviewing: "复习中",
-        mastered: "已掌握",
-      }[entry.mastery] || "新词";
-    reviewMeta.textContent =
-      entry.nextReviewAt > Date.now()
-        ? `${masteryLabel} · ${new Date(entry.nextReviewAt).toLocaleDateString("zh-CN")} 再复习`
-        : `${masteryLabel} · 今天复习`;
-    feedback.appendChild(reviewMeta);
-    for (const [result, text] of [
-      ["know", "会"],
-      ["unsure", "不确定"],
-      ["forgot", "忘记"],
-    ]) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = `review-btn ${result}`;
-      button.textContent = text;
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
-        recordReviewFeedback(entry.w, result);
-        announce(`${entry.w} 已记录为${text}`);
-        renderWordbook();
-      });
-      feedback.appendChild(button);
-    }
-    card.append(count, body, acts, feedback);
-    setCardMeaning(card, entry.w, entry.m || "", updateStarredMeaning);
-    card.addEventListener("click", () => speakWordN(entry.w, card));
-    list.appendChild(card);
-    hydrateOnlineWord(entry.w, cn, ph, card, {
-      getCachedOnlineWord,
-      lookupOnlineData: dictService.lookupOnlineData,
-      setMeaning: (target, meaning) =>
-        setCardMeaning(target, entry.w, meaning, updateStarredMeaning),
-      isCurrentRun: () => true,
-      fillMeaning: !entry.m,
-      allowNetwork: false,
-    });
-  });
-}
-
-function setWordbookActionState(hasItems) {
-  const review = document.getElementById("review-all-btn");
-  const exportBtn = document.getElementById("export-wb-btn");
-  const clear = document.getElementById("clear-wb-btn");
-  if (review) {
-    review.disabled = !hasItems;
-    const label = review.querySelector("span");
-    if (label && !hasItems) label.textContent = "朗读";
-  }
-  if (exportBtn) exportBtn.disabled = !hasItems;
-  if (clear) clear.disabled = !hasItems;
-}
-
-function reviewAll() {
-  const allWords = getWordbook();
-  const dueWords = getDueWords(allWords);
-  const wb = dueWords.length ? dueWords : allWords;
-  if (!wb.length) return;
-  let index = 0;
-  const next = () => {
-    if (index >= wb.length) return;
-    const cards = document.querySelectorAll("#wb-list .word-card");
-    if (cards[index]) cards[index].classList.add("speaking");
-    const currentIndex = index;
-    speak(wb[index].w, () => {
-      if (cards[currentIndex]) cards[currentIndex].classList.remove("speaking");
-      index++;
-      setTimeout(next, 320);
-    });
-  };
-  next();
-}
-
-function clearWordbook() {
-  if (confirm("确定要清空生词本中的全部单词吗？此操作无法撤销。")) {
-    clearWordbookItems();
-    renderWordbook();
-    announce("生词本已清空");
-  }
-}
-
-function exportWordbook() {
-  const blob = new Blob([exportWordbookJson()], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "lucia-wordbook.json";
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-async function importWordbook(event) {
-  const file = event.target.files?.[0];
-  event.target.value = "";
-  if (!file) return;
-  try {
-    const result = await importWordbookFile(file);
-    if (!result.ok) {
-      alert(result.error || "备份导入失败");
-      return;
-    }
-    renderWordbook();
-  } catch (e) {
-    alert("导入失败，请选择此前备份的生词本文件。");
   }
 }
 
@@ -994,83 +481,6 @@ function setupImageOcr() {
   });
 }
 
-function setupDailyStreak() {
-  const label = document.getElementById("streak-label");
-  if (!label) return;
-  try {
-    const streak = updateDailyStreak();
-    label.textContent = `连续 ${streak.count} 天`;
-  } catch (e) {
-    label.textContent = "连续 1 天";
-  }
-}
-
-function renderSettings() {
-  const speeds = [
-    ["慢速", "slow"],
-    ["正常", "normal"],
-  ];
-  const repeats = [1, 3, 5];
-  const curSpeed = getSetting("speed");
-  const curRepeat = getSetting("repeat");
-  const speedOptions = document.getElementById("speed-options");
-  const repeatOptions = document.getElementById("repeat-options");
-  if (!speedOptions || !repeatOptions) return;
-
-  speedOptions.replaceChildren(
-    ...speeds.map(([label, value]) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "set-btn" + (curSpeed === value ? " active" : "");
-      btn.dataset.speed = value;
-      btn.textContent = label;
-      btn.setAttribute("aria-pressed", String(curSpeed === value));
-      btn.addEventListener("click", () => {
-        setSetting("speed", value);
-        renderSettings();
-      });
-      return btn;
-    }),
-  );
-
-  repeatOptions.replaceChildren(
-    ...repeats.map((value) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "set-btn" + (curRepeat === value ? " active" : "");
-      btn.dataset.repeat = value;
-      btn.textContent = `${value} 遍`;
-      btn.setAttribute("aria-pressed", String(curRepeat === value));
-      btn.addEventListener("click", () => {
-        setSetting("repeat", value);
-        renderSettings();
-      });
-      return btn;
-    }),
-  );
-
-  const clearCacheBtn = document.getElementById("clear-cache-btn");
-  if (clearCacheBtn && !clearCacheBtn.dataset.bound) {
-    clearCacheBtn.dataset.bound = "1";
-    clearCacheBtn.addEventListener("click", () => {
-      clearLookupCaches();
-      clearCacheBtn.textContent = "已清除";
-      setTimeout(() => {
-        clearCacheBtn.textContent = "清除缓存";
-      }, 1200);
-    });
-  }
-
-  const dictCount = document.getElementById("dict-count");
-  if (dictCount)
-    dictCount.textContent = new Set([
-      ...Object.keys(dictData),
-      ...Object.keys(coreLexicon),
-    ]).size.toLocaleString();
-  const wbCount = document.getElementById("about-wb-count");
-  if (wbCount) wbCount.textContent = getWordbook().length.toLocaleString();
-}
-
 function setupLearningTip() {
   const tip = document.getElementById("learning-tip");
   const closeBtn = document.getElementById("tip-close-btn");
@@ -1087,69 +497,46 @@ function setupLearningTip() {
   });
 }
 
-function learnTemplateSentence(sentence) {
-  const input = document.getElementById("sentence-input");
-  if (input) input.value = sentence;
-  navTo("home");
-  analyzeSentence();
-  requestAnimationFrame(() => {
-    const list = document.getElementById("word-list");
-    if (list) {
-      const y = list.getBoundingClientRect().top + window.scrollY - 12;
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
-  });
-}
-
-function navTo(page, opts) {
-  document.querySelectorAll(".page").forEach((item) => {
-    const active = item.id === "pg-" + page;
-    item.classList.toggle("active", active);
-    item.hidden = !active;
-  });
-  document.querySelectorAll(".nav-item").forEach((btn) => {
-    const active = btn.dataset.pg === page;
-    btn.classList.toggle("active", active);
-    btn.setAttribute("aria-selected", String(active));
-    if (active) btn.setAttribute("aria-current", "page");
-    else btn.removeAttribute("aria-current");
-  });
-  if (!opts || !opts.keepScroll) window.scrollTo(0, 0);
-  if (page === "wordbook") {
-    if (dictService) renderWordbook();
-    else {
-      document
-        .getElementById("wb-list")
-        ?.replaceChildren(createEmptyState("正在准备词典", "马上就好"));
-      dictionaryReady?.then(() => {
-        if (!document.getElementById("pg-wordbook")?.hidden) renderWordbook();
-      });
-    }
-  }
-  if (page === "quiz") renderQuiz({ getWordbook, speak });
-  if (page === "templates")
-    renderTemplates({ speak, learnSentence: learnTemplateSentence });
-  if (page === "settings") renderSettings();
-  if (opts?.focusHeading !== false) {
-    const heading = document.querySelector(`#pg-${page} h1`);
-    if (heading) {
-      heading.tabIndex = -1;
-      heading.focus({ preventScroll: true });
-    }
-  }
-}
-
 function init() {
+  saveWordbook(getWordbook());
+  settingsController = createSettingsController({
+    getDictionaryCount: () =>
+      new Set([...Object.keys(dictData), ...Object.keys(coreLexicon)]).size,
+  });
+  wordbookController = createWordbookController({
+    announce,
+    getCachedOnlineWord,
+    getDictionaryService: () => dictService,
+    speak,
+    speakWordN,
+  });
+  missionController = createMissionController({
+    announce,
+    getSentence: () => curSentence,
+    speak,
+  });
+  navigationController = createNavigationController({
+    analyzeSentence,
+    getDictionaryReady: () => dictionaryReady,
+    getDictionaryService: () => dictService,
+    renderSettings: () => settingsController.render(getAppState()),
+    renderWordbook: () => wordbookController.render(),
+    speak,
+  });
+
+  settingsController.setup();
+  wordbookController.setup();
+  navigationController.setup();
+  subscribeAppState((state, change) => {
+    wordbookController.onStateChange(state, change);
+    if (["all", "settings", "wordbook"].includes(change.scope)) {
+      settingsController.render(state);
+    }
+  });
+
   dictionaryReady = loadDictionaryServices();
   dictionaryReady.catch(() => announce("词典加载失败，请刷新页面重试"));
-  saveWordbook(getWordbook());
 
-  document.querySelectorAll(".nav-item").forEach((btn) => {
-    btn.addEventListener("click", () => navTo(btn.dataset.pg));
-  });
-  document
-    .getElementById("brand-home-btn")
-    ?.addEventListener("click", () => navTo("home"));
   document.getElementById("go-btn")?.addEventListener("click", analyzeSentence);
   document
     .getElementById("speak-sentence-btn")
@@ -1184,27 +571,9 @@ function init() {
         analyzeSentence();
       }
     });
-  document
-    .getElementById("review-all-btn")
-    ?.addEventListener("click", reviewAll);
-  document
-    .getElementById("clear-wb-btn")
-    ?.addEventListener("click", clearWordbook);
-  document
-    .getElementById("export-wb-btn")
-    ?.addEventListener("click", exportWordbook);
-  document
-    .getElementById("import-wb-input")
-    ?.addEventListener("change", importWordbook);
-  document.getElementById("import-wb-btn")?.addEventListener("click", () => {
-    document.getElementById("import-wb-input")?.click();
-  });
-
   setupImageOcr();
-  setupDailyStreak();
   registerServiceWorker();
   setupVoices();
-  renderSettings();
   setupLearningTip();
 }
 

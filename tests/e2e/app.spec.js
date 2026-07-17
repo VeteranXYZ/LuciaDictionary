@@ -105,8 +105,17 @@ test("exposes accessible navigation and announces dynamic results", async ({
   );
   await expect(page.locator("#pg-home")).toBeHidden();
   await expect(page.locator(".settings-info-links a")).toHaveCount(4);
-  await expect(page.locator(".settings-info-links")).toContainText(
-    "使用与无障碍",
+  await expect(page.locator(".settings-info-links")).toContainText("使用指南");
+  await page.getByRole("button", { name: "慢速" }).click();
+  await expect(page.getByRole("button", { name: "慢速" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.getByRole("tab", { name: "首页" }).click();
+  await page.getByRole("tab", { name: "设置" }).click();
+  await expect(page.getByRole("button", { name: "慢速" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
   );
 });
 
@@ -186,3 +195,13 @@ test("documents every optional network data flow", async ({ page }) => {
   await expect(page.locator("main#main-content")).toContainText("OCR.Space");
   await expect(page.locator("main#main-content")).toContainText("Cloudflare");
 });
+
+for (const path of ["/how-to/", "/accessibility/", "/search"]) {
+  test(`${path} remains retired without redirecting`, async ({ page }) => {
+    const response = await page.goto(path);
+
+    expect(response?.status()).toBe(404);
+    expect(page.url()).toBe(`http://127.0.0.1:4321${path}`);
+    await expect(page.locator("main#main-content")).toContainText("页面未找到");
+  });
+}

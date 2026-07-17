@@ -97,7 +97,7 @@ Next we want to evaluate whether children complete due reviews and whether pract
 
 **Narration:**
 
-> Children in bilingual families bring home English sentences their parents may not feel confident explaining. Translation gives the meaning, and homework assistants give the answer—but neither turns that real classroom moment into learning.
+> Children in bilingual families bring home English sentences their parents may not feel confident explaining. Translation gives the meaning, and homework assistants give the answer, but neither turns that real classroom moment into learning.
 
 **Screen:** Show the Lucia's Dictionary home page on a mobile viewport.
 

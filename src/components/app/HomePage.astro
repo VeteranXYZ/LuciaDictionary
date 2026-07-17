@@ -1,0 +1,218 @@
+<div
+  class="page active"
+  id="pg-home"
+  role="tabpanel"
+  aria-labelledby="nav-home"
+>
+  <section class="hero">
+    <div class="hero-center">
+      <div class="hero-mascot">
+        <img
+          src="assets/lucia.png"
+          width="768"
+          height="768"
+          fetchpriority="high"
+          alt="Lucia"
+        />
+      </div>
+      <div class="hero-copy">
+        <h1 class="hero-title">今天想读懂哪句话？</h1>
+        <p class="hero-sub">
+          输入中文或英文课堂句子，<br />把它拆成可朗读、可复习的单词卡
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="input-card">
+    <label class="sr-only" for="sentence-input">输入中文或英文课堂句子</label>
+    <div class="input-row">
+      <textarea
+        id="sentence-input"
+        placeholder="输入或粘贴作业、阅读、数学课上的句子…"
+        rows="2"></textarea>
+      <div class="input-actions">
+        <button
+          class="btn-camera"
+          id="camera-btn"
+          type="button"
+          title="拍照或选择图片识别英文"
+          aria-label="拍照或选择图片识别英文"
+          aria-haspopup="dialog"
+          aria-controls="image-source-dialog"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><path
+              d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5z"
+            ></path><circle cx="12" cy="13" r="3.5"></circle></svg
+          >
+        </button>
+        <input
+          class="sr-only"
+          type="file"
+          id="camera-input"
+          accept="image/*"
+          capture="environment"
+        />
+        <input class="sr-only" type="file" id="image-input" accept="image/*" />
+        <button
+          class="btn-go"
+          id="go-btn"
+          title="生成单词卡"
+          aria-label="生成单词卡"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.35"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><path d="M3 5h12"></path><path d="M9 3v2"></path><path
+              d="M5 9c1.2 3 3.5 5 7 6"></path><path
+              d="M12 5c-.7 4.4-3.1 7.3-7 9"></path><path d="M14 21l4-9 4 9"
+            ></path><path d="M15.5 18h5"></path></svg
+          >
+        </button>
+      </div>
+    </div>
+    <div
+      class="ocr-status"
+      id="ocr-status"
+      role="status"
+      aria-live="polite"
+      hidden
+    >
+    </div>
+  </div>
+
+  <dialog
+    class="image-source-dialog"
+    id="image-source-dialog"
+    aria-labelledby="image-source-title"
+  >
+    <form method="dialog" class="image-source-sheet">
+      <div class="image-source-handle" aria-hidden="true"></div>
+      <div class="image-source-copy">
+        <h2 id="image-source-title">识别图片里的英文</h2>
+        <p>拍清楚题目区域，识别会更准确</p>
+      </div>
+      <div class="image-source-actions">
+        <label class="image-source-option primary" for="camera-input">
+          <span class="image-source-option-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><path
+                d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5z"
+              ></path><circle cx="12" cy="13" r="3.5"></circle></svg
+            >
+          </span>
+          <span><strong>拍照</strong><small>用相机拍摄题目</small></span>
+        </label>
+        <label class="image-source-option" for="image-input">
+          <span class="image-source-option-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle
+                cx="8.5"
+                cy="8.5"
+                r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg
+            >
+          </span>
+          <span><strong>从相册选择</strong><small>选择一张已有照片</small></span
+          >
+        </label>
+      </div>
+      <button class="image-source-cancel" value="cancel" type="submit"
+        >取消</button
+      >
+    </form>
+  </dialog>
+
+  <div class="sentence-bar" id="sentence-bar">
+    <div class="label">原句</div>
+    <div class="text" id="sentence-text"></div>
+    <div class="sentence-actions">
+      <button class="speak-btn" id="speak-sentence-btn" type="button">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><path d="M11 5 6 9H2v6h4l5 4V5z"></path><path
+            d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg
+        >
+        <span id="speak-sentence-label">朗读整句</span>
+      </button>
+      <button class="speak-btn" id="copy-sentence-btn" type="button">
+        <svg
+          id="copy-sentence-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          ><rect x="9" y="9" width="11" height="11" rx="2"></rect><path
+            d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2h9a2 2 0 0 1 2 2v1"
+          ></path></svg
+        >
+        <span id="copy-sentence-label">复制文本</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="word-list" id="word-list">
+    <div class="empty">
+      <div class="empty-mascot">
+        <img src="assets/monkey.png" width="256" height="256" alt="" />
+      </div>
+      <p>
+        把老师布置的中文或英文句子输入到上方吧～<br /><strong
+          >我会把它拆成一张张英文单词卡</strong
+        >
+      </p>
+    </div>
+  </div>
+
+  <section
+    class="classroom-mission"
+    id="classroom-mission"
+    aria-label="3 分钟课堂小练习"
+    hidden
+  >
+  </section>
+
+  <div class="tip" id="learning-tip">
+    <div class="tip-icon">i</div>
+    <div class="tip-text">
+      <span class="hl">小提示：</span>
+      点击单词卡片就能听到发音，点 <strong>☆</strong> 把不认识的单词收藏到生词本，下次再复习。
+    </div>
+    <button
+      class="tip-close"
+      id="tip-close-btn"
+      type="button"
+      aria-label="关闭小提示">×</button
+    >
+  </div>
+</div>

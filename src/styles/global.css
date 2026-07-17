@@ -1,16 +1,16 @@
 /* ============================================================
-   Lucia's Dictionary — Design System
+   Lucia's Dictionary Design System
    Theme: 书桌台灯 · Bright Ink
    ============================================================ */
 
 :root {
-  /* —— Brand —— */
+  /* Brand */
   --ink: #77509d; /* main brand · Lucia purple */
   --ink-deep: #603d84; /* hover / pressed */
   --ink-soft: #f0e9f6; /* tint background */
   --ink-50: #f8f4fa;
 
-  /* —— Accents —— */
+  /* Accents */
   --moss: #587a48; /* 朗读 · 听 · 正向 */
   --moss-soft: #ecf1e7;
   --tangerine: #e8924a; /* 收藏 · 高亮 */
@@ -20,7 +20,7 @@
   --sakura-soft: #faeef1;
   --brick: #c85a4a; /* 警告 · 删除 */
 
-  /* —— Neutrals · 纸感 —— */
+  /* Neutrals · 纸感 */
   --paper: #fbfaf6; /* warm reading surface */
   --paper-deep: #f3eee4;
   --cream: #ffffff; /* 卡片底 · 纯白 */
@@ -28,26 +28,26 @@
   --line: #e9e3d8;
   --line-soft: #f2eee6;
 
-  /* —— Text —— */
+  /* Text */
   --ink-text: #2b2620; /* primary */
   --mute: #6d6257; /* secondary */
   --whisper: #70665c; /* tertiary / placeholder */
   --phonetic: #667085; /* 音标专用 */
 
-  /* —— Type —— */
+  /* Type */
   --font-sans:
     system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Microsoft YaHei", sans-serif;
   --font-rounded: var(--font-sans);
 
-  /* —— Shape —— */
+  /* Shape */
   --r-sm: 11px;
   --r-md: 16px;
   --r-lg: 22px;
   --r-xl: 28px;
   --r-pill: 999px;
 
-  /* —— Sticker —— */
+  /* Sticker */
   --sticker-border: 3px;
   --sticker-shadow:
     0 2px 3px rgba(43, 38, 32, 0.06), 0 12px 30px -12px rgba(96, 61, 132, 0.2);
@@ -57,11 +57,11 @@
     0 2px 4px rgba(43, 38, 32, 0.05), 0 16px 36px -18px rgba(96, 61, 132, 0.28);
   --shadow-purple-soft: 0 10px 24px -12px rgba(96, 61, 132, 0.32);
 
-  /* —— Layout —— */
+  /* Layout */
   --nav-h: 76px;
   --max-w: 720px;
 
-  /* —— Motion —— */
+  /* Motion */
   --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }

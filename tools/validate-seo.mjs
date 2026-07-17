@@ -5,7 +5,7 @@ const root = process.cwd();
 const dist = join(root, "dist");
 const origin = "https://dict.luciaandrayna.com";
 const googleAnalyticsId = "G-1N76G8G0S5";
-const sitemapPaths = ["/", "/about/", "/how-to/", "/sources/", "/privacy/"];
+const sitemapPaths = ["/", "/about/", "/guide/", "/sources/", "/privacy/"];
 const failures = [];
 
 function fail(message) {
@@ -31,6 +31,13 @@ const locUrls = Array.from(
   sitemap.matchAll(/<loc>([^<]+)<\/loc>/g),
   (match) => match[1],
 );
+const expectedSitemapUrls = sitemapPaths.map((path) => `${origin}${path}`);
+if (
+  locUrls.length !== expectedSitemapUrls.length ||
+  locUrls.some((url) => !expectedSitemapUrls.includes(url))
+) {
+  fail("Sitemap must contain exactly the five canonical public URLs");
+}
 if (
   locUrls.some(
     (url) =>
@@ -46,9 +53,15 @@ if (!robots.includes(`Sitemap: ${origin}/sitemap.xml`))
 if (!robots.includes("Disallow: /api/"))
   fail("robots.txt does not disallow API routes");
 
-const redirects = readDist("_redirects");
-if (!redirects.includes("/search / 301"))
-  fail("_redirects does not canonicalize /search");
+if (existsSync(join(dist, "_redirects"))) {
+  fail("Redirect rules must not be emitted");
+}
+if (existsSync(join(dist, "accessibility/index.html"))) {
+  fail("Retired accessibility page must not be emitted as standalone HTML");
+}
+if (existsSync(join(dist, "how-to/index.html"))) {
+  fail("Retired how-to page must not be emitted as standalone HTML");
+}
 
 const headers = readDist("_headers");
 if (!headers.includes("X-Robots-Tag: noindex, nofollow"))
@@ -62,14 +75,14 @@ if (!routes.includes('"include"') || !routes.includes('"exclude"')) {
 const routeFiles = new Map([
   ["/", "index.html"],
   ["/about/", "about/index.html"],
-  ["/how-to/", "how-to/index.html"],
+  ["/guide/", "guide/index.html"],
   ["/sources/", "sources/index.html"],
   ["/privacy/", "privacy/index.html"],
 ]);
 
 const infoPageFiles = new Set([
   "about/index.html",
-  "how-to/index.html",
+  "guide/index.html",
   "sources/index.html",
   "privacy/index.html",
 ]);
@@ -79,18 +92,12 @@ for (const [path, file] of routeFiles) {
   const canonical = `<link rel="canonical" href="${origin}${path}">`;
   if (!html.includes(canonical))
     fail(`${file} missing canonical ${origin}${path}`);
-  if (
-    !html.includes(
-      `rel="alternate" hreflang="x-default" href="${origin}${path}"`,
-    )
-  )
-    fail(`${file} missing x-default hreflang`);
-  if (
-    !html.includes(`rel="alternate" hreflang="zh-CN" href="${origin}${path}"`)
-  )
-    fail(`${file} missing zh-CN hreflang`);
-  if (!html.includes(`rel="alternate" hreflang="en" href="${origin}${path}"`))
-    fail(`${file} missing en hreflang`);
+  if (html.includes("hreflang="))
+    fail(
+      `${file} must not claim locale alternates without locale-specific URLs`,
+    );
+  if (/[—―]/u.test(html))
+    fail(`${file} contains an avoidable long dash in user-facing copy`);
   if (!html.includes('<meta name="description"'))
     fail(`${file} missing meta description`);
   if (!html.includes('<meta property="og:locale" content="zh_CN"'))
@@ -108,6 +115,8 @@ for (const [path, file] of routeFiles) {
     fail(`${file} missing Google Analytics tag`);
   if (!html.includes(`gtag("config", "${googleAnalyticsId}"`))
     fail(`${file} missing Google Analytics config`);
+  if (!html.includes("send_page_view: true"))
+    fail(`${file} missing basic GA4 page-view config`);
   if (!html.includes("allow_google_signals: false"))
     fail(`${file} missing disabled Google signals config`);
   if (!html.includes("allow_ad_personalization_signals: false"))
@@ -126,9 +135,22 @@ if (!home.includes('"@type":"WebApplication"'))
 if (home.includes('"@type":"SearchAction"'))
   fail("Home page should not declare SearchAction without a public search URL");
 
-const howTo = readDist("how-to/index.html");
-if (!howTo.includes('"@type":"HowTo"'))
-  fail("How-to page missing HowTo structured data");
+const guide = readDist("guide/index.html");
+if (!guide.includes("使用指南")) fail("Guide page missing its visible title");
+if (guide.includes('"@type":"HowTo"'))
+  fail("Guide page should use plain page semantics, not HowTo structured data");
+
+const privacy = readDist("privacy/index.html");
+for (const disclosure of [
+  "Google Analytics 4",
+  "_ga",
+  "粗略地区",
+  "增强型衡量",
+  "自定义学习事件",
+]) {
+  if (!privacy.includes(disclosure))
+    fail(`Privacy page missing GA4 disclosure: ${disclosure}`);
+}
 
 const notFound = readDist("404.html");
 if (!notFound.includes("noindex,follow"))

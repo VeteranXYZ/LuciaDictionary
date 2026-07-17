@@ -99,9 +99,12 @@ Node.js 22.12 or newer is required; `.node-version` records the CI baseline.
 
 ```text
 src/
+  components/app/          independent Home, Wordbook, Quiz, Templates, and Settings panels
   layouts/                 shared document layout and metadata
-  pages/                   static pages and application shell
-  scripts/                 application features, Classroom Relay, and unit tests
+  pages/                   thin static route composition
+  scripts/app-state.js     subscribable wordbook and settings snapshot
+  scripts/controllers/     page-level navigation, mission, settings, and wordbook controllers
+  scripts/                 local learning features and unit tests
   styles/                  mobile-first design system
 public/
   assets/                  runtime dictionary, phonetics, phrasebook, and images
@@ -186,7 +189,7 @@ npm run cf:build
 - A photo is sent only after the user selects it, through the same-origin Cloudflare endpoint to OCR.Space.
 - Cloudflare serves the site and endpoint and records bounded operational metadata; application logs intentionally exclude learning content.
 
-See the in-app Privacy and Accessibility pages for user-facing details. Because this is designed for children to use with a parent, any future account, sync, analytics, or generated-content feature requires a separate privacy and content-safety review.
+See the in-app Privacy page and Guide, which includes accessibility notes, for user-facing details. Because this is designed for children to use with a parent, any future account, sync, analytics, or generated-content feature requires a separate privacy and content-safety review.
 
 ## Current limitations
 

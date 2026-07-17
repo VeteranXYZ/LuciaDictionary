@@ -1,0 +1,18 @@
+---
+interface Props {
+  id: string;
+  navId: string;
+  title: string;
+  subtitle: string;
+}
+
+const { id, navId, title, subtitle } = Astro.props;
+---
+
+<div class="page" id={id} role="tabpanel" aria-labelledby={navId} hidden>
+  <section class="hero" style="padding-top:0">
+    <h1 class="hero-title">{title}</h1>
+    <p class="hero-sub" set:html={subtitle} />
+  </section>
+  <slot />
+</div>

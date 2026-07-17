@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { onRequest } from "./_middleware.js";
 
 describe("seo route middleware", () => {
-  it("redirects page query variants to the canonical URL", async () => {
+  it("passes page query variants through without redirecting", async () => {
     const response = await onRequest({
       request: new Request(
         "https://dict.luciaandrayna.com/?q=apple&utm_source=test",
@@ -10,47 +10,23 @@ describe("seo route middleware", () => {
       next: () => Promise.resolve(new Response("ok")),
     });
 
-    expect(response.status).toBe(301);
-    expect(response.headers.get("location")).toBe(
-      "https://dict.luciaandrayna.com/",
-    );
-  });
-
-  it("redirects static page query variants directly to the trailing-slash canonical", async () => {
-    const response = await onRequest({
-      request: new Request(
-        "https://dict.luciaandrayna.com/about?utm_source=test",
-      ),
-      next: () => Promise.resolve(new Response("ok")),
-    });
-
-    expect(response.status).toBe(301);
-    expect(response.headers.get("location")).toBe(
-      "https://dict.luciaandrayna.com/about/",
-    );
-  });
-
-  it("redirects search route query variants directly to the homepage", async () => {
-    const response = await onRequest({
-      request: new Request("https://dict.luciaandrayna.com/search?q=apple"),
-      next: () => Promise.resolve(new Response("ok")),
-    });
-
-    expect(response.status).toBe(301);
-    expect(response.headers.get("location")).toBe(
-      "https://dict.luciaandrayna.com/",
-    );
-  });
-
-  it("does not redirect asset cache-busting queries", async () => {
-    const response = await onRequest({
-      request: new Request("https://dict.luciaandrayna.com/favicon.png?v=2.5"),
-      next: () => Promise.resolve(new Response("asset")),
-    });
-
     expect(response.status).toBe(200);
-    expect(await response.text()).toBe("asset");
+    expect(response.headers.get("location")).toBeNull();
+    expect(await response.text()).toBe("ok");
   });
+
+  it.each(["/how-to/", "/accessibility/", "/search"])(
+    "leaves retired route %s as a 404",
+    async (path) => {
+      const response = await onRequest({
+        request: new Request(`https://dict.luciaandrayna.com${path}`),
+        next: () => Promise.resolve(new Response("not_found", { status: 404 })),
+      });
+
+      expect(response.status).toBe(404);
+      expect(response.headers.get("location")).toBeNull();
+    },
+  );
 
   it("adds a noindex header to API responses", async () => {
     const response = await onRequest({

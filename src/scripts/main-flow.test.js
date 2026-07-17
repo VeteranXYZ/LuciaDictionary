@@ -4,15 +4,19 @@ import { describe, expect, it } from "vitest";
 describe("main analysis flow source", () => {
   it("keeps generic sentence explanation out and adds the local mission flow", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
+    const mission = fs.readFileSync(
+      "src/scripts/controllers/mission-controller.js",
+      "utf8",
+    );
     expect(source).not.toContain("renderSentenceExplanation(");
     expect(source).toContain("buildWordCard(");
-    expect(source).toContain("renderMissionPreview(");
-    expect(source).toContain("recordWordEncounter(");
+    expect(source).toContain("missionController.renderPreview(");
+    expect(mission).toContain("recordWordEncounter(");
   });
 
   it("uses separate native camera and photo-library inputs", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
-    const markup = fs.readFileSync("src/pages/index.astro", "utf8");
+    const markup = fs.readFileSync("src/components/app/HomePage.astro", "utf8");
     expect(source).not.toContain("createCameraCaptureController");
     expect(source).toContain("sourceDialog.showModal()");
     expect(markup).toContain('id="camera-input"');
@@ -23,13 +27,17 @@ describe("main analysis flow source", () => {
   });
 
   it("does not render the photo tips block", () => {
-    const markup = fs.readFileSync("src/pages/index.astro", "utf8");
+    const markup = fs.readFileSync("src/components/app/HomePage.astro", "utf8");
     expect(markup).not.toContain("拍照提示");
     expect(markup).not.toContain("只拍英文题目区域");
   });
 
   it("keeps mobile OCR buttons horizontal and uses concise labels", () => {
-    const markup = fs.readFileSync("src/pages/index.astro", "utf8");
+    const markup = [
+      fs.readFileSync("src/components/app/HomePage.astro", "utf8"),
+      fs.readFileSync("src/components/app/WordbookPage.astro", "utf8"),
+      fs.readFileSync("src/components/app/SettingsPage.astro", "utf8"),
+    ].join("\n");
     const styles = fs.readFileSync("src/styles/global.css", "utf8");
     expect(markup).toContain('class="hero-center"');
     expect(markup).toContain('class="hero-copy"');
@@ -45,7 +53,7 @@ describe("main analysis flow source", () => {
 
   it("provides a matching copy action with visible completion feedback", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
-    const markup = fs.readFileSync("src/pages/index.astro", "utf8");
+    const markup = fs.readFileSync("src/components/app/HomePage.astro", "utf8");
     const styles = fs.readFileSync("src/styles/global.css", "utf8");
     expect(markup).toContain('id="copy-sentence-btn"');
     expect(markup).toContain('id="copy-sentence-icon"');
