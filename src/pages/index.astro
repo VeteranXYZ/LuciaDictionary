@@ -8,10 +8,9 @@ import {
   siteOrigin,
 } from "../lib/seo.js";
 
-const title =
-  "Lucia's Dictionary · English Sentence Dictionary for Bilingual Learners";
+const title = "Lucia's Dictionary｜课堂英语句子学习词典";
 const description =
-  "Search or paste English classroom sentences, then get word cards with Chinese meanings, phonetics, pronunciation practice, and local review tools.";
+  "输入、粘贴或拍下课堂英语句子，查看中文释义、音标和发音，并把生词保存在本地随时复习。";
 const structuredData = [
   {
     "@context": "https://schema.org",
@@ -30,29 +29,24 @@ const structuredData = [
     url: siteOrigin,
     image: siteLogo,
     applicationCategory: "EducationalApplication",
-    applicationSubCategory: "English sentence dictionary",
+    applicationSubCategory: "课堂英语句子学习词典",
     operatingSystem: "Any modern web browser",
     browserRequirements: "Requires a modern browser with JavaScript enabled",
     description,
     inLanguage: ["en", "zh-CN"],
     isAccessibleForFree: true,
-    educationalUse: [
-      "English vocabulary practice",
-      "Classroom sentence comprehension",
-      "Pronunciation practice",
-    ],
+    educationalUse: ["英语词汇练习", "课堂句子理解", "英语发音练习"],
     audience: {
       "@type": "EducationalAudience",
       educationalRole: ["student", "parent"],
     },
     featureList: [
-      "Sentence-first English word cards",
-      "Chinese meanings for classroom vocabulary",
-      "Phonetic hints and speech playback",
-      "Local wordbook review",
-      "Classroom phrase practice",
-      "Explainable classroom-sentence learning missions",
-      "Original-context cloze practice and parent handoff prompts",
+      "把课堂英语句子拆成单词卡",
+      "提供中文释义、音标和发音",
+      "在本地保存并复习生词",
+      "练习常见课堂用语",
+      "根据学习记录推荐课堂小练习",
+      "在原句中完成听音、选词和填空练习",
     ],
   },
 ];
@@ -83,13 +77,13 @@ const structuredData = [
         <div class="brand-title">Lucia's Dictionary</div>
         <div class="brand-sub">Lucia 的小学英语学习伙伴</div>
       </div>
-      <div class="brand-streak" title="今日学习">
+      <div class="brand-streak" title="连续学习天数">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"
           ><path
             d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14a8 8 0 0 0 16 0C20 9.91 18.04 6.27 14.91 3.79L13.5.67z"
           ></path></svg
         >
-        <span id="streak-label">Day 1</span>
+        <span id="streak-label">连续 1 天</span>
       </div>
     </header>
 
@@ -126,7 +120,7 @@ const structuredData = [
         <div class="input-row">
           <textarea
             id="sentence-input"
-            placeholder="输入作业、阅读、数学或课堂英文句子…"
+            placeholder="输入或粘贴作业、阅读、数学课上的句子…"
             rows="2"></textarea>
           <div class="input-actions">
             <button
@@ -166,8 +160,8 @@ const structuredData = [
             <button
               class="btn-go"
               id="go-btn"
-              title="翻译并学习"
-              aria-label="翻译并学习"
+              title="生成单词卡"
+              aria-label="生成单词卡"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -220,7 +214,7 @@ const structuredData = [
                   ></path><circle cx="12" cy="13" r="3.5"></circle></svg
                 >
               </span>
-              <span><strong>拍照</strong><small>调用后置相机</small></span>
+              <span><strong>拍照</strong><small>用相机拍摄题目</small></span>
             </label>
             <label class="image-source-option" for="image-input">
               <span class="image-source-option-icon" aria-hidden="true">
@@ -237,7 +231,7 @@ const structuredData = [
                 >
               </span>
               <span
-                ><strong>从相册选择</strong><small>相机画面异常时也可使用</small
+                ><strong>从相册选择</strong><small>选择一张已有照片</small
                 ></span
               >
             </label>
@@ -290,8 +284,8 @@ const structuredData = [
             <img src="assets/monkey.png" width="256" height="256" alt="" />
           </div>
           <p>
-            把老师布置的中文或英文句子粘贴上去吧～<br /><strong
-              >我会帮你拆出每一个英文单词</strong
+            把老师布置的中文或英文句子输入到上方吧～<br /><strong
+              >我会把它拆成一张张英文单词卡</strong
             >
           </p>
         </div>
@@ -300,7 +294,7 @@ const structuredData = [
       <section
         class="classroom-mission"
         id="classroom-mission"
-        aria-label="课堂接力学习任务"
+        aria-label="3 分钟课堂小练习"
         hidden
       >
       </section>
@@ -329,7 +323,9 @@ const structuredData = [
     >
       <section class="hero" style="padding-top:0">
         <h1 class="hero-title">我的生词本</h1>
-        <p class="hero-sub">把不熟的单词都收在这里，<br />常常翻翻就记住啦</p>
+        <p class="hero-sub">
+          把不熟的单词收在这里，<br />常回来读一读、复习一下
+        </p>
       </section>
 
       <div class="wb-stats" id="wb-stats" style="display:none"></div>
@@ -350,10 +346,10 @@ const structuredData = [
           <span>朗读</span>
         </button>
         <button class="btn-action honey" id="export-wb-btn">
-          <span>导出</span>
+          <span>备份</span>
         </button>
         <button class="btn-action ink" id="import-wb-btn">
-          <span>导入</span>
+          <span>导入备份</span>
         </button>
         <input
           id="import-wb-input"
@@ -406,7 +402,9 @@ const structuredData = [
     >
       <section class="hero" style="padding-top:0">
         <h1 class="hero-title">老师常说的话</h1>
-        <p class="hero-sub">美国小学课堂里最常听到的指令<br />遇到了不慌张</p>
+        <p class="hero-sub">
+          美国小学课堂里常见的指令，<br />提前熟悉，听到不慌张
+        </p>
       </section>
 
       <div class="tpl-tabs" id="tpl-tabs"></div>
@@ -425,13 +423,13 @@ const structuredData = [
         <p class="hero-sub">调一调，更顺手</p>
       </section>
 
-      <div class="settings-surface">
+      <div class="settings-layout">
         <section
-          class="set-card settings-section"
+          class="settings-card settings-preferences"
           aria-labelledby="functional-settings-title"
         >
-          <div class="settings-module-head">
-            <div class="settings-module-icon" aria-hidden="true">
+          <header class="settings-card-head">
+            <div class="settings-card-icon" aria-hidden="true">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -444,50 +442,80 @@ const structuredData = [
                 ></path></svg
               >
             </div>
-            <div>
-              <h2 id="functional-settings-title">功能设置</h2>
-              <p>调整朗读方式与本地查询数据</p>
+            <div class="settings-card-title">
+              <h2 id="functional-settings-title">朗读设置</h2>
+              <p>调整朗读速度与重复次数</p>
             </div>
-          </div>
+          </header>
 
-          <div class="set-group">
-            <div class="set-label">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                ><circle cx="12" cy="12" r="10"></circle><polyline
-                  points="12 6 12 12 16 14"></polyline></svg
+          <div class="settings-list">
+            <div class="setting-row">
+              <div class="setting-copy">
+                <span class="setting-icon" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><circle cx="12" cy="12" r="10"></circle><polyline
+                      points="12 6 12 12 16 14"></polyline></svg
+                  >
+                </span>
+                <div>
+                  <div class="set-label">朗读速度</div>
+                  <div class="set-info">慢速适合刚开始练习的孩子</div>
+                </div>
+              </div>
+              <div
+                class="set-options"
+                id="speed-options"
+                role="group"
+                aria-label="朗读速度"
               >
-              朗读速度
+              </div>
             </div>
-            <div class="set-info">单词朗读快慢，慢速适合初学</div>
-            <div class="set-options" id="speed-options"></div>
-          </div>
 
-          <div class="set-group">
-            <div class="set-label">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                ><polyline points="23 4 23 10 17 10"></polyline><path
-                  d="M20.49 15A9 9 0 1 1 18 5.34"></path></svg
+            <div class="setting-row">
+              <div class="setting-copy">
+                <span class="setting-icon" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><polyline points="23 4 23 10 17 10"></polyline><path
+                      d="M20.49 15A9 9 0 1 1 18 5.34"></path></svg
+                  >
+                </span>
+                <div>
+                  <div class="set-label">朗读次数</div>
+                  <div class="set-info">点击单词后连续朗读的遍数</div>
+                </div>
+              </div>
+              <div
+                class="set-options"
+                id="repeat-options"
+                role="group"
+                aria-label="朗读次数"
               >
-              朗读次数
+              </div>
             </div>
-            <div class="set-info">点单词时连续朗读几遍</div>
-            <div class="set-options" id="repeat-options"></div>
           </div>
+        </section>
 
-          <div class="set-group">
-            <div class="set-label">
+        <section
+          class="settings-card settings-storage"
+          aria-labelledby="storage-settings-title"
+        >
+          <header class="settings-card-head">
+            <div
+              class="settings-card-icon settings-card-icon-warm"
+              aria-hidden="true"
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -500,9 +528,17 @@ const structuredData = [
                   d="M12 17v4"></path><path d="M3 12h4"></path><path
                   d="M17 12h4"></path></svg
               >
-              查询缓存
             </div>
-            <div class="set-info">清除自动音标、在线释义和中文翻译缓存</div>
+            <div class="settings-card-title">
+              <h2 id="storage-settings-title">数据管理</h2>
+              <p>管理保存在这台设备上的查询数据</p>
+            </div>
+          </header>
+          <div class="storage-action">
+            <div>
+              <strong>查询缓存</strong>
+              <p>包括自动音标、在线释义和中文翻译</p>
+            </div>
             <button
               class="set-btn cache-clear-btn"
               id="clear-cache-btn"
@@ -512,11 +548,14 @@ const structuredData = [
         </section>
 
         <section
-          class="settings-info settings-section"
+          class="settings-card settings-info"
           aria-labelledby="settings-info-title"
         >
-          <div class="settings-info-head">
-            <div class="settings-info-icon" aria-hidden="true">
+          <header class="settings-card-head">
+            <div
+              class="settings-card-icon settings-card-icon-green"
+              aria-hidden="true"
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -528,53 +567,70 @@ const structuredData = [
                 ></path><path d="M12 8h.01"></path></svg
               >
             </div>
-            <div>
-              <h2 id="settings-info-title">产品与使用帮助</h2>
-              <p>使用说明、数据来源与隐私保护</p>
+            <div class="settings-card-title">
+              <h2 id="settings-info-title">帮助与说明</h2>
+              <p>查看使用指南、数据来源与隐私说明</p>
             </div>
-          </div>
-          <nav class="settings-info-links" aria-label="产品信息与帮助">
-            <a href="/about/"><span>关于词典</span><small>About</small></a>
-            <a href="/how-to/"><span>使用方法</span><small>How to Use</small></a
-            >
-            <a href="/sources/"><span>数据来源</span><small>Sources</small></a>
-            <a href="/privacy/"><span>隐私保护</span><small>Privacy</small></a>
-            <a href="/accessibility/"
-              ><span>无障碍</span><small>Accessibility</small></a
-            >
+          </header>
+          <nav class="settings-info-links" aria-label="帮助与说明">
+            <a href="/about/">
+              <span class="settings-link-icon" aria-hidden="true">L</span>
+              <span><strong>关于词典</strong><small>About</small></span>
+              <span class="settings-link-arrow" aria-hidden="true">›</span>
+            </a>
+            <a href="/how-to/">
+              <span class="settings-link-icon" aria-hidden="true">?</span>
+              <span><strong>使用指南</strong><small>How to Use</small></span>
+              <span class="settings-link-arrow" aria-hidden="true">›</span>
+            </a>
+            <a href="/sources/">
+              <span class="settings-link-icon" aria-hidden="true">⌁</span>
+              <span><strong>数据来源</strong><small>Sources</small></span>
+              <span class="settings-link-arrow" aria-hidden="true">›</span>
+            </a>
+            <a href="/privacy/">
+              <span class="settings-link-icon" aria-hidden="true">✓</span>
+              <span><strong>隐私与数据</strong><small>Privacy</small></span>
+              <span class="settings-link-arrow" aria-hidden="true">›</span>
+            </a>
+            <a href="/accessibility/">
+              <span class="settings-link-icon" aria-hidden="true">A</span>
+              <span
+                ><strong>无障碍使用</strong><small>Accessibility</small></span
+              >
+              <span class="settings-link-arrow" aria-hidden="true">›</span>
+            </a>
           </nav>
-          <p class="settings-info-note" lang="en">
-            A sentence-first dictionary for Chinese-speaking families learning
-            classroom English.
-          </p>
         </section>
 
-        <div class="about">
-          <div class="about-mascot">
-            <img
-              src="assets/lucia.png"
-              width="768"
-              height="768"
-              loading="lazy"
-              alt=""
-            />
+        <footer class="settings-card about">
+          <div class="about-main">
+            <div class="about-mascot">
+              <img
+                src="assets/lucia.png"
+                width="768"
+                height="768"
+                loading="lazy"
+                alt=""
+              />
+            </div>
+            <div class="about-copy">
+              <div class="about-name">Lucia's Dictionary</div>
+              <div class="about-tag">陪 Lucia 一起学好小学英语</div>
+              <div class="about-ver">v{packageJson.version} · 2026</div>
+            </div>
           </div>
-          <div class="about-name">Lucia's Dictionary</div>
-          <div class="about-ver">v{packageJson.version} · 2026</div>
-          <div class="about-tag">For Lucia's elementary school studies</div>
 
           <div class="about-stats">
             <div class="about-stat">
               <div class="v" id="dict-count">0</div>
-              <div class="l">收录单词</div>
+              <div class="l">词典收录</div>
             </div>
             <div class="about-stat">
               <div class="v" id="about-wb-count">0</div>
-              <div class="l">已收藏单词</div>
+              <div class="l">生词本收藏</div>
             </div>
           </div>
-
-          <div class="about-divider"></div>
 
           <div class="about-foot">
             <p>
@@ -588,10 +644,9 @@ const structuredData = [
               >
             </p>
           </div>
-        </div>
+        </footer>
       </div>
     </div>
-
   </main>
 
   <nav class="nav" aria-label="主要功能" role="tablist">

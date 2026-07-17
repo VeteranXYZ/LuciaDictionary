@@ -3,9 +3,9 @@ import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
 
-const title = "Accessibility";
+const title = "Lucia's Dictionary 无障碍使用说明";
 const description =
-  "Accessibility notes for Lucia's Dictionary, including keyboard input, labels, readable layout, speech controls, and current limitations.";
+  "了解 Lucia's Dictionary 对键盘操作、屏幕阅读器、浏览器缩放、减少动态效果和多种学习方式的支持。";
 const canonicalPath = "/accessibility/";
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
@@ -28,36 +28,25 @@ const structuredData = buildInfoPageStructuredData({
     current="accessibility"
   >
     <p>
-      Lucia's Dictionary is built for quick use on phones and modern browsers,
-      with large controls, readable cards, keyboard-friendly sentence input, and
-      labels for the main input and icon buttons.
+      Lucia's Dictionary
+      主要面向手机和现代浏览器使用。界面采用较大的操作控件和清晰的单词卡，同时支持键盘操作，并为主要输入框和图标按钮提供可识别的文字名称。
     </p>
     <section>
-      <h2>Current Support</h2>
+      <h2>目前支持</h2>
       <p>
-        The main sentence field has an accessible label, icon buttons include
-        accessible names, bottom navigation exposes tab state, dynamic results
-        and OCR progress are announced, and all primary actions are keyboard
-        reachable. The interface permits browser zoom and honors reduced-motion
-        preferences.
+        主要输入框和图标按钮带有屏幕阅读器可识别的名称；底部导航会说明当前页面；单词卡生成结果和图片识别进度会自动播报。主要操作都可以通过键盘完成，页面允许浏览器缩放，也会遵循系统的“减少动态效果”设置。
       </p>
     </section>
     <section>
-      <h2>Learning Support</h2>
+      <h2>多种学习方式</h2>
       <p>
-        Word cards pair visual text with speech playback, Chinese meanings, and
-        phonetic hints. This gives families more than one way to review a
-        classroom sentence, while keeping the main workflow short enough for
-        mobile use.
+        单词卡同时提供英文文字、中文释义、音标和发音。孩子既可以看，也可以听，还能把不熟悉的词收藏起来反复练习，减少只依赖一种信息形式带来的困难。
       </p>
     </section>
     <section>
-      <h2>Known Limitations</h2>
+      <h2>已知限制</h2>
       <p>
-        Speech quality and word-boundary highlighting depend on the browser and
-        operating system. Automated checks and keyboard testing cannot cover
-        every assistive-technology combination, so issues can be reported
-        through the contact link in the app.
+        发音质量和朗读时的单词高亮效果取决于浏览器和操作系统。自动检查与键盘测试无法覆盖所有辅助技术组合；如果遇到使用障碍，可以通过应用设置页中的邮箱链接反馈。
       </p>
     </section>
   </InfoPageShell>

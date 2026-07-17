@@ -164,7 +164,7 @@ function showCopyFeedback(copied) {
 
   clearTimeout(copyFeedbackTimer);
   button.classList.toggle("is-copied", copied);
-  label.textContent = copied ? "完成复制" : "复制文本";
+  label.textContent = copied ? "已复制" : "复制文本";
   icon.innerHTML = copied ? COPIED_ICON : COPY_ICON;
   if (copied) {
     copyFeedbackTimer = setTimeout(() => showCopyFeedback(false), 2000);
@@ -179,8 +179,8 @@ function announce(message) {
 function missionStageLabel(type) {
   return (
     {
-      listen: "听懂",
-      meaning: "认出",
+      listen: "听音辨词",
+      meaning: "看义选词",
       cloze: "放回原句",
     }[type] || "练习"
   );
@@ -227,9 +227,9 @@ function renderMissionPreview(candidates) {
   container.hidden = false;
   container.className = "classroom-mission mission-preview";
   const header = createMissionHeader(
-    "Classroom Relay · 课堂接力",
-    "把这句话变成 3 分钟学习任务",
-    "根据生词本和复习记录，优先练习现在最值得学的词。",
+    "3 分钟课堂小练习",
+    "用 3 分钟练熟这句话",
+    "会根据生词本和复习记录，先练现在最需要记住的词。",
   );
   const targets = document.createElement("div");
   targets.className = "mission-targets";
@@ -247,7 +247,7 @@ function renderMissionPreview(candidates) {
   const start = document.createElement("button");
   start.type = "button";
   start.className = "mission-primary";
-  start.textContent = `开始课堂接力 · ${currentMission.targets.length} 个词`;
+  start.textContent = `开始练习 · ${currentMission.targets.length} 个词`;
   start.addEventListener("click", () =>
     startMission({ recordEncounter: true }),
   );
@@ -370,15 +370,15 @@ function finishMission() {
   container.className = "classroom-mission mission-complete";
 
   const header = createMissionHeader(
-    "课堂接力完成",
+    "练习完成",
     "这句话现在更熟悉了",
-    `${summary.correct} / ${summary.total} 个词回答正确，学习结果已经写入复习计划。`,
+    `答对 ${summary.correct} / ${summary.total} 个词。结果已保存，下次会优先复习没记住的词。`,
   );
   const resultGrid = document.createElement("div");
   resultGrid.className = "mission-result-grid";
   for (const [label, words, emptyText] of [
-    ["这次答对", summary.learned, "继续积累"],
-    ["需要复习", summary.needsReview, "暂时没有"],
+    ["这次记住了", summary.learned, "继续加油"],
+    ["下次再复习", summary.needsReview, "全部答对啦"],
   ]) {
     const card = document.createElement("div");
     const title = document.createElement("span");
@@ -391,7 +391,7 @@ function finishMission() {
   const parent = document.createElement("aside");
   parent.className = "mission-parent-card";
   const parentLabel = document.createElement("strong");
-  parentLabel.textContent = "家长接力一句话";
+  parentLabel.textContent = "和孩子再练一句";
   const parentCopy = document.createElement("p");
   parentCopy.textContent = summary.parentPrompt;
   const sentence = document.createElement("blockquote");
@@ -412,7 +412,7 @@ function finishMission() {
   retry.addEventListener("click", () => startMission());
   actions.append(speakSentence, retry);
   container.replaceChildren(header, resultGrid, parent, actions);
-  announce("课堂接力任务已完成，学习结果已保存");
+  announce("课堂小练习已完成，答题结果已保存");
 }
 
 function createCurrentTranslationService() {
@@ -444,7 +444,7 @@ async function loadDictionaryServices() {
   });
   createCurrentTranslationService();
   renderSettings();
-  announce("本地词典已准备好");
+  announce("词典已准备好");
   return dictService;
 }
 
@@ -476,7 +476,7 @@ function createOcrUncertainPanel(words, lookupWord) {
   const title = document.createElement("strong");
   title.textContent = `已收起 ${words.length} 个可能识别有误的词`;
   const hint = document.createElement("span");
-  hint.textContent = "这些词未在本地词典中找到。点一个词，可单独联网确认。";
+  hint.textContent = "这些词可能是图片识别误差。点一下可以联网确认。";
   copy.append(title, hint);
 
   const chips = document.createElement("div");
@@ -536,7 +536,7 @@ async function analyzeSentence({ source = "manual" } = {}) {
   try {
     if (!dictService) {
       list.replaceChildren(
-        createEmptyState("正在准备本地词典", "首次打开只需要一点时间"),
+        createEmptyState("正在准备词典", "首次打开只需要一点时间"),
       );
       await dictionaryReady;
       if (runId !== analyzeRunId) return;
@@ -544,7 +544,7 @@ async function analyzeSentence({ source = "manual" } = {}) {
 
     if (CHINESE_RE.test(raw)) {
       list.replaceChildren(
-        createEmptyState("正在识别中文句子", "优先使用本地短句和词库"),
+        createEmptyState("正在翻译中文句子", "先从常见课堂表达中查找"),
       );
       try {
         await ensurePhrasebookReady();
@@ -557,7 +557,7 @@ async function analyzeSentence({ source = "manual" } = {}) {
         if (runId !== analyzeRunId) return;
         list.replaceChildren(
           createEmptyState(
-            "中文识别暂时不可用",
+            "中文翻译暂时不可用",
             "请检查网络，或先输入英文句子",
           ),
         );
@@ -663,9 +663,9 @@ async function analyzeSentence({ source = "manual" } = {}) {
     announce(`已生成 ${visibleWords.length} 张单词卡${uncertainNote}`);
   } catch {
     list.replaceChildren(
-      createEmptyState("本地词典暂时无法加载", "请刷新页面后再试"),
+      createEmptyState("词典暂时无法加载", "请刷新页面后再试"),
     );
-    announce("本地词典加载失败");
+    announce("词典加载失败");
   } finally {
     list.setAttribute("aria-busy", "false");
     if (runId === analyzeRunId) setAnalyzeBusy(false);
@@ -735,15 +735,16 @@ function renderWordbook() {
     band.className = "word-level";
     const bandKey = dictService.lookupLearningBand(entry.w);
     band.textContent =
-      { foundation: "基础", developing: "进阶", expanding: "拓展" }[bandKey] ||
-      "复习";
+      { foundation: "基础词", developing: "进阶词", expanding: "拓展词" }[
+        bandKey
+      ] || "复习词";
     const ph = document.createElement("div");
     ph.className = "word-phonetic";
     ph.textContent = dictService.lookupLocalPhonetic(entry.w) || "暂无音标";
     const cn = document.createElement("div");
     cn.className = "word-cn";
     if (entry.m) cn.textContent = entry.m;
-    else setMutedText(cn, "正在查询中文释义…");
+    else setMutedText(cn, "正在查找中文释义…");
 
     const source = document.createElement("div");
     source.className = "word-source";
@@ -753,7 +754,7 @@ function renderWordbook() {
     );
     if (entry.sourceSentences?.length) {
       const latestSentence = entry.sourceSentences[0].text;
-      source.textContent = `课堂来源 ${entry.sourceSentences.length} 条 · 遇到 ${encounterTotal} 次 · ${latestSentence}`;
+      source.textContent = `来自 ${entry.sourceSentences.length} 个课堂句子 · 已遇到 ${encounterTotal} 次 · ${latestSentence}`;
       source.title = latestSentence;
     } else {
       source.hidden = true;
@@ -862,7 +863,7 @@ function reviewAll() {
 }
 
 function clearWordbook() {
-  if (confirm("确定要清空所有收藏的单词吗？")) {
+  if (confirm("确定要清空生词本中的全部单词吗？此操作无法撤销。")) {
     clearWordbookItems();
     renderWordbook();
   }
@@ -885,12 +886,12 @@ async function importWordbook(event) {
   try {
     const result = await importWordbookFile(file);
     if (!result.ok) {
-      alert(result.error || "导入失败");
+      alert(result.error || "备份导入失败");
       return;
     }
     renderWordbook();
   } catch (e) {
-    alert("导入失败：请选择有效的 JSON 文件");
+    alert("导入失败，请选择此前备份的生词本文件。");
   }
 }
 
@@ -968,9 +969,9 @@ function setupDailyStreak() {
   if (!label) return;
   try {
     const streak = updateDailyStreak();
-    label.textContent = `Day ${streak.count}`;
+    label.textContent = `连续 ${streak.count} 天`;
   } catch (e) {
-    label.textContent = "Day 1";
+    label.textContent = "连续 1 天";
   }
 }
 
@@ -989,9 +990,11 @@ function renderSettings() {
   speedOptions.replaceChildren(
     ...speeds.map(([label, value]) => {
       const btn = document.createElement("button");
+      btn.type = "button";
       btn.className = "set-btn" + (curSpeed === value ? " active" : "");
       btn.dataset.speed = value;
       btn.textContent = label;
+      btn.setAttribute("aria-pressed", String(curSpeed === value));
       btn.addEventListener("click", () => {
         setSetting("speed", value);
         renderSettings();
@@ -1003,9 +1006,11 @@ function renderSettings() {
   repeatOptions.replaceChildren(
     ...repeats.map((value) => {
       const btn = document.createElement("button");
+      btn.type = "button";
       btn.className = "set-btn" + (curRepeat === value ? " active" : "");
       btn.dataset.repeat = value;
       btn.textContent = `${value} 遍`;
+      btn.setAttribute("aria-pressed", String(curRepeat === value));
       btn.addEventListener("click", () => {
         setSetting("repeat", value);
         renderSettings();
@@ -1085,7 +1090,7 @@ function navTo(page, opts) {
     else {
       document
         .getElementById("wb-list")
-        ?.replaceChildren(createEmptyState("正在准备本地词典", "马上就好"));
+        ?.replaceChildren(createEmptyState("正在准备词典", "马上就好"));
       dictionaryReady?.then(() => {
         if (!document.getElementById("pg-wordbook")?.hidden) renderWordbook();
       });
@@ -1106,7 +1111,7 @@ function navTo(page, opts) {
 
 function init() {
   dictionaryReady = loadDictionaryServices();
-  dictionaryReady.catch(() => announce("本地词典加载失败，请刷新页面重试"));
+  dictionaryReady.catch(() => announce("词典加载失败，请刷新页面重试"));
   saveWordbook(getWordbook());
 
   document.querySelectorAll(".nav-item").forEach((btn) => {

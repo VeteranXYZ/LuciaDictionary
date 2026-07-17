@@ -8,13 +8,13 @@ export const STAR_OUTLINE =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
 export const BOOK_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
-export const LOCAL_MISSING_MESSAGE = "暂无本地释义，可单独联网查询";
-export const ONLINE_FAILURE_MESSAGE = "联网查询失败，请稍后再试";
-export const ONLINE_LOOKUP_BUTTON_LABEL = "联网查询";
+export const LOCAL_MISSING_MESSAGE = "暂时没有释义，可联网查词";
+export const ONLINE_FAILURE_MESSAGE = "联网查词失败，请稍后再试";
+export const ONLINE_LOOKUP_BUTTON_LABEL = "联网查词";
 export const LEARNING_BAND_LABELS = {
-  foundation: "基础",
-  developing: "进阶",
-  expanding: "拓展",
+  foundation: "基础词",
+  developing: "进阶词",
+  expanding: "拓展词",
 };
 
 export function getLookupFallbackMessage({
@@ -72,7 +72,7 @@ export function renderDefinitionsToElement(el, definitions) {
   if (!definitions?.length) {
     const span = document.createElement("span");
     span.className = "muted-inline";
-    span.textContent = "未找到中文释义";
+    span.textContent = "暂时没有中文释义";
     el.appendChild(span);
     return;
   }
@@ -100,7 +100,7 @@ export function setMutedText(el, text) {
 export function showCelebration() {
   const el = document.createElement("div");
   el.className = "celebration";
-  const marks = ["Good!", "Great!", "Yes!", "Nice!"];
+  const marks = ["答对啦！", "真棒！", "很好！", "继续加油！"];
   el.textContent = marks[Math.floor(Math.random() * marks.length)];
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1000);
@@ -113,7 +113,10 @@ export function setCardMeaning(card, word, meaning, updateStarredMeaning) {
   const star = card.querySelector(".btn-star");
   if (star) {
     star.disabled = false;
-    star.setAttribute("aria-label", "收藏");
+    star.setAttribute(
+      "aria-label",
+      star.classList.contains("active") ? "移出生词本" : "收藏到生词本",
+    );
   }
 }
 
@@ -154,7 +157,7 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
     return;
   }
 
-  if (fillMeaning) setMutedText(cnEl, "正在查询中文释义…");
+  if (fillMeaning) setMutedText(cnEl, "正在查找中文释义…");
   if (phoneticEl && !phoneticEl.textContent.trim()) {
     phoneticEl.textContent = "音标查询中…";
   }
@@ -226,7 +229,7 @@ export function buildWordCard(word, index, meaning, container, options) {
   const cn = document.createElement("div");
   cn.className = "word-cn";
   if (displayMeaning) cn.textContent = displayMeaning;
-  else setMutedText(cn, "正在查询中文释义…");
+  else setMutedText(cn, "正在查找中文释义…");
 
   body.append(en, band, ph, cn);
 
@@ -237,10 +240,10 @@ export function buildWordCard(word, index, meaning, container, options) {
   const starred = options.isStarred(key);
   star.className = "btn-star" + (starred ? " active" : "");
   setIcon(star, starred ? STAR_SVG : STAR_OUTLINE);
-  star.setAttribute("aria-label", "收藏");
+  star.setAttribute("aria-label", starred ? "移出生词本" : "收藏到生词本");
   if (!displayMeaning) {
     star.disabled = true;
-    star.setAttribute("aria-label", "释义加载后可收藏");
+    star.setAttribute("aria-label", "找到释义后可以收藏");
   }
   star.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -252,6 +255,7 @@ export function buildWordCard(word, index, meaning, container, options) {
     );
     star.className = "btn-star" + (added ? " active" : "");
     setIcon(star, added ? STAR_SVG : STAR_OUTLINE);
+    star.setAttribute("aria-label", added ? "移出生词本" : "收藏到生词本");
   });
 
   const speakBtn = document.createElement("button");
@@ -268,7 +272,7 @@ export function buildWordCard(word, index, meaning, container, options) {
     const onlineBtn = document.createElement("button");
     onlineBtn.className = "btn-online-lookup";
     onlineBtn.textContent = ONLINE_LOOKUP_BUTTON_LABEL;
-    onlineBtn.setAttribute("aria-label", "联网查询");
+    onlineBtn.setAttribute("aria-label", "联网查词");
     onlineBtn.addEventListener("click", async (event) => {
       event.stopPropagation();
       onlineBtn.disabled = true;

@@ -1,7 +1,7 @@
 {
   "name": "Lucia's Dictionary",
-  "short_name": "Lucia Dict",
-  "description": "A local-first English classroom instruction helper for bilingual elementary-school learners.",
+  "short_name": "Lucia 词典",
+  "description": "把课堂英语句子变成能读、能懂、能复习的单词卡。",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -3,9 +3,9 @@ import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
 
-const title = "Privacy";
+const title = "Lucia's Dictionary 隐私与数据说明";
 const description =
-  "Lucia's Dictionary stores wordbook items, settings, and lookup caches in the browser, uses basic Google Analytics page-view measurement, and does not provide accounts, public profiles, or advertising tracking.";
+  "了解 Lucia's Dictionary 如何在浏览器中保存生词本和设置，什么时候会使用联网查词、翻译、图片识别及基础访问统计。";
 const canonicalPath = "/privacy/";
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
@@ -24,64 +24,58 @@ const structuredData = buildInfoPageStructuredData({
 >
   <InfoPageShell title="Privacy" titleZh="隐私与数据" current="privacy">
     <p>
-      Lucia's Dictionary is designed as a simple local-first learning tool. It
-      does not provide accounts, public user profiles, search-history sharing,
-      personalized advertising, or a backend wordbook sync feature.
+      Lucia's Dictionary
+      尽量把学习数据保存在当前浏览器中。它不提供账号、公开个人主页、搜索历史分享、个性化广告或云端生词本同步功能。
     </p>
     <section>
-      <h2>Browser Storage</h2>
+      <h2>先说结论</h2>
+      <ul>
+        <li>生词本、复习记录和设置默认保存在当前浏览器中。</li>
+        <li>输入的句子、上传的图片和生词本内容不会发送给 Google Analytics。</li>
+        <li>本地内容不足时，查词和翻译功能可能会访问第三方服务。</li>
+        <li>使用拍照识别时，所选图片会发送给 OCR.Space 处理。</li>
+      </ul>
+    </section>
+    <section>
+      <h2>保存在浏览器里的内容</h2>
       <p>
-        Saved words, classroom source sentences, Classroom Relay mission
-        results, review schedules, settings, daily-use state, and lookup caches
-        are stored in the current browser through localStorage. Clearing browser
-        data or using another device can remove or separate that local data.
+        已收藏单词、单词出现过的课堂原句、课堂小练习结果、复习安排、朗读设置、连续学习天数和查询缓存，会通过
+        localStorage
+        保存在当前浏览器中。清除浏览器数据或更换设备后，这些本地数据可能丢失或无法自动同步。
       </p>
     </section>
     <section>
-      <h2>Network Requests</h2>
+      <h2>什么时候会联网</h2>
       <p>
-        Most English word cards use bundled data. When local data is not enough,
-        a word may be requested from dictionaryapi.dev and its definition may be
-        translated through Google's translation fallback. Chinese sentence input
-        checks the local phrasebook first and only uses the translation fallback
-        when no local match is available.
+        大部分英文单词卡使用应用自带的数据。本地内容不足时，单词可能会发送给
+        dictionaryapi.dev 查询，其释义可能通过 Google
+        翻译备用服务转换成中文。输入中文句子时，应用会先查询本地课堂短句；没有合适结果时才使用联网翻译。
       </p>
       <p>
-        Photo OCR compresses the selected image in the browser, sends it to the
-        same-origin <code>/api/ocr</code>
-        endpoint, and forwards it to OCR.Space. The app does not save the uploaded
-        image or OCR result on its server, and OCR responses are marked <code
-          >no-store</code
-        >. Cloudflare may process operational security and performance data
-        while serving the site and API.
+        拍照识别会先在浏览器中压缩所选图片，再通过本站的图片识别接口转发给
+        OCR.Space。本站服务器不会保存上传的图片或识别结果，接口响应也设置为不缓存。Cloudflare
+        在提供网站和接口服务时，可能处理必要的安全与性能数据。
       </p>
     </section>
     <section>
-      <h2>Analytics</h2>
+      <h2>基础访问统计</h2>
       <p>
-        The site uses Google Analytics 4 to measure basic page views and
-        understand whether the public pages are being reached. Enhanced
-        Measurement is disabled in Google Analytics, and the app does not send
-        typed sentences, uploaded images, saved words, wordbook entries, lookup
-        text, user IDs, or custom learning events to Analytics. Google signals
-        and ad personalization signals are disabled in the site tag.
+        网站使用 Google Analytics 4
+        统计基础页面访问量，以了解公开页面是否被正常访问。增强型衡量、Google
+        信号和广告个性化信号均已关闭。应用不会把输入的句子、上传的图片、查过或收藏的单词、生词本内容、用户
+        ID 或自定义学习事件发送给 Analytics。
       </p>
     </section>
     <section>
-      <h2>Children's Information</h2>
+      <h2>儿童隐私提醒</h2>
       <p>
-        The public site should not publish private child information such as
-        schools, addresses, birth dates, schedules, private photographs, or
-        account details.
+        请不要输入或上传包含学校名称、家庭地址、出生日期、日程、私人照片或账号信息等儿童隐私内容。题目可以手动输入时，建议优先输入文字。
       </p>
     </section>
     <section>
-      <h2>Your Controls</h2>
+      <h2>你可以怎样管理数据</h2>
       <p>
-        You can clear lookup caches from Settings, remove individual saved
-        words, clear the wordbook, export it as JSON, or clear this site's
-        browser data. Do not upload photographs that contain private child
-        information when a typed sentence is sufficient.
+        你可以在设置页清除查询缓存，在生词本中移除单个词或清空全部单词，也可以备份生词本。还可以通过浏览器设置清除此网站保存在本机的数据。
       </p>
     </section>
   </InfoPageShell>
