@@ -1,13 +1,13 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
-import { buildInfoPageStructuredData, pageUrl, siteName } from "../lib/seo.js";
+import { buildInfoPageStructuredData } from "../lib/seo.js";
 
-const title = "Lucia's Dictionary 使用与无障碍指南";
+const title = "Lucia's Dictionary 使用指南";
 const description =
   "了解如何输入或拍下课堂英语句子、生成单词卡、收藏生词、完成课堂小练习，以及使用键盘、屏幕阅读器和浏览器缩放。";
-const canonicalPath = "/how-to/";
-const howToSteps = [
+const canonicalPath = "/guide/";
+const guideSteps = [
   "输入或粘贴中文、英文课堂句子，也可以拍照识别题目中的英文。",
   "点击“生成单词卡”，查看句子中的英文单词、中文释义和音标。",
   "点击单词卡听发音；遇到不熟悉的词，点星标收藏到生词本。",
@@ -15,30 +15,11 @@ const howToSteps = [
   "到生词本标记“会”“不确定”或“忘记”，让复习安排更合适。",
   "需要更换设备时，先备份生词本，再在新设备中导入备份。",
 ];
-const structuredData = [
-  ...buildInfoPageStructuredData({
-    path: canonicalPath,
-    title,
-    description,
-  }),
-  {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "Lucia's Dictionary 使用与无障碍指南",
-    description,
-    url: pageUrl(canonicalPath),
-    inLanguage: ["en", "zh-CN"],
-    tool: {
-      "@type": "HowToTool",
-      name: siteName,
-    },
-    step: howToSteps.map((text, index) => ({
-      "@type": "HowToStep",
-      position: index + 1,
-      text,
-    })),
-  },
-];
+const structuredData = buildInfoPageStructuredData({
+  path: canonicalPath,
+  title,
+  description,
+});
 ---
 
 <MainLayout
@@ -49,13 +30,9 @@ const structuredData = [
   appScript={false}
   structuredData={structuredData}
 >
-  <InfoPageShell
-    title="How to Use & Accessibility"
-    titleZh="使用与无障碍指南"
-    current="how-to"
-  >
+  <InfoPageShell title="Guide" titleZh="使用指南" current="guide">
     <ol class="steps">
-      {howToSteps.map((step) => <li>{step}</li>)}
+      {guideSteps.map((step) => <li>{step}</li>)}
     </ol>
     <section>
       <h2>适合输入什么内容</h2>

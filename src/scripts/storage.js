@@ -10,6 +10,23 @@ export const DEFAULT_SETTINGS = { speed: "normal", repeat: 3 };
 export const CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
 export const CACHE_MAX_ITEMS = 240;
 
+const storageSubscribers = new Set();
+
+function publishStorageChange(key, value) {
+  for (const subscriber of storageSubscribers) {
+    try {
+      subscriber({ key, value });
+    } catch {
+      // A rendering subscriber must never make a successful local write fail.
+    }
+  }
+}
+
+export function subscribeStorage(subscriber) {
+  storageSubscribers.add(subscriber);
+  return () => storageSubscribers.delete(subscriber);
+}
+
 export function readStoredJson(key, fallback) {
   try {
     const value = globalThis.localStorage.getItem(key);
@@ -22,6 +39,7 @@ export function readStoredJson(key, fallback) {
 export function writeStoredJson(key, value) {
   try {
     globalThis.localStorage.setItem(key, JSON.stringify(value));
+    publishStorageChange(key, value);
     return true;
   } catch (e) {
     return false;

@@ -95,12 +95,12 @@ flowchart LR
 | 门禁                       |                                           最终结果 |
 | -------------------------- | -------------------------------------------------: |
 | Prettier                   |                                           全部匹配 |
-| Astro Check                |          62 files，0 errors / 0 warnings / 0 hints |
-| Node/Vitest                |                          16 files，90 tests passed |
+| Astro Check                |           79 files，0 errors / 0 warnings / 1 hint |
+| Node/Vitest                |                         18 files，101 tests passed |
 | Cloudflare workerd         |                             1 file，6 tests passed |
-| Playwright mobile Chromium |                       5/5 passed，包含离线整页刷新 |
-| Astro 生产构建             |                                      7 pages，成功 |
-| SEO                        |                              6 sitemap URLs passed |
+| Playwright mobile Chromium |                       7/7 passed，包含离线整页刷新 |
+| Astro 生产构建             |                                      6 pages，成功 |
+| SEO                        |                              5 sitemap URLs passed |
 | 词库                       | 10,574 runtime entries；88/88 words；25/25 phrases |
 | OCR 样本                   |              244 tokens，100% 本地覆盖，0 fallback |
 | 翻译质量                   |                          0 suspicious translations |

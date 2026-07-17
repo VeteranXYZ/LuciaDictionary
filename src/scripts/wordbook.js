@@ -189,6 +189,9 @@ export function updateWordbookItem(word, updater) {
 
 export function updateStarredMeaning(word, meaning) {
   if (!word || !meaning) return;
+  const key = String(word).toLowerCase().trim();
+  const existing = getWordbook().find((item) => item.w === key);
+  if (!existing || existing.m) return existing || null;
   updateWordbookItem(word, (item) => ({ ...item, m: item.m || meaning }));
 }
 
