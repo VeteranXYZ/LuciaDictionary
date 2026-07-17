@@ -3,9 +3,9 @@ import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData, pageUrl, siteName } from "../lib/seo.js";
 
-const title = "Lucia's Dictionary 使用指南";
+const title = "Lucia's Dictionary 使用与无障碍指南";
 const description =
-  "了解如何输入或拍下课堂英语句子、生成单词卡、收藏生词，并完成 3 分钟课堂小练习。";
+  "了解如何输入或拍下课堂英语句子、生成单词卡、收藏生词、完成课堂小练习，以及使用键盘、屏幕阅读器和浏览器缩放。";
 const canonicalPath = "/how-to/";
 const howToSteps = [
   "输入或粘贴中文、英文课堂句子，也可以拍照识别题目中的英文。",
@@ -24,7 +24,7 @@ const structuredData = [
   {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    name: "Lucia's Dictionary 使用指南",
+    name: "Lucia's Dictionary 使用与无障碍指南",
     description,
     url: pageUrl(canonicalPath),
     inLanguage: ["en", "zh-CN"],
@@ -50,8 +50,8 @@ const structuredData = [
   structuredData={structuredData}
 >
   <InfoPageShell
-    title="How to Use Lucia's Dictionary"
-    titleZh="使用方法"
+    title="How to Use & Accessibility"
+    titleZh="使用与无障碍指南"
     current="how-to"
   >
     <ol class="steps">
@@ -67,6 +67,21 @@ const structuredData = [
       <h2>学习记录保存在哪里</h2>
       <p>
         生词本、复习记录和朗读设置保存在当前浏览器中，不会生成公开的搜索页面或共享的搜索历史。清除浏览器数据前，建议先备份生词本。
+      </p>
+    </section>
+    <section>
+      <h2>无障碍使用</h2>
+      <p>
+        主要操作支持键盘完成；输入框、图标按钮和底部导航提供屏幕阅读器可识别的名称；单词卡生成结果和图片识别进度会自动播报。页面允许浏览器缩放，并会遵循系统的“减少动态效果”设置。
+      </p>
+      <p>
+        单词卡同时提供英文文字、中文释义、音标和发音，孩子可以结合看、听和反复收藏练习，不必只依赖一种信息形式。
+      </p>
+    </section>
+    <section>
+      <h2>已知限制与反馈</h2>
+      <p>
+        发音质量和朗读时的单词高亮效果取决于浏览器和操作系统，自动检查也无法覆盖所有辅助技术组合。如果遇到使用障碍，可以通过应用设置页中的邮箱链接反馈。
       </p>
     </section>
   </InfoPageShell>

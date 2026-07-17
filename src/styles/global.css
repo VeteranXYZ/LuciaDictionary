@@ -2236,10 +2236,6 @@ textarea#sentence-input::placeholder {
     box-shadow 0.18s;
 }
 
-.settings-info-links a:last-child {
-  grid-column: 1 / -1;
-}
-
 .settings-info-links a:hover {
   color: var(--ink);
   background: var(--cream);
@@ -2912,9 +2908,6 @@ textarea#sentence-input::placeholder {
   }
   .settings-info-links {
     grid-template-columns: 1fr;
-  }
-  .settings-info-links a:last-child {
-    grid-column: auto;
   }
   .about {
     grid-template-columns: 1fr;

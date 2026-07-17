@@ -3,7 +3,7 @@ interface Props {
   title: string;
   titleZh: string;
   eyebrow?: string;
-  current?: "about" | "how-to" | "sources" | "privacy" | "accessibility";
+  current?: "about" | "how-to" | "sources" | "privacy";
 }
 
 const {
@@ -15,15 +15,14 @@ const {
 
 const pages = [
   { id: "about", href: "/about/", label: "关于", labelEn: "About" },
-  { id: "how-to", href: "/how-to/", label: "使用指南", labelEn: "How to Use" },
+  {
+    id: "how-to",
+    href: "/how-to/",
+    label: "使用与无障碍",
+    labelEn: "How to Use",
+  },
   { id: "sources", href: "/sources/", label: "数据来源", labelEn: "Sources" },
   { id: "privacy", href: "/privacy/", label: "隐私与数据", labelEn: "Privacy" },
-  {
-    id: "accessibility",
-    href: "/accessibility/",
-    label: "无障碍使用",
-    labelEn: "Accessibility",
-  },
 ];
 const currentPage = pages.find((page) => page.id === current);
 ---

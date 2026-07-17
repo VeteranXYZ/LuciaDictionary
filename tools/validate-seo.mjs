@@ -5,14 +5,7 @@ const root = process.cwd();
 const dist = join(root, "dist");
 const origin = "https://dict.luciaandrayna.com";
 const googleAnalyticsId = "G-1N76G8G0S5";
-const sitemapPaths = [
-  "/",
-  "/about/",
-  "/how-to/",
-  "/sources/",
-  "/privacy/",
-  "/accessibility/",
-];
+const sitemapPaths = ["/", "/about/", "/how-to/", "/sources/", "/privacy/"];
 const failures = [];
 
 function fail(message) {
@@ -72,7 +65,6 @@ const routeFiles = new Map([
   ["/how-to/", "how-to/index.html"],
   ["/sources/", "sources/index.html"],
   ["/privacy/", "privacy/index.html"],
-  ["/accessibility/", "accessibility/index.html"],
 ]);
 
 const infoPageFiles = new Set([
@@ -80,7 +72,6 @@ const infoPageFiles = new Set([
   "how-to/index.html",
   "sources/index.html",
   "privacy/index.html",
-  "accessibility/index.html",
 ]);
 
 for (const [path, file] of routeFiles) {
