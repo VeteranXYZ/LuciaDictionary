@@ -1468,7 +1468,7 @@ textarea#sentence-input::placeholder {
 }
 
 .info-links {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 14px;
 }
 
@@ -2811,14 +2811,11 @@ textarea#sentence-input::placeholder {
     line-height: 1.7;
   }
   .info-links {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
   }
   .info-links a {
     min-height: 52px;
-  }
-  .info-links a:last-child {
-    grid-column: 1 / -1;
   }
   .info-mobile-home {
     display: inline-flex;
