@@ -20,3 +20,6 @@
 
 /404.html
   X-Robots-Tag: noindex, follow
+
+https://lucia-dictionary.hiei.workers.dev/*
+  X-Robots-Tag: noindex, nofollow
