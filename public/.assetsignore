@@ -1,0 +1,4 @@
+# macOS and editor metadata should never be deployed as public assets.
+.DS_Store
+Thumbs.db
+*.map
