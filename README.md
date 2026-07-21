@@ -37,7 +37,9 @@ Lucia's Dictionary existed before the July 13, 2026 submission period. The pre-e
 - a completion summary and immediate parent-child practice prompt;
 - unit and mobile end-to-end coverage for the new learning loop.
 
-This extension was designed and implemented through Codex Build Week Session `019f675a-a32d-7eb0-9e13-4d4df7cd9969`, with the dated commit history retained for judging.
+This extension was designed and implemented with **Codex and GPT-5.6** during OpenAI Build Week through Codex Session `019f675a-a32d-7eb0-9e13-4d4df7cd9969`, with dated commit history retained for judging. Codex with GPT-5.6 helped inspect the pre-existing architecture, refine the classroom-to-home learning concept, design the explainable priority and persistence models, implement the Classroom Relay vertical slice, add automated coverage, and verify the mobile production experience.
+
+The final product decisions remained human-directed: Lucia's Dictionary does not generate homework answers, create child accounts, or upload learning history. The child-facing recommendation and practice loop is intentionally local, deterministic, and explainable to parents.
 
 ## Architecture
 

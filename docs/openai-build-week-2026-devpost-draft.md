@@ -7,7 +7,7 @@
 - **Tagline:** Turn today's classroom sentence into tonight's personalized micro-lesson.
 - **Website:** <https://dict.luciaandrayna.com>
 - **Repository:** <https://github.com/VeteranXYZ/LuciaDictionary>
-- **Demo video:** pending public YouTube URL
+- **Demo video:** <https://www.youtube.com/watch?v=FZw5PjDj8Uo>
 - **Codex `/feedback` Session ID:** `019f675a-a32d-7eb0-9e13-4d4df7cd9969`
 - **Codex model:** confirm the model displayed for the current task before naming it in Devpost or the video
 - **Codex credits request:** submitted July 15, 2026
