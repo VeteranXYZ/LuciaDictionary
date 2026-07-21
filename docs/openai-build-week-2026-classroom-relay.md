@@ -14,6 +14,7 @@
 - Repository license: Apache-2.0
 - Devpost registration: completed July 15, 2026
 - $100 Codex Credits request: submitted July 15, 2026; approval pending
+- YouTube demo: <https://www.youtube.com/watch?v=FZw5PjDj8Uo>
 
 ## What existed before the submission period
 
@@ -76,5 +77,6 @@ The implementation was verified through:
 - [x] Push the repository and confirm the public or reviewer-accessible URL.
 - [x] License the public repository under Apache-2.0.
 - [x] Deploy v3.1.0 and run the demo path on the production URL.
-- [ ] Record and publish the under-three-minute YouTube demo with audio.
-- [ ] Copy the pre-existing/new-work distinction into the Devpost project description.
+- [x] Record and upload the under-three-minute YouTube demo with audio.
+- [x] Verify the YouTube video is Public and add the link to Devpost.
+- [x] Copy the pre-existing/new-work distinction into the Devpost project description.
