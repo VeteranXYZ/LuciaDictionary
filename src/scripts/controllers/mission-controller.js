@@ -24,13 +24,6 @@ export function createMissionController({ announce, getSentence, speak }) {
     );
   }
 
-  function scrollIntoView() {
-    document.getElementById("classroom-mission")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-
   function createHeader(eyebrow, title, copy) {
     const header = document.createElement("div");
     header.className = "mission-head";
@@ -104,7 +97,6 @@ export function createMissionController({ announce, getSentence, speak }) {
       }
     }
     renderQuestion();
-    scrollIntoView();
   }
 
   function renderQuestion() {

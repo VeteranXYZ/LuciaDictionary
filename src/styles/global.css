@@ -2948,6 +2948,7 @@ textarea#sentence-input::placeholder {
    ============================================================ */
 
 .classroom-mission {
+  overflow-anchor: none;
   scroll-margin-top: 16px;
   margin: 20px 0;
   padding: 22px;
@@ -3221,6 +3222,21 @@ textarea#sentence-input::placeholder {
     padding: 17px 14px;
     border-radius: var(--r-lg);
   }
+  .mission-active {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mission-active .mission-progress {
+    grid-row: 1;
+  }
+  .mission-active .mission-question-body {
+    grid-row: 2;
+  }
+  .mission-active .mission-options,
+  .mission-active .mission-feedback {
+    grid-column: 1;
+    grid-row: 3;
+  }
   .mission-target {
     align-items: flex-start;
     flex-direction: column;
@@ -3238,9 +3254,15 @@ textarea#sentence-input::placeholder {
   .mission-option {
     min-height: 54px;
   }
+  .mission-options[data-answered="true"] {
+    visibility: hidden;
+  }
   .mission-feedback {
-    align-items: stretch;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    align-self: center;
+    z-index: 1;
   }
   .mission-result-grid,
   .mission-complete-actions {
