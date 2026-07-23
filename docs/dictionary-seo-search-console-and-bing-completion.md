@@ -173,16 +173,20 @@ Web stream:
 Privacy and data minimization:
 
 - Enhanced Measurement is disabled in the GA4 stream.
-- The site tag sends basic page views only.
+- As of 2026-07-23, the site uses a notice-only GA4 configuration with `analytics_storage: "granted"` so first-party Analytics cookies and session measurement remain available.
+- `ad_storage`, `ad_user_data`, and `ad_personalization` are all set to `denied`; the site does not display a consent banner.
+- Ads data redaction is enabled with `ads_data_redaction: true`.
 - The site tag disables Google signals with `allow_google_signals: false`.
 - The site tag disables ad personalization signals with `allow_ad_personalization_signals: false`.
 - No typed sentences, uploaded images, saved words, wordbook entries, lookup text, user IDs, or custom learning events are sent to GA4.
-- The Privacy page discloses the basic GA4 page-view measurement, approximate location and browser/device data, and the first-party `_ga` client identifier.
+- The Privacy page provides a concise notice covering the first-party Analytics cookies, session measurement, processed data categories, disabled advertising features, and browser controls.
 
 Deployment verification:
 
 - Production HTML contains `gtag/js?id=G-1N76G8G0S5`.
 - Production HTML contains `gtag("config", "G-1N76G8G0S5", ...)`.
+- The next deployment will contain a Consent Mode default before the loader and config calls, with `analytics_storage: "granted"` and all advertising consent types denied.
+- The next deployment will contain `gtag("set", "ads_data_redaction", true)`.
 - Production HTML contains `allow_google_signals: false`.
 - Production HTML contains `allow_ad_personalization_signals: false`.
 - After deployment, the GA4 home card for `Lucia Dictionary` showed 7 active users in the past 30 minutes.

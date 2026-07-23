@@ -115,6 +115,27 @@ for (const [path, file] of routeFiles) {
     fail(`${file} missing Google Analytics tag`);
   if (!html.includes(`gtag("config", "${googleAnalyticsId}"`))
     fail(`${file} missing Google Analytics config`);
+  const consentIndex = html.indexOf('gtag("consent", "default", {');
+  const loaderIndex = html.indexOf(`gtag/js?id=${googleAnalyticsId}`);
+  const configIndex = html.indexOf(`gtag("config", "${googleAnalyticsId}"`);
+  if (
+    consentIndex === -1 ||
+    consentIndex > loaderIndex ||
+    consentIndex > configIndex
+  )
+    fail(`${file} must set consent defaults before loading or configuring GA4`);
+  if (!html.includes('analytics_storage: "granted"'))
+    fail(`${file} missing granted first-party analytics storage`);
+  for (const deniedAdConsent of [
+    'ad_storage: "denied"',
+    'ad_user_data: "denied"',
+    'ad_personalization: "denied"',
+  ]) {
+    if (!html.includes(deniedAdConsent))
+      fail(`${file} missing denied advertising consent: ${deniedAdConsent}`);
+  }
+  if (!html.includes('gtag("set", "ads_data_redaction", true)'))
+    fail(`${file} missing Google Ads data redaction`);
   if (!html.includes("send_page_view: true"))
     fail(`${file} missing basic GA4 page-view config`);
   if (!html.includes("allow_google_signals: false"))
@@ -143,10 +164,13 @@ if (guide.includes('"@type":"HowTo"'))
 const privacy = readDist("privacy/index.html");
 for (const disclosure of [
   "Google Analytics 4",
+  "第一方",
   "_ga",
+  "访问和会话",
   "粗略地区",
-  "增强型衡量",
+  "所有广告和个性化功能",
   "自定义学习事件",
+  "浏览器设置",
 ]) {
   if (!privacy.includes(disclosure))
     fail(`Privacy page missing GA4 disclosure: ${disclosure}`);

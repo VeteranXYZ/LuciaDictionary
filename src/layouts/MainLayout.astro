@@ -74,14 +74,26 @@ const jsonLd = [
     <link rel="manifest" href="/manifest.webmanifest" />
     <script
       is:inline
+      set:html={`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag("consent", "default", {
+          analytics_storage: "granted",
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied"
+        });
+        gtag("set", "ads_data_redaction", true);
+      `}
+    />
+    <script
+      is:inline
       async
       src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
     ></script>
     <script
       is:inline
       set:html={`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){window.dataLayer.push(arguments);}
         gtag("js", new Date());
         gtag("config", "${googleAnalyticsId}", {
           send_page_view: true,
