@@ -158,6 +158,8 @@ export function createMissionController({ announce, getSentence, speak }) {
   function answerQuestion(selectedWord, options) {
     const question = currentMission?.questions?.[questionIndex];
     if (!question || options.dataset.answered === "true") return;
+    const scrollContainer = options.closest(".app");
+    const scrollTop = scrollContainer?.scrollTop;
     options.dataset.answered = "true";
     const correct = selectedWord === question.word;
     results.push({ word: question.word, correct });
@@ -188,6 +190,13 @@ export function createMissionController({ announce, getSentence, speak }) {
     });
     feedback.appendChild(next);
     document.getElementById("classroom-mission")?.appendChild(feedback);
+    next.focus({ preventScroll: true });
+    if (scrollContainer && scrollTop !== undefined) {
+      scrollContainer.scrollTop = scrollTop;
+      requestAnimationFrame(() => {
+        scrollContainer.scrollTop = scrollTop;
+      });
+    }
     announce(correct ? "回答正确" : `正确答案是 ${question.word}`);
   }
 
