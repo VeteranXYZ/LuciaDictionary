@@ -205,12 +205,43 @@ test("documents every optional network data flow", async ({ page }) => {
   await expect(page.locator("main#main-content")).toContainText("Cloudflare");
 });
 
+test("loads notice-only GA4 with first-party analytics cookies", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const dataLayer = await page.evaluate(() =>
+    window.dataLayer.map((entry) => Array.from(entry)),
+  );
+  expect(dataLayer[0]).toEqual([
+    "consent",
+    "default",
+    {
+      analytics_storage: "granted",
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+    },
+  ]);
+  expect(dataLayer).toContainEqual(["set", "ads_data_redaction", true]);
+  await expect
+    .poll(async () =>
+      (await page.context().cookies()).some((cookie) =>
+        cookie.name.startsWith("_ga"),
+      ),
+    )
+    .toBe(true);
+});
+
 for (const path of ["/how-to/", "/accessibility/", "/search"]) {
-  test(`${path} remains retired without redirecting`, async ({ page }) => {
+  test(`${path} remains retired without redirecting`, async ({
+    page,
+    baseURL,
+  }) => {
     const response = await page.goto(path);
 
     expect(response?.status()).toBe(404);
-    expect(page.url()).toBe(`http://127.0.0.1:4321${path}`);
+    expect(page.url()).toBe(`${baseURL}${path}`);
     await expect(page.locator("main#main-content")).toContainText("页面未找到");
   });
 }
