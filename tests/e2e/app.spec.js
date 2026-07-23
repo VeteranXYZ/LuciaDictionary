@@ -64,19 +64,24 @@ test("turns a classroom sentence into a contextual learning mission", async ({
     "sunlight",
   ].entries()) {
     const options = mission.locator(".mission-options");
+    const correctOption = options.locator(
+      `.mission-option[data-word="${word}"]`,
+    );
+    await correctOption.scrollIntoViewIfNeeded();
     const scrollTop = await page
       .locator(".app")
       .evaluate((app) => app.scrollTop);
-    await options.locator(`.mission-option[data-word="${word}"]`).click();
+    await correctOption.click();
+    const next = mission.getByRole("button", {
+      name: index === 4 ? "查看学习结果" : "下一题",
+    });
     await expect(mission).toContainText(`答对了 · ${word}`);
     await expect(options).toBeHidden();
+    await expect(next).toBeFocused();
     await expect
       .poll(() => page.locator(".app").evaluate((app) => app.scrollTop))
       .toBe(scrollTop);
 
-    const next = mission.getByRole("button", {
-      name: index === 4 ? "查看学习结果" : "下一题",
-    });
     await expect(next).toBeInViewport();
     await next.click();
   }
