@@ -1,6 +1,7 @@
 import { cleanDisplayTranslation } from "./meaningCleaner.js";
 import { fetchWithPolicy } from "./network.js";
 import { cleanPhonetic } from "./phonetic.js";
+import { siteOwner } from "../config/site.js";
 
 export const STOP_WORDS = new Set([
   "a",
@@ -117,8 +118,8 @@ export const OCR_NOISE_FRAGMENTS = new Set([
 export const RESERVED_PROJECT_NAMES = {
   lucia: { cn: "Lucia，角色名", ph: "", pos: "name" },
   rayna: { cn: "Rayna，角色名", ph: "", pos: "name" },
-  luciaandrayna: { cn: "Lucia & Rayna，品牌名", ph: "", pos: "name" },
-  "lucia&rayna": { cn: "Lucia & Rayna，品牌名", ph: "", pos: "name" },
+  luciaandrayna: { cn: `${siteOwner}，品牌名`, ph: "", pos: "name" },
+  "lucia&rayna": { cn: `${siteOwner}，品牌名`, ph: "", pos: "name" },
 };
 
 export function getMeaningValue(entry) {

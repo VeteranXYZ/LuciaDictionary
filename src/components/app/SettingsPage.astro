@@ -1,5 +1,14 @@
 ---
 import AppPanel from "./AppPanel.astro";
+import {
+  contactEmail,
+  copyrightYear,
+  infoPages,
+  luciaMascotPath,
+  siteName,
+  siteOwner,
+  sitePublisher,
+} from "../../config/site.js";
 
 interface Props {
   version: string;
@@ -163,26 +172,24 @@ const { version } = Astro.props;
         </div>
       </header>
       <nav class="settings-info-links" aria-label="帮助与说明">
-        <a href="/about/">
-          <span class="settings-link-icon" aria-hidden="true">L</span>
-          <span><strong>关于词典</strong><small>About</small></span>
-          <span class="settings-link-arrow" aria-hidden="true">›</span>
-        </a>
-        <a href="/guide/">
-          <span class="settings-link-icon" aria-hidden="true">?</span>
-          <span><strong>使用指南</strong><small>Guide</small></span>
-          <span class="settings-link-arrow" aria-hidden="true">›</span>
-        </a>
-        <a href="/sources/">
-          <span class="settings-link-icon" aria-hidden="true">⌁</span>
-          <span><strong>数据来源</strong><small>Sources</small></span>
-          <span class="settings-link-arrow" aria-hidden="true">›</span>
-        </a>
-        <a href="/privacy/">
-          <span class="settings-link-icon" aria-hidden="true">✓</span>
-          <span><strong>隐私与数据</strong><small>Privacy</small></span>
-          <span class="settings-link-arrow" aria-hidden="true">›</span>
-        </a>
+        {
+          infoPages.map((page) => (
+            <a href={page.path}>
+              <span class="settings-link-icon" aria-hidden="true">
+                {page.settingsIcon}
+              </span>
+              <span>
+                <>
+                  <strong>{page.label}</strong>
+                  <small>{page.labelEn}</small>
+                </>
+              </span>
+              <span class="settings-link-arrow" aria-hidden="true">
+                ›
+              </span>
+            </a>
+          ))
+        }
       </nav>
     </section>
 
@@ -190,7 +197,7 @@ const { version } = Astro.props;
       <div class="about-main">
         <div class="about-mascot">
           <img
-            src="assets/lucia.png"
+            src={luciaMascotPath}
             width="768"
             height="768"
             loading="lazy"
@@ -198,9 +205,9 @@ const { version } = Astro.props;
           />
         </div>
         <div class="about-copy">
-          <div class="about-name">Lucia's Dictionary</div>
+          <div class="about-name">{siteName}</div>
           <div class="about-tag">陪 Lucia 一起学好小学英语</div>
-          <div class="about-ver">v{version} · 2026</div>
+          <div class="about-ver">v{version} · {copyrightYear}</div>
         </div>
       </div>
 
@@ -217,12 +224,13 @@ const { version } = Astro.props;
 
       <div class="about-foot">
         <p>
-          © 2026 <strong>Lucia &amp; Rayna</strong> · Powered by <strong
-            >HIEI</strong
+          © {copyrightYear}
+          <strong>{siteOwner}</strong> · Powered by <strong
+            >{sitePublisher}</strong
           >
         </p>
-        <p style="margin-top:4px">
-          <a href="mailto:hello@luciaandrayna.com">hello@luciaandrayna.com</a>
+        <p class="about-contact">
+          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
         </p>
       </div>
     </footer>

@@ -1,4 +1,5 @@
 import { readStoredJson, writeStoredJson } from "./storage.js";
+import { shuffle } from "./random.js";
 
 export const MISSION_HISTORY_KEY = "lucia-classroom-missions-v1";
 export const MISSION_TYPES = ["listen", "meaning", "cloze"];
@@ -111,15 +112,6 @@ export function selectMissionTargets(
     .sort((a, b) => b.score - a.score || a.index - b.index)
     .slice(0, Math.max(1, maxTargets))
     .map(({ index, ...target }) => target);
-}
-
-function shuffle(items, random) {
-  const result = items.slice();
-  for (let index = result.length - 1; index > 0; index--) {
-    const target = Math.floor(random() * (index + 1));
-    [result[index], result[target]] = [result[target], result[index]];
-  }
-  return result;
 }
 
 function escapeRegExp(value) {

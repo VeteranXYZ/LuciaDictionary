@@ -14,10 +14,11 @@ import {
   STAR_OUTLINE,
   STAR_SVG,
   createEmptyState,
+  createWordCardFrame,
   hydrateOnlineWord,
   setCardMeaning,
-  setMutedText,
 } from "../ui.js";
+import { MASTERY_LABELS } from "../learning-labels.js";
 
 export function createWordbookController({
   announce,
@@ -73,8 +74,8 @@ export function createWordbookController({
     if (!stats || !actions || !list || !dictionaryService) return;
 
     if (!wordbook.length) {
-      stats.style.display = "none";
-      actions.style.display = "flex";
+      stats.hidden = true;
+      actions.hidden = false;
       setActionState(false);
       list.replaceChildren(
         createEmptyState("生词本还是空的", "在首页点 ☆ 把单词收藏到这里吧"),
@@ -82,7 +83,7 @@ export function createWordbookController({
       return;
     }
 
-    stats.style.display = "flex";
+    stats.hidden = false;
     stats.replaceChildren();
     const summary = getReviewSummary(wordbook);
     for (const [value, text] of [
@@ -108,39 +109,27 @@ export function createWordbookController({
         : "朗读全部";
     }
 
-    actions.style.display = "flex";
+    actions.hidden = false;
     setActionState(true);
     list.replaceChildren();
 
     wordbook.forEach((entry, index) => {
-      const card = document.createElement("div");
-      card.className = "word-card";
-      card.style.animationDelay = index * 0.04 + "s";
-
-      const count = document.createElement("div");
-      count.className = "word-num";
-      count.textContent = index + 1;
-
-      const body = document.createElement("div");
-      body.className = "word-body";
-      const word = document.createElement("div");
-      word.className = "word-en";
-      word.textContent = entry.w;
-      const band = document.createElement("span");
-      band.className = "word-level";
       const bandKey = dictionaryService.lookupLearningBand(entry.w);
-      band.textContent =
-        { foundation: "基础词", developing: "进阶词", expanding: "拓展词" }[
-          bandKey
-        ] || "复习词";
-      const phonetic = document.createElement("div");
-      phonetic.className = "word-phonetic";
-      phonetic.textContent =
-        dictionaryService.lookupLocalPhonetic(entry.w) || "暂无音标";
-      const meaning = document.createElement("div");
-      meaning.className = "word-cn";
-      if (entry.m) meaning.textContent = entry.m;
-      else setMutedText(meaning, "正在查找中文释义…");
+      const {
+        card,
+        body,
+        actions: actionsWrap,
+        meaningElement: meaning,
+        phoneticElement: phonetic,
+      } = createWordCardFrame({
+        word: entry.w,
+        index,
+        bandKey,
+        bandFallback: "复习词",
+        phonetic: dictionaryService.lookupLocalPhonetic(entry.w),
+        meaning: entry.m,
+        animationStep: 0.04,
+      });
 
       const source = document.createElement("div");
       source.className = "word-source";
@@ -156,10 +145,7 @@ export function createWordbookController({
         source.hidden = true;
       }
 
-      body.append(word, band, phonetic, meaning, source);
-
-      const actionsWrap = document.createElement("div");
-      actionsWrap.className = "word-actions";
+      body.appendChild(source);
       const star = document.createElement("button");
       star.className = "btn-star active";
       star.innerHTML = STAR_SVG;
@@ -183,13 +169,7 @@ export function createWordbookController({
       feedback.className = "review-feedback";
       const reviewMeta = document.createElement("span");
       reviewMeta.className = "review-meta";
-      const masteryLabel =
-        {
-          new: "新词",
-          learning: "学习中",
-          reviewing: "复习中",
-          mastered: "已掌握",
-        }[entry.mastery] || "新词";
+      const masteryLabel = MASTERY_LABELS[entry.mastery] || MASTERY_LABELS.new;
       reviewMeta.textContent =
         entry.nextReviewAt > Date.now()
           ? `${masteryLabel} · ${new Date(entry.nextReviewAt).toLocaleDateString("zh-CN")} 再复习`
@@ -211,7 +191,7 @@ export function createWordbookController({
         });
         feedback.appendChild(button);
       }
-      card.append(count, body, actionsWrap, feedback);
+      card.appendChild(feedback);
       setCardMeaning(card, entry.w, entry.m || "", updateStarredMeaning);
       card.addEventListener("click", () => speakWordN(entry.w, card));
       list.appendChild(card);

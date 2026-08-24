@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { CLASSROOM_TEMPLATE_GROUPS } from "../src/data/classroom-templates.js";
 
 const intentMeta = {
   circle_answer: [
@@ -231,13 +232,6 @@ const categories = [
         "listen_carefully",
         "rug",
         "地毯",
-      ],
-      [
-        "Keep your hands to yourself.",
-        "手不要碰别人。",
-        "stay_safe",
-        "hands to yourself",
-        "手放好",
       ],
       [
         "Raise your hand before you speak.",
@@ -690,14 +684,6 @@ const categories = [
         "addition",
         "加法",
       ],
-      ["Show your work.", "写出你的过程。", "show_work", "work", "过程"],
-      [
-        "Circle the correct answer.",
-        "圈出正确答案。",
-        "circle_answer",
-        "correct answer",
-        "正确答案",
-      ],
       [
         "Estimate the sum.",
         "估算总和。",
@@ -792,13 +778,6 @@ const categories = [
         "label_part",
         "flower",
         "花",
-      ],
-      [
-        "Predict what will happen.",
-        "预测会发生什么。",
-        "predict_next",
-        "predict",
-        "预测",
       ],
       [
         "Describe the weather today.",
@@ -992,13 +971,6 @@ const categories = [
     "Group Work",
     "teacher",
     [
-      [
-        "Work with your partner.",
-        "和伙伴一起做。",
-        "discuss_ideas",
-        "partner",
-        "伙伴",
-      ],
       [
         "Take turns talking.",
         "轮流说话。",
@@ -1738,6 +1710,43 @@ for (const [cat, defaultScene, defaultSpeaker, items] of categories) {
       keywords: [{ word, cn: wordCn }],
       childReply: replyFor(speaker, intent),
       difficulty: en.split(/\s+/).length > 6 ? "medium" : "easy",
+    });
+  }
+}
+
+for (const group of CLASSROOM_TEMPLATE_GROUPS) {
+  for (const raw of group.items) {
+    const item = Array.isArray(raw)
+      ? { en: String(raw[0] || ""), cn: String(raw[1] || "") }
+      : raw;
+    const en = String(item.en || "").trim();
+    const cn = String(item.cn || "").trim();
+    if (!en || !cn) continue;
+    if (entries.some((entry) => entry.en.toLowerCase() === en.toLowerCase())) {
+      throw new Error(`Duplicate classroom phrase source: ${en}`);
+    }
+    const fallbackKeyword = en.match(/[a-z]+/i)?.[0]?.toLowerCase() || en;
+    entries.push({
+      id: slugify(`${group.cat}-${en}`),
+      en,
+      cn,
+      cat: group.cat,
+      scene: group.cat,
+      speaker: "teacher",
+      intent: "featured_template",
+      steps: ["Read the sentence.", "Do the action."],
+      stepsZh:
+        Array.isArray(item.steps) && item.steps.length
+          ? item.steps.map(String)
+          : ["读句子。", "完成动作。"],
+      keywords:
+        Array.isArray(item.keywords) && item.keywords.length
+          ? item.keywords
+          : [{ word: fallbackKeyword, cn }],
+      childReply: replyFor("teacher", "featured_template"),
+      difficulty: en.split(/\s+/).length > 6 ? "medium" : "easy",
+      featured: true,
+      iconKey: group.iconKey,
     });
   }
 }

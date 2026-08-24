@@ -1,12 +1,16 @@
-export const siteOrigin = "https://dict.luciaandrayna.com";
-export const siteName = "Lucia's Dictionary";
-export const siteAlternateNames = [
-  "Lucia Dictionary",
-  "Lucia's English Dictionary",
-  "Lucia 的英语词典",
-  "Lucia 课堂英语词典",
-];
-export const siteLogo = `${siteOrigin}/assets/logo.png`;
+export {
+  siteAlternateNames,
+  siteLogo,
+  siteName,
+  siteOrigin,
+} from "../config/site.js";
+
+import {
+  siteAlternateNames,
+  siteLogo,
+  siteName,
+  siteOrigin,
+} from "../config/site.js";
 
 export function pageUrl(path = "/") {
   return new URL(path, siteOrigin).toString();

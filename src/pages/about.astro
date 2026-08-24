@@ -2,11 +2,11 @@
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
+import { infoPageById, siteName } from "../config/site.js";
 
-const title = "关于 Lucia's Dictionary｜课堂英语句子学习词典";
-const description =
-  "了解 Lucia's Dictionary 如何帮助中文家庭读懂课堂英语句子、学习重点单词并在本地复习。";
-const canonicalPath = "/about/";
+const title = `关于 ${siteName}｜课堂英语句子学习词典`;
+const description = `了解 ${siteName} 如何帮助中文家庭读懂课堂英语句子、学习重点单词并在本地复习。`;
+const canonicalPath = infoPageById.about.path;
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
   title,
@@ -23,12 +23,12 @@ const structuredData = buildInfoPageStructuredData({
   structuredData={structuredData}
 >
   <InfoPageShell
-    title="About Lucia's Dictionary"
-    titleZh="关于 Lucia's Dictionary"
+    title={`About ${siteName}`}
+    titleZh={`关于 ${siteName}`}
     current="about"
   >
     <p>
-      Lucia's Dictionary
+      {siteName}
       是为中文家庭设计的课堂英语句子学习词典。它特别关注作业要求、阅读题目、数学和科学提示，以及老师在课堂上常说的话。
     </p>
     <p>

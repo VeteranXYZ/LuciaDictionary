@@ -11,7 +11,8 @@ export function registerServiceWorker(
 ) {
   if (!enabled || !nav || !win || !("serviceWorker" in nav)) return false;
   win.addEventListener("load", () => {
-    nav.serviceWorker.register("/sw.js").catch(() => {});
+    nav.serviceWorker.register(serviceWorkerPath).catch(() => {});
   });
   return true;
 }
+import { serviceWorkerPath } from "../config/site.js";

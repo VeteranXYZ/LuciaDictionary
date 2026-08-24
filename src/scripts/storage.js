@@ -7,6 +7,7 @@ export const WORDBOOK_KEY = "lucia-wordbook";
 export const CLIENT_ID_KEY = "lucia-client-id";
 
 export const DEFAULT_SETTINGS = { speed: "normal", repeat: 3 };
+export const SETTING_STORAGE_PREFIX = "lucia-";
 export const CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
 export const CACHE_MAX_ITEMS = 240;
 
@@ -47,11 +48,15 @@ export function writeStoredJson(key, value) {
 }
 
 export function getSetting(key) {
-  return readStoredJson("lucia-" + key, DEFAULT_SETTINGS[key]);
+  return readStoredJson(getSettingStorageKey(key), DEFAULT_SETTINGS[key]);
 }
 
 export function setSetting(key, value) {
-  writeStoredJson("lucia-" + key, value);
+  writeStoredJson(getSettingStorageKey(key), value);
+}
+
+export function getSettingStorageKey(key) {
+  return SETTING_STORAGE_PREFIX + key;
 }
 
 export function trimCacheEntries(value, maxItems = CACHE_MAX_ITEMS) {

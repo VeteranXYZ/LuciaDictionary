@@ -8,6 +8,7 @@ import SettingsPage from "../components/app/SettingsPage.astro";
 import TemplatesPage from "../components/app/TemplatesPage.astro";
 import WordbookPage from "../components/app/WordbookPage.astro";
 import MainLayout from "../layouts/MainLayout.astro";
+import { homeDescription, homeTitle } from "../config/site.js";
 import {
   siteAlternateNames,
   siteLogo,
@@ -15,9 +16,8 @@ import {
   siteOrigin,
 } from "../lib/seo.js";
 
-const title = "Lucia's Dictionary｜课堂英语句子学习词典";
-const description =
-  "输入、粘贴或拍下课堂英语句子，查看中文释义、音标和发音，并把生词保存在本地随时复习。";
+const title = homeTitle;
+const description = homeDescription;
 const structuredData = [
   {
     "@context": "https://schema.org",

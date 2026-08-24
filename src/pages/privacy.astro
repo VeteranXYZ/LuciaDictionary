@@ -2,11 +2,11 @@
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
+import { infoPageById, siteName } from "../config/site.js";
 
-const title = "Lucia's Dictionary 隐私与数据说明";
-const description =
-  "了解 Lucia's Dictionary 如何在浏览器中保存生词本和设置，什么时候会使用联网查词、翻译、图片识别及基础访问统计。";
-const canonicalPath = "/privacy/";
+const title = `${siteName} 隐私与数据说明`;
+const description = `了解 ${siteName} 如何在浏览器中保存生词本和设置，什么时候会使用联网查词、翻译、图片识别及基础访问统计。`;
+const canonicalPath = infoPageById.privacy.path;
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
   title,
@@ -24,7 +24,7 @@ const structuredData = buildInfoPageStructuredData({
 >
   <InfoPageShell title="Privacy" titleZh="隐私与数据" current="privacy">
     <p>
-      Lucia's Dictionary
+      {siteName}
       尽量把学习数据保存在当前浏览器中。它不提供账号、公开个人主页、搜索历史分享、个性化广告或云端生词本同步功能。
     </p>
     <section>

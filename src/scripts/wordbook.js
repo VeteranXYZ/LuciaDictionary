@@ -1,4 +1,5 @@
 import { WORDBOOK_KEY, readStoredJson, writeStoredJson } from "./storage.js";
+import { MASTERY_STATES } from "./learning-labels.js";
 
 export const REVIEW_DAY_MS = 24 * 60 * 60 * 1000;
 export const REVIEW_INTERVALS = [0, 1, 2, 4, 7, 30];
@@ -87,9 +88,7 @@ export function normalizeWordbookItem(item) {
     wrong: Math.max(0, Number(item?.wrong || 0)),
     lastReviewedAt: item?.lastReviewedAt ? Number(item.lastReviewedAt) : null,
     level,
-    mastery: ["new", "learning", "reviewing", "mastered"].includes(
-      item?.mastery,
-    )
+    mastery: MASTERY_STATES.includes(item?.mastery)
       ? item.mastery
       : masteryForLevel(level),
     intervalDays: Math.max(0, Number(item?.intervalDays || 0)),

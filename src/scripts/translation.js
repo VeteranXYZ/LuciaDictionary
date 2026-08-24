@@ -63,37 +63,18 @@ export function normalizePhrasebookEntry(entry, fallbackCat = "") {
   };
 }
 
-export function flattenPhrasebook(phrasebook, templateGroups = []) {
-  const items = [];
-
-  for (const entry of phrasebook || []) {
-    const normalized = normalizePhrasebookEntry(entry);
-    if (normalized.en || normalized.cn) items.push(normalized);
-  }
-
-  for (const group of templateGroups || []) {
-    for (const item of group.items || []) {
-      const normalized = normalizePhrasebookEntry(item, group.cat);
-      if (
-        !items.some(
-          (existing) =>
-            normalizeText(existing.en) === normalizeText(normalized.en),
-        )
-      ) {
-        items.push(normalized);
-      }
-    }
-  }
-
-  return items;
+export function flattenPhrasebook(phrasebook) {
+  return (phrasebook || [])
+    .map((entry) => normalizePhrasebookEntry(entry))
+    .filter((entry) => entry.en || entry.cn);
 }
 
-export function matchPhrasebook(text, phrasebook, templateGroups = []) {
+export function matchPhrasebook(text, phrasebook) {
   const normalized = normalizeText(text);
   if (!normalized) return null;
   const allowLooseMatch = normalized.length >= 4;
 
-  for (const item of flattenPhrasebook(phrasebook, templateGroups)) {
+  for (const item of flattenPhrasebook(phrasebook)) {
     const cn = normalizeText(item.cn);
     const en = normalizeText(item.en);
     const cnMatches =
@@ -112,14 +93,13 @@ export function matchPhrasebook(text, phrasebook, templateGroups = []) {
   return null;
 }
 
-export function findTemplateTranslation(text, phrasebook, templateGroups = []) {
-  return matchPhrasebook(text, phrasebook, templateGroups)?.en || "";
+export function findTemplateTranslation(text, phrasebook) {
+  return matchPhrasebook(text, phrasebook)?.en || "";
 }
 
 export function createTranslationService({
   dictService,
   phrasebook,
-  templateGroups,
   enqueueNetwork,
 }) {
   async function translateText(text, from, to) {
@@ -184,11 +164,7 @@ export function createTranslationService({
   }
 
   async function resolveChineseInput(raw) {
-    const localTemplate = findTemplateTranslation(
-      raw,
-      phrasebook,
-      templateGroups,
-    );
+    const localTemplate = findTemplateTranslation(raw, phrasebook);
     if (localTemplate) {
       return {
         sentence: localTemplate,
@@ -218,8 +194,7 @@ export function createTranslationService({
     translateText,
     resolveChineseInput,
     findTemplateTranslation: (text) =>
-      findTemplateTranslation(text, phrasebook, templateGroups),
-    matchPhrasebook: (text) =>
-      matchPhrasebook(text, phrasebook, templateGroups),
+      findTemplateTranslation(text, phrasebook),
+    matchPhrasebook: (text) => matchPhrasebook(text, phrasebook),
   };
 }
