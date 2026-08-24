@@ -1,4 +1,6 @@
 import { cleanPhonetic } from "./phonetic.js";
+import { emptyMascotPath } from "../config/site.js";
+import { LEARNING_BAND_LABELS } from "./learning-labels.js";
 
 export const SPEAKER_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
@@ -11,11 +13,7 @@ export const BOOK_SVG =
 export const LOCAL_MISSING_MESSAGE = "暂时没有释义，可联网查词";
 export const ONLINE_FAILURE_MESSAGE = "联网查词失败，请稍后再试";
 export const ONLINE_LOOKUP_BUTTON_LABEL = "联网查词";
-export const LEARNING_BAND_LABELS = {
-  foundation: "基础词",
-  developing: "进阶词",
-  expanding: "拓展词",
-};
+export { LEARNING_BAND_LABELS } from "./learning-labels.js";
 
 export function getLookupFallbackMessage({
   explicitLookup = false,
@@ -45,7 +43,7 @@ export function createEmptyState(message, strongText) {
   const mascot = document.createElement("div");
   mascot.className = "empty-mascot";
   const img = document.createElement("img");
-  img.src = "assets/monkey.png";
+  img.src = emptyMascotPath;
   img.alt = "";
   mascot.appendChild(img);
 
@@ -95,6 +93,58 @@ export function setMutedText(el, text) {
   span.className = "muted-inline";
   span.textContent = text;
   el.appendChild(span);
+}
+
+export function createWordCardFrame({
+  word,
+  index,
+  bandKey = "",
+  bandFallback = "",
+  phonetic = "",
+  meaning = "",
+  loadingMessage = "正在查找中文释义…",
+  animationStep = 0.05,
+}) {
+  const card = document.createElement("div");
+  card.className = "word-card";
+  card.style.animationDelay = index * animationStep + "s";
+  card.dataset.word = String(word).toLowerCase();
+
+  const number = document.createElement("div");
+  number.className = "word-num";
+  number.textContent = index + 1;
+
+  const body = document.createElement("div");
+  body.className = "word-body";
+  const wordElement = document.createElement("div");
+  wordElement.className = "word-en";
+  wordElement.textContent = word;
+  const band = document.createElement("span");
+  band.className = "word-level";
+  band.textContent = LEARNING_BAND_LABELS[bandKey] || bandFallback;
+  band.hidden = !band.textContent;
+  const phoneticElement = document.createElement("div");
+  phoneticElement.className = "word-phonetic";
+  phoneticElement.textContent = phonetic || "暂无音标";
+  const meaningElement = document.createElement("div");
+  meaningElement.className = "word-cn";
+  if (meaning) meaningElement.textContent = meaning;
+  else setMutedText(meaningElement, loadingMessage);
+
+  body.append(wordElement, band, phoneticElement, meaningElement);
+  const actions = document.createElement("div");
+  actions.className = "word-actions";
+  card.append(number, body, actions);
+
+  return {
+    card,
+    body,
+    actions,
+    band,
+    meaningElement,
+    phoneticElement,
+    wordElement,
+  };
 }
 
 export function showCelebration() {
@@ -199,42 +249,19 @@ export function buildWordCard(word, index, meaning, container, options) {
   const displayMeaning = skipOnlineLookup
     ? "常用功能词，帮助句子表达语法关系"
     : meaning;
-  const card = document.createElement("div");
-  card.className = "word-card";
-  card.style.animationDelay = index * 0.05 + "s";
-  card.dataset.word = key;
+  const {
+    card,
+    actions,
+    meaningElement: cn,
+    phoneticElement: ph,
+  } = createWordCardFrame({
+    word,
+    index,
+    bandKey: options.lookupLearningBand?.(word) || "",
+    phonetic: options.lookupLocalPhonetic(word),
+    meaning: displayMeaning,
+  });
   options.setMeaning(card, displayMeaning || "");
-
-  const num = document.createElement("div");
-  num.className = "word-num";
-  num.textContent = index + 1;
-
-  const body = document.createElement("div");
-  body.className = "word-body";
-
-  const en = document.createElement("div");
-  en.className = "word-en";
-  en.textContent = word;
-
-  const bandKey = options.lookupLearningBand?.(word) || "";
-  const band = document.createElement("span");
-  band.className = "word-level";
-  band.textContent = LEARNING_BAND_LABELS[bandKey] || "";
-  band.hidden = !band.textContent;
-
-  const ph = document.createElement("div");
-  ph.className = "word-phonetic";
-  ph.textContent = options.lookupLocalPhonetic(word) || "暂无音标";
-
-  const cn = document.createElement("div");
-  cn.className = "word-cn";
-  if (displayMeaning) cn.textContent = displayMeaning;
-  else setMutedText(cn, "正在查找中文释义…");
-
-  body.append(en, band, ph, cn);
-
-  const actions = document.createElement("div");
-  actions.className = "word-actions";
 
   const star = document.createElement("button");
   const starred = options.isStarred(key);
@@ -290,7 +317,6 @@ export function buildWordCard(word, index, meaning, container, options) {
     });
     actions.appendChild(onlineBtn);
   }
-  card.append(num, body, actions);
   card.addEventListener("click", () => options.speakWordN(word, card));
   container.appendChild(card);
 

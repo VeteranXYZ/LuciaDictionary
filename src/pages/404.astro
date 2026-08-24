@@ -1,9 +1,10 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
+import { siteName } from "../config/site.js";
 
-const title = "页面未找到｜Lucia's Dictionary";
-const description = "没有找到你要访问的 Lucia's Dictionary 页面。";
+const title = `页面未找到｜${siteName}`;
+const description = `没有找到你要访问的 ${siteName} 页面。`;
 ---
 
 <MainLayout

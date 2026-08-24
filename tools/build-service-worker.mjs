@@ -1,22 +1,10 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { corePrecacheUrls } from "../src/config/site.js";
 
 const DIST = "dist";
 const SW_PATH = path.join(DIST, "sw.js");
-const CORE_URLS = [
-  "/",
-  "/manifest.webmanifest",
-  "/assets/dict.json",
-  "/assets/lexicon/core-lexicon.json",
-  "/assets/phonetics.json",
-  "/assets/phrasebook.json",
-  "/assets/logo.png",
-  "/assets/lucia.png",
-  "/assets/monkey.png",
-  "/favicon.png",
-  "/favicon.ico",
-];
 
 function listFiles(directory) {
   if (!fs.existsSync(directory)) return [];
@@ -29,7 +17,7 @@ function listFiles(directory) {
 const buildAssetUrls = listFiles(path.join(DIST, "_a"))
   .map((file) => `/${path.relative(DIST, file).split(path.sep).join("/")}`)
   .sort();
-const urls = [...new Set([...CORE_URLS, ...buildAssetUrls])];
+const urls = [...new Set([...corePrecacheUrls, ...buildAssetUrls])];
 
 for (const url of urls) {
   const file =

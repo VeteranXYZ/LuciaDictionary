@@ -1,5 +1,6 @@
 import { getDueWords, recordQuizAnswer } from "./wordbook.js";
 import { SPEAKER_SVG, createEmptyState, showCelebration } from "./ui.js";
+import { shuffle } from "./random.js";
 
 export const quizState = { current: null, score: 0, total: 0 };
 
@@ -10,15 +11,6 @@ export function getQuizMeaning(entry) {
 export function getQuizOptionLabel(entry, flipped) {
   if (!flipped) return entry.w;
   return getQuizMeaning(entry) || entry.w;
-}
-
-function shuffle(items, random) {
-  const result = items.slice();
-  for (let index = result.length - 1; index > 0; index--) {
-    const target = Math.floor(random() * (index + 1));
-    [result[index], result[target]] = [result[target], result[index]];
-  }
-  return result;
 }
 
 export function createQuizQuestion(

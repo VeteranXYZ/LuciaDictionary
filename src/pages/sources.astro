@@ -2,11 +2,11 @@
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
+import { infoPageById, siteName } from "../config/site.js";
 
-const title = "Lucia's Dictionary 数据来源";
-const description =
-  "了解 Lucia's Dictionary 使用的本地词典、课堂短句、音标、联网查词、翻译和图片文字识别服务。";
-const canonicalPath = "/sources/";
+const title = `${siteName} 数据来源`;
+const description = `了解 ${siteName} 使用的本地词典、课堂短句、音标、联网查词、翻译和图片文字识别服务。`;
+const canonicalPath = infoPageById.sources.path;
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
   title,
@@ -28,7 +28,7 @@ const structuredData = buildInfoPageStructuredData({
     current="sources"
   >
     <p>
-      Lucia's Dictionary
+      {siteName}
       会先使用随应用提供的词典和课堂短句；本地内容不足时，才会按需使用联网查词、翻译或图片文字识别服务。不同来源的结果可能存在差异。
     </p>
     <section>

@@ -1,3 +1,7 @@
+---
+import { brandSubtitle, logoPath, siteName } from "../../config/site.js";
+---
+
 <header class="brand">
   <button
     class="brand-logo"
@@ -5,16 +9,11 @@
     type="button"
     aria-label="返回首页"
   >
-    <img
-      src="assets/logo.png"
-      width="512"
-      height="512"
-      alt="Lucia's Dictionary"
-    />
+    <img src={logoPath} width="512" height="512" alt={siteName} />
   </button>
   <div class="brand-text">
-    <div class="brand-title">Lucia's Dictionary</div>
-    <div class="brand-sub">Lucia 的小学英语学习伙伴</div>
+    <div class="brand-title">{siteName}</div>
+    <div class="brand-sub">{brandSubtitle}</div>
   </div>
   <div class="brand-streak" title="连续学习天数">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"

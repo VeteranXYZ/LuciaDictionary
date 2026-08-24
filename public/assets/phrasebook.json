@@ -30,36 +30,6 @@
     "difficulty": "easy"
   },
   {
-    "id": "classroom-behavior-keep-your-hands-to-yourself",
-    "en": "Keep your hands to yourself.",
-    "cn": "手不要碰别人。",
-    "cat": "Classroom Behavior",
-    "scene": "Classroom",
-    "speaker": "teacher",
-    "intent": "stay_safe",
-    "steps": [
-      "Stop and look around.",
-      "Tell an adult if needed."
-    ],
-    "stepsZh": [
-      "停下来看看周围。",
-      "需要时告诉大人。"
-    ],
-    "keywords": [
-      {
-        "word": "hands to yourself",
-        "cn": "手放好"
-      }
-    ],
-    "childReply": [
-      {
-        "en": "I need help, please.",
-        "cn": "请帮帮我。"
-      }
-    ],
-    "difficulty": "easy"
-  },
-  {
     "id": "classroom-behavior-raise-your-hand-before-you-speak",
     "en": "Raise your hand before you speak.",
     "cn": "说话前请举手。",
@@ -1950,66 +1920,6 @@
     "difficulty": "easy"
   },
   {
-    "id": "math-problems-show-your-work",
-    "en": "Show your work.",
-    "cn": "写出你的过程。",
-    "cat": "Math Problems",
-    "scene": "Worksheet",
-    "speaker": "teacher",
-    "intent": "show_work",
-    "steps": [
-      "Write the steps.",
-      "Show how you solved it."
-    ],
-    "stepsZh": [
-      "写出步骤。",
-      "展示解题过程。"
-    ],
-    "keywords": [
-      {
-        "word": "work",
-        "cn": "过程"
-      }
-    ],
-    "childReply": [
-      {
-        "en": "Okay, I will do it.",
-        "cn": "好的，我会做。"
-      }
-    ],
-    "difficulty": "easy"
-  },
-  {
-    "id": "math-problems-circle-the-correct-answer",
-    "en": "Circle the correct answer.",
-    "cn": "圈出正确答案。",
-    "cat": "Math Problems",
-    "scene": "Worksheet",
-    "speaker": "teacher",
-    "intent": "circle_answer",
-    "steps": [
-      "Find the answer.",
-      "Draw a circle around it."
-    ],
-    "stepsZh": [
-      "找到答案。",
-      "把它圈起来。"
-    ],
-    "keywords": [
-      {
-        "word": "correct answer",
-        "cn": "正确答案"
-      }
-    ],
-    "childReply": [
-      {
-        "en": "Okay, I will do it.",
-        "cn": "好的，我会做。"
-      }
-    ],
-    "difficulty": "easy"
-  },
-  {
     "id": "math-problems-estimate-the-sum",
     "en": "Estimate the sum.",
     "cn": "估算总和。",
@@ -2479,36 +2389,6 @@
       {
         "word": "flower",
         "cn": "花"
-      }
-    ],
-    "childReply": [
-      {
-        "en": "Okay, I will do it.",
-        "cn": "好的，我会做。"
-      }
-    ],
-    "difficulty": "easy"
-  },
-  {
-    "id": "science-activities-predict-what-will-happen",
-    "en": "Predict what will happen.",
-    "cn": "预测会发生什么。",
-    "cat": "Science Activities",
-    "scene": "Classroom",
-    "speaker": "teacher",
-    "intent": "predict_next",
-    "steps": [
-      "Use clues.",
-      "Make a good guess."
-    ],
-    "stepsZh": [
-      "用线索。",
-      "做一个合理猜测。"
-    ],
-    "keywords": [
-      {
-        "word": "predict",
-        "cn": "预测"
       }
     ],
     "childReply": [
@@ -3349,36 +3229,6 @@
       {
         "word": "explain",
         "cn": "解释"
-      }
-    ],
-    "childReply": [
-      {
-        "en": "Okay, I will do it.",
-        "cn": "好的，我会做。"
-      }
-    ],
-    "difficulty": "easy"
-  },
-  {
-    "id": "group-work-work-with-your-partner",
-    "en": "Work with your partner.",
-    "cn": "和伙伴一起做。",
-    "cat": "Group Work",
-    "scene": "Group Work",
-    "speaker": "teacher",
-    "intent": "discuss_ideas",
-    "steps": [
-      "Talk with your group.",
-      "Listen to other ideas."
-    ],
-    "stepsZh": [
-      "和小组讨论。",
-      "听别人的想法。"
-    ],
-    "keywords": [
-      {
-        "word": "partner",
-        "cn": "伙伴"
       }
     ],
     "childReply": [
@@ -6718,5 +6568,1920 @@
       }
     ],
     "difficulty": "easy"
+  },
+  {
+    "id": "complete-the-worksheet",
+    "en": "Complete the worksheet.",
+    "cn": "完成练习单。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "找到 worksheet",
+      "按题目顺序完成",
+      "完成后交给老师"
+    ],
+    "keywords": [
+      {
+        "word": "complete",
+        "cn": "完成"
+      },
+      {
+        "word": "worksheet",
+        "cn": "练习单"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "show-your-work",
+    "en": "Show your work.",
+    "cn": "写出你的解题过程。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "不要只写答案",
+      "把每一步怎么算写出来"
+    ],
+    "keywords": [
+      {
+        "word": "show",
+        "cn": "展示/写出"
+      },
+      {
+        "word": "work",
+        "cn": "解题过程"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "turn-in-your-homework",
+    "en": "Turn in your homework.",
+    "cn": "交上你的家庭作业。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "turn",
+        "cn": "交上你的家庭作业。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "do-problems-1-through-10",
+    "en": "Do problems 1 through 10.",
+    "cn": "做第1题到第10题。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "do",
+        "cn": "做第1题到第10题。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "finish-the-assignment-by-friday",
+    "en": "Finish the assignment by Friday.",
+    "cn": "在周五之前完成作业。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "finish",
+        "cn": "在周五之前完成作业。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "write-your-name-on-the-top-of-the-page",
+    "en": "Write your name on the top of the page.",
+    "cn": "把名字写在页面上方。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "write",
+        "cn": "把名字写在页面上方。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "use-complete-sentences",
+    "en": "Use complete sentences.",
+    "cn": "用完整的句子作答。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "use",
+        "cn": "用完整的句子作答。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "check-your-answers-before-turning-in",
+    "en": "Check your answers before turning in.",
+    "cn": "交作业前检查一遍答案。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "check",
+        "cn": "交作业前检查一遍答案。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "follow-the-directions-carefully",
+    "en": "Follow the directions carefully.",
+    "cn": "仔细按照题目要求完成。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "follow",
+        "cn": "仔细按照题目要求完成。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "this-is-due-tomorrow",
+    "en": "This is due tomorrow.",
+    "cn": "这个明天要交。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "this",
+        "cn": "这个明天要交。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "make-sure-your-work-is-neat-and-legible",
+    "en": "Make sure your work is neat and legible.",
+    "cn": "书写要整洁、清楚。",
+    "cat": "作业",
+    "scene": "作业",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "make",
+        "cn": "书写要整洁、清楚。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "homework"
+  },
+  {
+    "id": "read-the-passage-and-answer-the-questions",
+    "en": "Read the passage and answer the questions.",
+    "cn": "阅读文章并回答问题。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "先读短文",
+      "再看问题",
+      "回到文章里找答案"
+    ],
+    "keywords": [
+      {
+        "word": "read",
+        "cn": "阅读"
+      },
+      {
+        "word": "passage",
+        "cn": "短文"
+      },
+      {
+        "word": "answer",
+        "cn": "回答"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "underline-the-main-idea",
+    "en": "Underline the main idea.",
+    "cn": "在主旨句下面画线。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "underline",
+        "cn": "在主旨句下面画线。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "circle-the-correct-answer",
+    "en": "Circle the correct answer.",
+    "cn": "圈出正确答案。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "circle",
+        "cn": "圈出正确答案。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "find-the-topic-sentence",
+    "en": "Find the topic sentence.",
+    "cn": "找到主题句。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "find",
+        "cn": "找到主题句。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "read-pages-20-to-35",
+    "en": "Read pages 20 to 35.",
+    "cn": "阅读第 20 页到第 35 页。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "read",
+        "cn": "阅读第 20 页到第 35 页。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "summarize-the-story-in-your-own-words",
+    "en": "Summarize the story in your own words.",
+    "cn": "用你自己的话总结这个故事。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "summarize",
+        "cn": "用你自己的话总结这个故事。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "what-is-the-main-idea-of-this-paragraph",
+    "en": "What is the main idea of this paragraph?",
+    "cn": "这段话的主要意思是什么？",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "what",
+        "cn": "这段话的主要意思是什么？"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "compare-and-contrast-the-two-characters",
+    "en": "Compare and contrast the two characters.",
+    "cn": "比较两个角色的异同。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "compare",
+        "cn": "比较两个角色的异同。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "make-a-prediction-about-what-will-happen-next",
+    "en": "Make a prediction about what will happen next.",
+    "cn": "预测接下来会发生什么。",
+    "cat": "阅读",
+    "scene": "阅读",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "make",
+        "cn": "预测接下来会发生什么。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "reading"
+  },
+  {
+    "id": "write-a-paragraph-about-your-topic",
+    "en": "Write a paragraph about your topic.",
+    "cn": "围绕你的主题写一段话。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "write",
+        "cn": "围绕你的主题写一段话。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "edit-your-draft-for-spelling-and-grammar",
+    "en": "Edit your draft for spelling and grammar.",
+    "cn": "检查草稿中的拼写和语法。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "edit",
+        "cn": "检查草稿中的拼写和语法。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "write-a-rough-draft-first",
+    "en": "Write a rough draft first.",
+    "cn": "先写一份初稿。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "write",
+        "cn": "先写一份初稿。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "include-a-topic-sentence",
+    "en": "Include a topic sentence.",
+    "cn": "要写出主题句。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "include",
+        "cn": "要写出主题句。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "use-transition-words",
+    "en": "Use transition words.",
+    "cn": "使用过渡词。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "use",
+        "cn": "使用过渡词。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "revise-your-essay",
+    "en": "Revise your essay.",
+    "cn": "修改你的文章。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "revise",
+        "cn": "修改你的文章。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "brainstorm-ideas-before-you-start-writing",
+    "en": "Brainstorm ideas before you start writing.",
+    "cn": "动笔前，先想一想可以写什么。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "brainstorm",
+        "cn": "动笔前，先想一想可以写什么。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "add-more-details-to-support-your-opinion",
+    "en": "Add more details to support your opinion.",
+    "cn": "添加更多细节来支持你的观点。",
+    "cat": "写作",
+    "scene": "写作",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "add",
+        "cn": "添加更多细节来支持你的观点。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "writing"
+  },
+  {
+    "id": "solve-the-equation",
+    "en": "Solve the equation.",
+    "cn": "解这个方程。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "solve",
+        "cn": "解这个方程。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "round-to-the-nearest-ten",
+    "en": "Round to the nearest ten.",
+    "cn": "四舍五入到最接近的十位。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "round",
+        "cn": "四舍五入到最接近的十位。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "show-your-work-step-by-step",
+    "en": "Show your work step by step.",
+    "cn": "逐步写出你的解题过程。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "show",
+        "cn": "逐步写出你的解题过程。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "estimate-the-answer-first",
+    "en": "Estimate the answer first.",
+    "cn": "先估算一下答案。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "estimate",
+        "cn": "先估算一下答案。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "find-the-area-and-perimeter",
+    "en": "Find the area and perimeter.",
+    "cn": "求面积和周长。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "find",
+        "cn": "求面积和周长。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "reduce-the-fraction-to-lowest-terms",
+    "en": "Reduce the fraction to lowest terms.",
+    "cn": "把分数约成最简分数。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "reduce",
+        "cn": "把分数约成最简分数。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "plot-the-points-on-the-graph",
+    "en": "Plot the points on the graph.",
+    "cn": "在坐标图上标出这些点。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "plot",
+        "cn": "在坐标图上标出这些点。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "what-is-the-sum-of-these-numbers",
+    "en": "What is the sum of these numbers?",
+    "cn": "这些数字的和是多少？",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "what",
+        "cn": "这些数字的和是多少？"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "convert-the-fraction-to-a-decimal",
+    "en": "Convert the fraction to a decimal.",
+    "cn": "把分数转换成小数。",
+    "cat": "数学",
+    "scene": "数学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "convert",
+        "cn": "把分数转换成小数。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "math"
+  },
+  {
+    "id": "record-your-observations",
+    "en": "Record your observations.",
+    "cn": "记录你的观察结果。",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "record",
+        "cn": "记录你的观察结果。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "label-the-diagram",
+    "en": "Label the diagram.",
+    "cn": "给图示添加标注。",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "label",
+        "cn": "给图示添加标注。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "write-a-hypothesis",
+    "en": "Write a hypothesis.",
+    "cn": "提出一个假设。",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "write",
+        "cn": "提出一个假设。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "what-did-you-conclude-from-the-experiment",
+    "en": "What did you conclude from the experiment?",
+    "cn": "你从实验中得出了什么结论？",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "what",
+        "cn": "你从实验中得出了什么结论？"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "describe-the-steps-of-the-experiment",
+    "en": "Describe the steps of the experiment.",
+    "cn": "描述实验的步骤。",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "describe",
+        "cn": "描述实验的步骤。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "draw-and-label-the-parts-of-a-plant",
+    "en": "Draw and label the parts of a plant.",
+    "cn": "画出并标注植物的各个部分。",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "draw",
+        "cn": "画出并标注植物的各个部分。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "medium",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "list-the-materials-you-need",
+    "en": "List the materials you need.",
+    "cn": "列出你需要的材料。",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "list",
+        "cn": "列出你需要的材料。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "predict-what-will-happen",
+    "en": "Predict what will happen.",
+    "cn": "预测会发生什么。",
+    "cat": "科学",
+    "scene": "科学",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "predict",
+        "cn": "预测会发生什么。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "science"
+  },
+  {
+    "id": "raise-your-hand-before-speaking",
+    "en": "Raise your hand before speaking.",
+    "cn": "说话之前先举手。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "先举手",
+      "等老师叫到你",
+      "再说话"
+    ],
+    "keywords": [
+      {
+        "word": "raise",
+        "cn": "举起"
+      },
+      {
+        "word": "hand",
+        "cn": "手"
+      },
+      {
+        "word": "speaking",
+        "cn": "说话"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "line-up-quietly",
+    "en": "Line up quietly.",
+    "cn": "安静地排队。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "line",
+        "cn": "安静地排队。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "take-out-your-notebook",
+    "en": "Take out your notebook.",
+    "cn": "拿出你的笔记本。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "take",
+        "cn": "拿出你的笔记本。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "put-your-materials-away",
+    "en": "Put your materials away.",
+    "cn": "把你的东西收好。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "put",
+        "cn": "把你的东西收好。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "pay-attention",
+    "en": "Pay attention.",
+    "cn": "注意听讲。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "pay",
+        "cn": "注意听讲。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "work-with-your-partner",
+    "en": "Work with your partner.",
+    "cn": "和你的搭档一起做。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "work",
+        "cn": "和你的搭档一起做。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "take-turns",
+    "en": "Take turns.",
+    "cn": "轮流来。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "take",
+        "cn": "轮流来。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "keep-your-hands-to-yourself",
+    "en": "Keep your hands to yourself.",
+    "cn": "手不要碰别人或别人的东西。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "keep",
+        "cn": "手不要碰别人或别人的东西。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "clean-up-your-desk",
+    "en": "Clean up your desk.",
+    "cn": "整理你的桌子。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "clean",
+        "cn": "整理你的桌子。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "walk-don-t-run-in-the-hallway",
+    "en": "Walk, don't run, in the hallway.",
+    "cn": "在走廊里要走，不要跑。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "walk",
+        "cn": "在走廊里要走，不要跑。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "eyes-on-me",
+    "en": "Eyes on me.",
+    "cn": "看老师这里。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "eyes",
+        "cn": "看老师这里。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "please-be-seated",
+    "en": "Please be seated.",
+    "cn": "请坐下。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "please",
+        "cn": "请坐下。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "you-may-go-to-the-restroom",
+    "en": "You may go to the restroom.",
+    "cn": "你可以去洗手间了。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "you",
+        "cn": "你可以去洗手间了。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
+  },
+  {
+    "id": "bring-your-signed-permission-slip",
+    "en": "Bring your signed permission slip.",
+    "cn": "带上家长签字的同意书。",
+    "cat": "课堂习惯",
+    "scene": "课堂习惯",
+    "speaker": "teacher",
+    "intent": "featured_template",
+    "steps": [
+      "Read the sentence.",
+      "Do the action."
+    ],
+    "stepsZh": [
+      "读句子。",
+      "完成动作。"
+    ],
+    "keywords": [
+      {
+        "word": "bring",
+        "cn": "带上家长签字的同意书。"
+      }
+    ],
+    "childReply": [
+      {
+        "en": "Okay, I will do it.",
+        "cn": "好的，我会做。"
+      }
+    ],
+    "difficulty": "easy",
+    "featured": true,
+    "iconKey": "classroom"
   }
 ]

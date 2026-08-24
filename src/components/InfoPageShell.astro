@@ -1,4 +1,14 @@
 ---
+import {
+  brandSubtitle,
+  copyrightYear,
+  infoPages,
+  logoPath,
+  siteName,
+  siteOwner,
+  sitePublisher,
+} from "../config/site.js";
+
 interface Props {
   title: string;
   titleZh: string;
@@ -13,27 +23,16 @@ const {
   current,
 } = Astro.props;
 
-const pages = [
-  { id: "about", href: "/about/", label: "关于", labelEn: "About" },
-  {
-    id: "guide",
-    href: "/guide/",
-    label: "使用指南",
-    labelEn: "Guide",
-  },
-  { id: "sources", href: "/sources/", label: "数据来源", labelEn: "Sources" },
-  { id: "privacy", href: "/privacy/", label: "隐私与数据", labelEn: "Privacy" },
-];
-const currentPage = pages.find((page) => page.id === current);
+const currentPage = infoPages.find((page) => page.id === current);
 ---
 
 <main class="info-page" id="main-content">
   <header class="info-topbar">
-    <a class="info-brand" href="/" aria-label="返回 Lucia's Dictionary 首页">
-      <img src="/assets/logo.png" width="512" height="512" alt="" />
+    <a class="info-brand" href="/" aria-label={`返回 ${siteName} 首页`}>
+      <img src={logoPath} width="512" height="512" alt="" />
       <span>
-        <strong>Lucia's Dictionary</strong>
-        <small>Lucia 的小学英语学习伙伴</small>
+        <strong>{siteName}</strong>
+        <small>{brandSubtitle}</small>
       </span>
     </a>
     <a class="info-back" href="/">
@@ -48,7 +47,7 @@ const currentPage = pages.find((page) => page.id === current);
     {
       currentPage && (
         <nav class="info-breadcrumb" aria-label="页面位置">
-          <a href="/">Lucia's Dictionary</a>
+          <a href="/">{siteName}</a>
           <span aria-hidden="true">/</span>
           <span aria-current="page">{currentPage.label}</span>
         </nav>
@@ -68,9 +67,9 @@ const currentPage = pages.find((page) => page.id === current);
 
   <nav class="info-links" aria-label="家长指南页面">
     {
-      pages.map((page) => (
+      infoPages.map((page) => (
         <a
-          href={page.href}
+          href={page.path}
           aria-current={current === page.id ? "page" : undefined}
         >
           <span>{page.label}</span>
@@ -89,6 +88,7 @@ const currentPage = pages.find((page) => page.id === current);
   </a>
 
   <footer class="info-footer">
-    © 2026 Lucia &amp; Rayna · Powered by HIEI
+    © {copyrightYear}
+    {siteOwner} · Powered by {sitePublisher}
   </footer>
 </main>

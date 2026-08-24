@@ -2,12 +2,13 @@ import {
   DEFAULT_SETTINGS,
   WORDBOOK_KEY,
   getSetting,
+  getSettingStorageKey,
   subscribeStorage,
 } from "./storage.js";
 import { getReviewSummary, getWordbook } from "./wordbook.js";
 
 const SETTING_KEYS = new Set(
-  Object.keys(DEFAULT_SETTINGS).map((key) => `lucia-${key}`),
+  Object.keys(DEFAULT_SETTINGS).map(getSettingStorageKey),
 );
 
 export function getAppState() {

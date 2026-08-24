@@ -8,10 +8,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node tools/generate-phrasebook.mjs && node tools/build-site-metadata.mjs && astro dev",
     "dev:pages": "npm run build && wrangler pages dev",
-    "build": "astro build && node tools/build-service-worker.mjs",
+    "build": "node tools/generate-phrasebook.mjs && node tools/build-site-metadata.mjs && astro build && node tools/build-service-worker.mjs",
     "build:runtime-lexicon": "node tools/build-runtime-lexicon.mjs",
+    "build:phrasebook": "node tools/generate-phrasebook.mjs",
+    "build:site-metadata": "node tools/build-site-metadata.mjs",
     "build:lexicon": "node tools/build-core-lexicon.mjs",
     "build:hfv-ecdict-core": "node tools/build-hfv-ecdict-core.mjs",
     "audit:lexicon": "node tools/audit-lexicon.mjs",

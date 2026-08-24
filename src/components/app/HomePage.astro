@@ -1,3 +1,7 @@
+---
+import { emptyMascotPath, luciaMascotPath } from "../../config/site.js";
+---
+
 <div
   class="page active"
   id="pg-home"
@@ -8,7 +12,7 @@
     <div class="hero-center">
       <div class="hero-mascot">
         <img
-          src="assets/lucia.png"
+          src={luciaMascotPath}
           width="768"
           height="768"
           fetchpriority="high"
@@ -184,7 +188,7 @@
   <div class="word-list" id="word-list">
     <div class="empty">
       <div class="empty-mascot">
-        <img src="assets/monkey.png" width="256" height="256" alt="" />
+        <img src={emptyMascotPath} width="256" height="256" alt="" />
       </div>
       <p>
         把老师布置的中文或英文句子输入到上方吧～<br /><strong

@@ -1,11 +1,16 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+  googleAnalyticsId,
+  infoPages,
+  publicPagePaths,
+  siteOrigin,
+} from "../src/config/site.js";
 
 const root = process.cwd();
 const dist = join(root, "dist");
-const origin = "https://dict.luciaandrayna.com";
-const googleAnalyticsId = "G-1N76G8G0S5";
-const sitemapPaths = ["/", "/about/", "/guide/", "/sources/", "/privacy/"];
+const origin = siteOrigin;
+const sitemapPaths = publicPagePaths;
 const failures = [];
 
 function fail(message) {
@@ -72,20 +77,16 @@ if (!routes.includes('"include"') || !routes.includes('"exclude"')) {
   fail("_routes.json missing include/exclude rules");
 }
 
-const routeFiles = new Map([
-  ["/", "index.html"],
-  ["/about/", "about/index.html"],
-  ["/guide/", "guide/index.html"],
-  ["/sources/", "sources/index.html"],
-  ["/privacy/", "privacy/index.html"],
-]);
+const routeFiles = new Map(
+  sitemapPaths.map((path) => [
+    path,
+    path === "/" ? "index.html" : `${path.slice(1)}index.html`,
+  ]),
+);
 
-const infoPageFiles = new Set([
-  "about/index.html",
-  "guide/index.html",
-  "sources/index.html",
-  "privacy/index.html",
-]);
+const infoPageFiles = new Set(
+  infoPages.map((page) => `${page.path.slice(1)}index.html`),
+);
 
 for (const [path, file] of routeFiles) {
   const html = readDist(file);

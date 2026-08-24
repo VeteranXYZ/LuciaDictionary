@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { normalizePhrasebookEntry } from "./translation.js";
+import { CLASSROOM_TEMPLATE_GROUPS } from "../data/classroom-templates.js";
 
 const phrasebook = JSON.parse(
   fs.readFileSync("public/assets/phrasebook.json", "utf8"),
@@ -46,6 +47,25 @@ describe("public phrasebook data", () => {
       expect(entry.keywords.length).toBeGreaterThan(0);
       expect(entry.childReply.length).toBeGreaterThan(0);
       expect(["easy", "medium"]).toContain(entry.difficulty);
+    }
+  });
+
+  it("contains each classroom template exactly once with canonical copy", () => {
+    const byEnglish = new Map(
+      phrasebook.map((item) => [item.en.toLowerCase(), item]),
+    );
+    expect(byEnglish.size).toBe(phrasebook.length);
+
+    const templates = CLASSROOM_TEMPLATE_GROUPS.flatMap((group) =>
+      group.items.map((raw) =>
+        Array.isArray(raw) ? { en: raw[0], cn: raw[1] } : raw,
+      ),
+    );
+    expect(phrasebook.filter((item) => item.featured)).toHaveLength(
+      templates.length,
+    );
+    for (const template of templates) {
+      expect(byEnglish.get(template.en.toLowerCase())?.cn).toBe(template.cn);
     }
   });
 });

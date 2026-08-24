@@ -1,19 +1,7 @@
 const CACHE_PREFIX = "lucia-local-core-";
 const CACHE_NAME = "lucia-local-core-__BUILD_HASH__";
 const BUILD_ASSET_PREFIX = "/_a/";
-const PRECACHE_URLS = /* __PRECACHE_URLS__ */ [
-  "/",
-  "/manifest.webmanifest",
-  "/assets/dict.json",
-  "/assets/lexicon/core-lexicon.json",
-  "/assets/phonetics.json",
-  "/assets/phrasebook.json",
-  "/assets/logo.png",
-  "/assets/lucia.png",
-  "/assets/monkey.png",
-  "/favicon.png",
-  "/favicon.ico",
-];
+const PRECACHE_URLS = /* __PRECACHE_URLS__ */ [];
 const PRECACHE_PATHS = new Set(PRECACHE_URLS);
 
 self.addEventListener("install", (event) => {

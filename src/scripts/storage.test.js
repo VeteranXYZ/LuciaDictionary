@@ -2,10 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CACHE_MAX_ITEMS,
   getClientId,
+  getSettingStorageKey,
   readCache,
   trimCacheEntries,
   writeCache,
 } from "./storage.js";
+
+describe("setting storage keys", () => {
+  it("uses the shared key builder", () => {
+    expect(getSettingStorageKey("speed")).toBe("lucia-speed");
+    expect(getSettingStorageKey("repeat")).toBe("lucia-repeat");
+  });
+});
 
 function installStorage() {
   const data = new Map();

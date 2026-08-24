@@ -25,7 +25,6 @@ import {
   toggleStar,
   updateStarredMeaning,
 } from "./wordbook.js";
-import { TEMPLATES } from "./templates.js";
 import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
 import { registerServiceWorker } from "./offline.js";
 import { buildWordCard, createEmptyState, setCardMeaning } from "./ui.js";
@@ -160,7 +159,6 @@ function createCurrentTranslationService() {
   translationService = createTranslationService({
     dictService,
     phrasebook,
-    templateGroups: TEMPLATES,
     enqueueNetwork,
   });
 }

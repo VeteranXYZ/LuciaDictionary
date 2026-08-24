@@ -1,6 +1,16 @@
 ---
 import packageJson from "../../package.json";
 import {
+  faviconIcoPath,
+  faviconPngPath,
+  googleAnalyticsId,
+  homeDescription,
+  homeTitle,
+  logoPath,
+  manifestPath,
+  themeColor,
+} from "../config/site.js";
+import {
   buildOrganizationStructuredData,
   siteLogo,
   siteName,
@@ -18,16 +28,15 @@ interface Props {
 }
 
 const {
-  title = "Lucia's Dictionary｜课堂英语句子学习词典",
-  description = "输入、粘贴或拍下课堂英语句子，查看中文释义、音标和发音，并把生词保存在本地随时复习。",
+  title = homeTitle,
+  description = homeDescription,
   canonicalPath = "/",
-  ogTitle = "Lucia's Dictionary",
+  ogTitle = siteName,
   noindex = false,
   appScript = true,
   structuredData = [],
 } = Astro.props;
 const appVersion = packageJson.version;
-const googleAnalyticsId = "G-1N76G8G0S5";
 const canonicalUrl = new URL(canonicalPath, siteOrigin).toString();
 const ogImage = siteLogo;
 const jsonLd = [
@@ -63,15 +72,19 @@ const jsonLd = [
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-    <meta name="theme-color" content="#6B8E5A" />
-    <link rel="icon" type="image/png" href={`/favicon.png?v=${appVersion}`} />
+    <meta name="theme-color" content={themeColor} />
+    <link
+      rel="icon"
+      type="image/png"
+      href={`${faviconPngPath}?v=${appVersion}`}
+    />
     <link
       rel="shortcut icon"
-      href={`/favicon.ico?v=${appVersion}`}
+      href={`${faviconIcoPath}?v=${appVersion}`}
       sizes="any"
     />
-    <link rel="apple-touch-icon" href={`/assets/logo.png?v=${appVersion}`} />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href={`${logoPath}?v=${appVersion}`} />
+    <link rel="manifest" href={manifestPath} />
     <script
       is:inline
       set:html={`
