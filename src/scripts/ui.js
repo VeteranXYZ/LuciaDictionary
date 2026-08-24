@@ -44,7 +44,7 @@ export function createEmptyState(message, strongText) {
   mascot.className = "empty-mascot";
   const img = document.createElement("img");
   img.src = emptyMascotPath;
-  img.alt = "";
+  img.alt = "Lucia 猴子插画";
   mascot.appendChild(img);
 
   const p = document.createElement("p");

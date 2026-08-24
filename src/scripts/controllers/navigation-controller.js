@@ -60,7 +60,7 @@ export function createNavigationController({
     if (page === "settings") renderSettings();
 
     if (options?.focusHeading !== false) {
-      const heading = document.querySelector(`#pg-${page} h1`);
+      const heading = document.querySelector(`#pg-${page} .hero-title`);
       if (heading) {
         heading.tabIndex = -1;
         heading.focus({ preventScroll: true });
