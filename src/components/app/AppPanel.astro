@@ -11,7 +11,7 @@ const { id, navId, title, subtitle } = Astro.props;
 
 <div class="page" id={id} role="tabpanel" aria-labelledby={navId} hidden>
   <section class="hero panel-hero">
-    <h1 class="hero-title">{title}</h1>
+    <h2 class="hero-title">{title}</h2>
     <p class="hero-sub" set:html={subtitle} />
   </section>
   <slot />
