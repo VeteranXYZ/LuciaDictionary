@@ -1,9 +1,7 @@
 ---
 import packageJson from "../../package.json";
 import {
-  faviconIcoPath,
   faviconPngPath,
-  googleAnalyticsId,
   homeDescription,
   homeTitle,
   logoPath,
@@ -78,43 +76,8 @@ const jsonLd = [
       type="image/png"
       href={`${faviconPngPath}?v=${appVersion}`}
     />
-    <link
-      rel="shortcut icon"
-      href={`${faviconIcoPath}?v=${appVersion}`}
-      sizes="any"
-    />
     <link rel="apple-touch-icon" href={`${logoPath}?v=${appVersion}`} />
     <link rel="manifest" href={manifestPath} />
-    <script
-      is:inline
-      set:html={`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){window.dataLayer.push(arguments);}
-        gtag("consent", "default", {
-          analytics_storage: "granted",
-          ad_storage: "denied",
-          ad_user_data: "denied",
-          ad_personalization: "denied"
-        });
-        gtag("set", "ads_data_redaction", true);
-      `}
-    />
-    <script
-      is:inline
-      async
-      src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-    ></script>
-    <script
-      is:inline
-      set:html={`
-        gtag("js", new Date());
-        gtag("config", "${googleAnalyticsId}", {
-          send_page_view: true,
-          allow_google_signals: false,
-          allow_ad_personalization_signals: false
-        });
-      `}
-    />
     {
       jsonLd.map((item) => (
         <script

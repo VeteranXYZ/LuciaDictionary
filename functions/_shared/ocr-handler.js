@@ -65,6 +65,82 @@ function getClientKey(request) {
   return "client:anonymous";
 }
 
+function getNetworkKey(request) {
+  const address =
+    request.headers.get("cf-connecting-ip")?.trim().toLowerCase() || "";
+  if (address && address.length <= 64) return `network:${address}`;
+  return "network:unknown";
+}
+
+async function enforceRateLimits(request, env, logger, requestId) {
+  const limits = [
+    ["OCR_IP_RATE_LIMITER", getNetworkKey(request)],
+    ["OCR_GLOBAL_RATE_LIMITER", "ocr:global"],
+    ["OCR_RATE_LIMITER", getClientKey(request)],
+  ];
+
+  for (const [bindingName, key] of limits) {
+    const limiter = env?.[bindingName];
+    if (!limiter?.limit) {
+      logOcrEvent(logger, "error", "rate_limiter_missing", {
+        requestId,
+        binding: bindingName,
+      });
+      return { available: false, allowed: false };
+    }
+
+    try {
+      const outcome = await limiter.limit({ key });
+      if (!outcome.success) return { available: true, allowed: false };
+    } catch {
+      logOcrEvent(logger, "error", "rate_limiter_failed", {
+        requestId,
+        binding: bindingName,
+      });
+      return { available: false, allowed: false };
+    }
+  }
+
+  return { available: true, allowed: true };
+}
+
+class UpstreamResponseTooLargeError extends Error {}
+
+async function readBoundedJson(response) {
+  const declaredLength = Number(response.headers.get("content-length") || 0);
+  if (
+    Number.isFinite(declaredLength) &&
+    declaredLength > MAX_UPSTREAM_RESPONSE_BYTES
+  ) {
+    throw new UpstreamResponseTooLargeError();
+  }
+
+  if (!response.body) return {};
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let decoded = "";
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_UPSTREAM_RESPONSE_BYTES) {
+        await reader.cancel("upstream_response_too_large");
+        throw new UpstreamResponseTooLargeError();
+      }
+      decoded += decoder.decode(value, { stream: true });
+    }
+    decoded += decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+
+  return JSON.parse(decoded);
+}
+
 async function hasValidImageSignature(file) {
   const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   if (file.type === "image/jpeg") {
@@ -137,15 +213,10 @@ export async function handleOcrRequest(request, env, options = {}) {
     return respond("file_too_large", 413);
   }
 
-  if (env.OCR_RATE_LIMITER?.limit) {
-    const outcome = await env.OCR_RATE_LIMITER.limit({
-      key: getClientKey(request),
-    });
-    if (!outcome.success)
-      return respond("too_many_requests", 429, { "retry-after": "60" });
-  } else {
-    logOcrEvent(logger, "warn", "rate_limiter_missing", { requestId });
-  }
+  const rateLimit = await enforceRateLimits(request, env, logger, requestId);
+  if (!rateLimit.available) return respond("service_unavailable", 503);
+  if (!rateLimit.allowed)
+    return respond("too_many_requests", 429, { "retry-after": "60" });
 
   let formData;
   try {
@@ -184,18 +255,12 @@ export async function handleOcrRequest(request, env, options = {}) {
       body: upstreamForm,
       signal: controller.signal,
     });
-    const upstreamLength = Number(upstream.headers.get("content-length") || 0);
-    if (
-      Number.isFinite(upstreamLength) &&
-      upstreamLength > MAX_UPSTREAM_RESPONSE_BYTES
-    ) {
-      return respond("service_unavailable", 502);
-    }
-    data = await upstream.json();
+    data = await readBoundedJson(upstream);
   } catch (error) {
     const timedOut = controller.signal.aborted || error?.name === "AbortError";
+    const tooLarge = error instanceof UpstreamResponseTooLargeError;
     return respond(
-      timedOut ? "service_unavailable" : "network_error",
+      timedOut || tooLarge ? "service_unavailable" : "network_error",
       timedOut ? 504 : 502,
     );
   } finally {

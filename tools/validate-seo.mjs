@@ -1,11 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import {
-  googleAnalyticsId,
-  infoPages,
-  publicPagePaths,
-  siteOrigin,
-} from "../src/config/site.js";
+import { infoPages, publicPagePaths, siteOrigin } from "../src/config/site.js";
 
 const root = process.cwd();
 const dist = join(root, "dist");
@@ -71,6 +66,8 @@ if (existsSync(join(dist, "how-to/index.html"))) {
 const headers = readDist("_headers");
 if (!headers.includes("X-Robots-Tag: noindex, nofollow"))
   fail("_headers missing API noindex rule");
+if (!headers.includes("frame-ancestors 'none'"))
+  fail("_headers missing CSP frame protection");
 
 const routes = readDist("_routes.json");
 if (!routes.includes('"include"') || !routes.includes('"exclude"')) {
@@ -112,37 +109,13 @@ for (const [path, file] of routeFiles) {
   if (!html.includes("<h1")) fail(`${file} missing h1`);
   if (!html.includes('"@type":"Organization"'))
     fail(`${file} missing Organization structured data`);
-  if (!html.includes(`gtag/js?id=${googleAnalyticsId}`))
-    fail(`${file} missing Google Analytics tag`);
-  if (!html.includes(`gtag("config", "${googleAnalyticsId}"`))
-    fail(`${file} missing Google Analytics config`);
-  const consentIndex = html.indexOf('gtag("consent", "default", {');
-  const loaderIndex = html.indexOf(`gtag/js?id=${googleAnalyticsId}`);
-  const configIndex = html.indexOf(`gtag("config", "${googleAnalyticsId}"`);
   if (
-    consentIndex === -1 ||
-    consentIndex > loaderIndex ||
-    consentIndex > configIndex
-  )
-    fail(`${file} must set consent defaults before loading or configuring GA4`);
-  if (!html.includes('analytics_storage: "granted"'))
-    fail(`${file} missing granted first-party analytics storage`);
-  for (const deniedAdConsent of [
-    'ad_storage: "denied"',
-    'ad_user_data: "denied"',
-    'ad_personalization: "denied"',
-  ]) {
-    if (!html.includes(deniedAdConsent))
-      fail(`${file} missing denied advertising consent: ${deniedAdConsent}`);
+    /googletagmanager\.com|google-analytics\.com|\bgtag\s*\(|analytics_storage/u.test(
+      html,
+    )
+  ) {
+    fail(`${file} must not load client-side analytics`);
   }
-  if (!html.includes('gtag("set", "ads_data_redaction", true)'))
-    fail(`${file} missing Google Ads data redaction`);
-  if (!html.includes("send_page_view: true"))
-    fail(`${file} missing basic GA4 page-view config`);
-  if (!html.includes("allow_google_signals: false"))
-    fail(`${file} missing disabled Google signals config`);
-  if (!html.includes("allow_ad_personalization_signals: false"))
-    fail(`${file} missing disabled ad personalization config`);
   if (infoPageFiles.has(file)) {
     if (!html.includes('"@type":"WebPage"'))
       fail(`${file} missing WebPage structured data`);
@@ -164,17 +137,14 @@ if (guide.includes('"@type":"HowTo"'))
 
 const privacy = readDist("privacy/index.html");
 for (const disclosure of [
-  "Google Analytics 4",
-  "第一方",
-  "_ga",
-  "访问和会话",
-  "粗略地区",
-  "所有广告和个性化功能",
-  "自定义学习事件",
-  "浏览器设置",
+  "不使用 Google Analytics",
+  "不设置分析",
+  "Cloudflare",
+  "运行日志",
+  "学习内容",
 ]) {
   if (!privacy.includes(disclosure))
-    fail(`Privacy page missing GA4 disclosure: ${disclosure}`);
+    fail(`Privacy page missing analytics-free disclosure: ${disclosure}`);
 }
 
 const notFound = readDist("404.html");

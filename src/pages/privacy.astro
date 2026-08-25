@@ -5,7 +5,7 @@ import { buildInfoPageStructuredData } from "../lib/seo.js";
 import { infoPageById, siteName } from "../config/site.js";
 
 const title = `${siteName} 隐私与数据说明`;
-const description = `了解 ${siteName} 如何在浏览器中保存生词本和设置，什么时候会使用联网查词、翻译、图片识别及基础访问统计。`;
+const description = `了解 ${siteName} 如何在浏览器中保存生词本和设置，以及什么时候会使用联网查词、翻译和图片识别。`;
 const canonicalPath = infoPageById.privacy.path;
 const structuredData = buildInfoPageStructuredData({
   path: canonicalPath,
@@ -31,7 +31,7 @@ const structuredData = buildInfoPageStructuredData({
       <h2>先说结论</h2>
       <ul>
         <li>生词本、复习记录和设置默认保存在当前浏览器中。</li>
-        <li>输入的句子、上传的图片和生词本内容不会发送给 Google Analytics。</li>
+        <li>网站不使用 Google Analytics，也不设置分析 Cookie。</li>
         <li>本地内容不足时，查词和翻译功能可能会访问第三方服务。</li>
         <li>使用拍照识别时，所选图片会发送给 OCR.Space 处理。</li>
       </ul>
@@ -58,12 +58,11 @@ const structuredData = buildInfoPageStructuredData({
       </p>
     </section>
     <section>
-      <h2>基础访问统计</h2>
+      <h2>运行与安全日志</h2>
       <p>
-        网站使用 Google Analytics 4 了解公开页面的访问和会话情况。GA4
-        会通过第一方 <code>_ga</code> 等 Cookie 区分浏览器和会话，并处理访问页面、时间、来源、粗略地区以及浏览器和设备类别。本站已关闭增强型衡量、Google
-        信号及所有广告和个性化功能，也不会把输入的句子、上传的图片、查过或收藏的单词、生词本内容、账号身份或自定义学习事件发送给
-        Analytics。你可以通过浏览器设置查看或清除这些 Cookie。
+        网站不加载第三方访问统计脚本，不使用 Google Analytics，也不设置分析或广告
+        Cookie。Cloudflare
+        在提供网站、阻止滥用和排查接口故障时，可能按其平台能力记录有限的请求元数据和运行日志；应用日志不会记录输入的句子、上传图片、识别文本、生词本或其他学习内容。
       </p>
     </section>
     <section>

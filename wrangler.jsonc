@@ -26,7 +26,35 @@
         "period": 60,
       },
     },
+    {
+      "name": "OCR_IP_RATE_LIMITER",
+      "namespace_id": "981002",
+      "simple": {
+        "limit": 30,
+        "period": 60,
+      },
+    },
+    {
+      "name": "OCR_GLOBAL_RATE_LIMITER",
+      "namespace_id": "981003",
+      "simple": {
+        "limit": 300,
+        "period": 60,
+      },
+    },
   ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.05,
+    },
+  },
   "upload_source_maps": true,
   "send_metrics": false,
   "placement": { "mode": "off" },

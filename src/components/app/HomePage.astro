@@ -1,5 +1,10 @@
 ---
-import { emptyMascotPath, luciaMascotPath } from "../../config/site.js";
+import {
+  emptyMascotPath,
+  emptyMascotSrcSet,
+  luciaMascotPath,
+  luciaMascotSrcSet,
+} from "../../config/site.js";
 ---
 
 <div
@@ -13,6 +18,8 @@ import { emptyMascotPath, luciaMascotPath } from "../../config/site.js";
       <div class="hero-mascot">
         <img
           src={luciaMascotPath}
+          srcset={luciaMascotSrcSet}
+          sizes="(max-width: 720px) 82px, 142px"
           width="768"
           height="768"
           fetchpriority="high"
@@ -63,8 +70,15 @@ import { emptyMascotPath, luciaMascotPath } from "../../config/site.js";
           id="camera-input"
           accept="image/*"
           capture="environment"
+          aria-label="拍照识别英文"
         />
-        <input class="sr-only" type="file" id="image-input" accept="image/*" />
+        <input
+          class="sr-only"
+          type="file"
+          id="image-input"
+          accept="image/*"
+          aria-label="从相册选择图片识别英文"
+        />
         <button
           class="btn-go"
           id="go-btn"
@@ -190,6 +204,8 @@ import { emptyMascotPath, luciaMascotPath } from "../../config/site.js";
       <div class="empty-mascot">
         <img
           src={emptyMascotPath}
+          srcset={emptyMascotSrcSet}
+          sizes="(max-width: 720px) 64px, 68px"
           width="256"
           height="256"
           alt="Lucia 猴子插画"

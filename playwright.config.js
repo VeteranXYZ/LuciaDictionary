@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const previewPort = process.env.PLAYWRIGHT_PORT ?? "4321";
+const previewPort = process.env.PLAYWRIGHT_PORT ?? "54321";
 const previewUrl = `http://127.0.0.1:${previewPort}`;
 
 export default defineConfig({
@@ -21,7 +21,7 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${previewPort}`,
     url: previewUrl,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120000,
   },
 });

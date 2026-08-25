@@ -10,6 +10,10 @@ describe("dictionary Worker routes", () => {
 
     expect(response.status).toBe(405);
     expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(response.headers.get("x-frame-options")).toBe("DENY");
+    expect(response.headers.get("content-security-policy")).toContain(
+      "frame-ancestors 'none'",
+    );
   });
 
   it("does not turn retired paths into application fallbacks", async () => {

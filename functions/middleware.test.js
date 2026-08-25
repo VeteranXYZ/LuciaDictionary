@@ -37,5 +37,6 @@ describe("seo route middleware", () => {
 
     expect(response.status).toBe(405);
     expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(response.headers.get("x-frame-options")).toBe("DENY");
   });
 });

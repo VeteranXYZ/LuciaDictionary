@@ -5,6 +5,7 @@ import {
   copyrightYear,
   infoPages,
   luciaMascotPath,
+  luciaMascotSrcSet,
   siteName,
   siteOwner,
   sitePublisher,
@@ -198,6 +199,8 @@ const { version } = Astro.props;
         <div class="about-mascot">
           <img
             src={luciaMascotPath}
+            srcset={luciaMascotSrcSet}
+            sizes="68px"
             width="768"
             height="768"
             loading="lazy"

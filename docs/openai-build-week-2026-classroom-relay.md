@@ -64,7 +64,7 @@ The implementation was verified through:
 - 7 mobile Chromium end-to-end tests, including the complete Classroom Relay path;
 - Astro type checking and production build;
 - lexicon, SEO, OCR sample, translation quality, and offline audits;
-- Cloudflare binding type validation and Pages Functions compilation;
+- Cloudflare binding type validation and Worker deployment dry run;
 - dependency audit with zero moderate-or-higher vulnerabilities;
 - manual 390 × 844 mobile-browser review with no console errors.
 

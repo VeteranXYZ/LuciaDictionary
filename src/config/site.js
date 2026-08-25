@@ -19,15 +19,20 @@ export const contactEmail = "hello@luciaandrayna.com";
 export const copyrightYear = new Date().getUTCFullYear();
 
 export const logoPath = "/assets/logo.png";
-export const luciaMascotPath = "/assets/lucia.png";
-export const emptyMascotPath = "/assets/monkey.png";
+export const displayLogoPath = "/assets/logo-64.webp";
+export const displayLogoSrcSet =
+  "/assets/logo-64.webp 64w, /assets/logo-128.webp 128w";
+export const luciaMascotPath = "/assets/lucia-160.webp";
+export const luciaMascotSrcSet =
+  "/assets/lucia-160.webp 160w, /assets/lucia-320.webp 320w";
+export const emptyMascotPath = "/assets/monkey-80.webp";
+export const emptyMascotSrcSet =
+  "/assets/monkey-80.webp 80w, /assets/monkey-160.webp 160w";
 export const faviconPngPath = "/favicon.png";
-export const faviconIcoPath = "/favicon.ico";
 export const manifestPath = "/manifest.webmanifest";
 export const serviceWorkerPath = "/sw.js";
 export const siteLogo = `${siteOrigin}${logoPath}`;
 
-export const googleAnalyticsId = "G-1N76G8G0S5";
 export const themeColor = "#6B8E5A";
 export const backgroundColor = "#FFF8E6";
 
@@ -75,8 +80,11 @@ export const corePrecacheUrls = [
   "/assets/phonetics.json",
   "/assets/phrasebook.json",
   logoPath,
+  displayLogoPath,
+  "/assets/logo-128.webp",
   luciaMascotPath,
+  "/assets/lucia-320.webp",
   emptyMascotPath,
+  "/assets/monkey-160.webp",
   faviconPngPath,
-  faviconIcoPath,
 ];
