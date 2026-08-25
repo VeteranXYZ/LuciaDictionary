@@ -118,9 +118,7 @@ test("exposes accessible navigation and announces dynamic results", async ({
   await page.getByRole("button", { name: "生成单词卡" }).click();
   await expect(page.locator("#app-status")).toContainText("已生成 3 张单词卡");
 
-  await page
-    .context()
-    .grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.getByRole("button", { name: "复制文本" }).click();
   await expect(page.locator("#copy-sentence-label")).toHaveText("已复制");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
