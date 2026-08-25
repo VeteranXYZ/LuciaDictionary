@@ -23,7 +23,7 @@ flowchart LR
   B --> E["本地生词本与复习计划"]
   B --> F["统一超时/重试的网络回退"]
   B --> G["同源 /api/ocr"]
-  G --> H["Cloudflare Pages Function"]
+  G --> H["Cloudflare Worker"]
   H --> I["OCR.Space"]
   J["构建生成的离线预缓存"] --> A
   J --> C
@@ -49,11 +49,11 @@ flowchart LR
 ### Phase 0：安全与可复现交付
 
 - [x] 升级到 Astro 7.0.7、Node 22.12 基线、TypeScript 6、Vitest 4、Wrangler 4，并统一版本为 v3.0.0。
-- [x] 增加 GitHub Actions 完整验证和每周 Dependabot 更新检查。
-- [x] 新增 `wrangler.jsonc`、生成绑定类型、兼容日期、source maps、日志/trace observability 和生产 smart placement。
-- [x] 确定 Cloudflare Pages Function 为唯一 OCR 部署入口，删除重复且未同等验证的独立 Worker。
+- [x] 增加 GitHub Actions 完整验证和每月 Dependabot npm 更新检查。
+- [x] 新增 `wrangler.jsonc`、生成绑定类型、兼容日期、source maps 和显式日志/trace observability。
+- [x] 确定 Cloudflare Worker Static Assets 为唯一生产部署入口，Pages 文件仅保留为兼容适配器。
 - [x] OCR 增加同源检查、multipart 与 Content-Length 预检、实际文件大小/类型/魔数验证、15 秒上游超时、响应大小限制和稳定错误。
-- [x] 增加每客户端每分钟 12 次的 Cloudflare Rate Limiting 绑定；日志不包含图片、识别文字或密钥。
+- [x] 增加网络、全局和客户端三层 Cloudflare Rate Limiting 绑定；日志不包含图片、识别文字或密钥。
 - [x] 使用 Cloudflare Workers Vitest pool 在 workerd 中覆盖 6 个 OCR 安全与失败分支。
 - [x] 生产依赖审计从初始 5 项告警降为 0。
 
@@ -92,21 +92,21 @@ flowchart LR
 
 `npm run verify` 已完整通过：
 
-| 门禁                       |                                           最终结果 |
-| -------------------------- | -------------------------------------------------: |
-| Prettier                   |                                           全部匹配 |
-| Astro Check                |           79 files，0 errors / 0 warnings / 1 hint |
-| Node/Vitest                |                         18 files，101 tests passed |
-| Cloudflare workerd         |                             1 file，6 tests passed |
-| Playwright mobile Chromium |                       7/7 passed，包含离线整页刷新 |
-| Astro 生产构建             |                                      6 pages，成功 |
-| SEO                        |                              5 sitemap URLs passed |
-| 词库                       | 10,574 runtime entries；88/88 words；25/25 phrases |
-| OCR 样本                   |              244 tokens，100% 本地覆盖，0 fallback |
-| 翻译质量                   |                          0 suspicious translations |
-| 离线产物                   |                   precache/hash/build audit passed |
-| Cloudflare                 |    binding types current；Pages Functions compiled |
-| 依赖安全                   |                                  0 vulnerabilities |
+| 门禁                       |                                            最终结果 |
+| -------------------------- | --------------------------------------------------: |
+| Prettier                   |                                            全部匹配 |
+| Astro Check                |            79 files，0 errors / 0 warnings / 1 hint |
+| Node/Vitest                |                          18 files，101 tests passed |
+| Cloudflare workerd         |                              1 file，6 tests passed |
+| Playwright mobile Chromium |                        7/7 passed，包含离线整页刷新 |
+| Astro 生产构建             |                                       6 pages，成功 |
+| SEO                        |                               5 sitemap URLs passed |
+| 词库                       |  10,574 runtime entries；88/88 words；25/25 phrases |
+| OCR 样本                   |               244 tokens，100% 本地覆盖，0 fallback |
+| 翻译质量                   |                           0 suspicious translations |
+| 离线产物                   |                    precache/hash/build audit passed |
+| Cloudflare                 | binding types current；Worker deploy dry-run passed |
+| 依赖安全                   |                                   0 vulnerabilities |
 
 ### 浏览器复测
 

@@ -107,10 +107,25 @@ test("exposes accessible navigation and announces dynamic results", async ({
     "aria-selected",
     "true",
   );
+  await expect(page.locator("#camera-input")).toHaveAccessibleName(
+    "拍照识别英文",
+  );
+  await expect(page.locator("#image-input")).toHaveAccessibleName(
+    "从相册选择图片识别英文",
+  );
 
   await page.getByLabel("输入中文或英文课堂句子").fill("Circle the answer.");
   await page.getByRole("button", { name: "生成单词卡" }).click();
   await expect(page.locator("#app-status")).toContainText("已生成 3 张单词卡");
+
+  await page
+    .context()
+    .grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.getByRole("button", { name: "复制文本" }).click();
+  await expect(page.locator("#copy-sentence-label")).toHaveText("已复制");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    "Circle the answer.",
+  );
 
   await page.getByRole("tab", { name: "设置" }).click();
   await expect(page.getByRole("tab", { name: "设置" })).toHaveAttribute(
@@ -210,32 +225,24 @@ test("documents every optional network data flow", async ({ page }) => {
   await expect(page.locator("main#main-content")).toContainText("Cloudflare");
 });
 
-test("loads notice-only GA4 with first-party analytics cookies", async ({
+test("does not load client analytics or set analytics cookies", async ({
   page,
 }) => {
   await page.goto("/");
 
-  const dataLayer = await page.evaluate(() =>
-    window.dataLayer.map((entry) => Array.from(entry)),
+  await expect(
+    page.locator(
+      'script[src*="googletagmanager.com"], script[src*="google-analytics.com"]',
+    ),
+  ).toHaveCount(0);
+  expect(await page.evaluate(() => Object.hasOwn(window, "dataLayer"))).toBe(
+    false,
   );
-  expect(dataLayer[0]).toEqual([
-    "consent",
-    "default",
-    {
-      analytics_storage: "granted",
-      ad_storage: "denied",
-      ad_user_data: "denied",
-      ad_personalization: "denied",
-    },
-  ]);
-  expect(dataLayer).toContainEqual(["set", "ads_data_redaction", true]);
-  await expect
-    .poll(async () =>
-      (await page.context().cookies()).some((cookie) =>
-        cookie.name.startsWith("_ga"),
-      ),
-    )
-    .toBe(true);
+  expect(
+    (await page.context().cookies()).some(
+      (cookie) => cookie.name === "_ga" || cookie.name.startsWith("_ga_"),
+    ),
+  ).toBe(false);
 });
 
 for (const path of ["/how-to/", "/accessibility/", "/search"]) {

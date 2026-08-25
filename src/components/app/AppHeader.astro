@@ -1,5 +1,10 @@
 ---
-import { brandSubtitle, logoPath, siteName } from "../../config/site.js";
+import {
+  brandSubtitle,
+  displayLogoPath,
+  displayLogoSrcSet,
+  siteName,
+} from "../../config/site.js";
 ---
 
 <header class="brand">
@@ -9,7 +14,14 @@ import { brandSubtitle, logoPath, siteName } from "../../config/site.js";
     type="button"
     aria-label="返回首页"
   >
-    <img src={logoPath} width="512" height="512" alt={siteName} />
+    <img
+      src={displayLogoPath}
+      srcset={displayLogoSrcSet}
+      sizes="(max-width: 720px) 42px, 45px"
+      width="64"
+      height="64"
+      alt={siteName}
+    />
   </button>
   <div class="brand-text">
     <div class="brand-title">{siteName}</div>

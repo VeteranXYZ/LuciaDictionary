@@ -2,8 +2,9 @@
 import {
   brandSubtitle,
   copyrightYear,
+  displayLogoPath,
+  displayLogoSrcSet,
   infoPages,
-  logoPath,
   siteName,
   siteOwner,
   sitePublisher,
@@ -29,7 +30,14 @@ const currentPage = infoPages.find((page) => page.id === current);
 <main class="info-page" id="main-content">
   <header class="info-topbar">
     <a class="info-brand" href="/" aria-label={`返回 ${siteName} 首页`}>
-      <img src={logoPath} width="512" height="512" alt={siteName} />
+      <img
+        src={displayLogoPath}
+        srcset={displayLogoSrcSet}
+        sizes="40px"
+        width="64"
+        height="64"
+        alt={siteName}
+      />
       <span>
         <strong>{siteName}</strong>
         <small>{brandSubtitle}</small>

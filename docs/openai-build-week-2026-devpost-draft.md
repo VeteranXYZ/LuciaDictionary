@@ -43,7 +43,7 @@ No account is required. Wordbook data, mission results, source sentences, review
 
 The interface is an Astro 7 static application written in JavaScript and CSS. A compact local lexicon contains 10,574 English entries with Chinese meanings, forms, phonetics, and broad learning bands. Browser speech synthesis provides pronunciation, `localStorage` stores learning state, and a generated Service Worker keeps the core English flow available offline.
 
-Optional photo OCR uses a same-origin Cloudflare Pages Function. The function validates file type and signatures, applies request limits and timeouts, keeps the OCR key server-side, and never logs image contents or recognized classroom text.
+Optional photo OCR uses a same-origin Cloudflare Worker route. The Worker validates file type and signatures, applies layered request limits and timeouts, keeps the OCR key server-side, and never logs image contents or recognized classroom text.
 
 Classroom Relay itself is deterministic and explainable. Its priority engine combines due status, the last know/unsure/forgot result, mastery level, learning band, and repeated classroom encounters. This keeps the child-facing learning decision understandable and avoids adding a new runtime AI dependency or uploading learning history.
 
@@ -84,7 +84,7 @@ Next we want to evaluate whether children complete due reviews and whether pract
 - Codex
 - Astro 7
 - JavaScript and CSS
-- Cloudflare Pages and Pages Functions
+- Cloudflare Workers and Static Assets
 - Web Speech API
 - Service Worker and Cache API
 - `localStorage`

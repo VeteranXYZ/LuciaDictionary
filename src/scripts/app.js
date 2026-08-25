@@ -118,21 +118,10 @@ function setSentenceText(text) {
 }
 
 async function copyText(text) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
+  if (!navigator.clipboard?.writeText) {
+    throw new Error("Clipboard API is unavailable");
   }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  document.body.append(textarea);
-  textarea.select();
-  const copied = document.execCommand("copy");
-  textarea.remove();
-  if (!copied) throw new Error("Copy command was unavailable");
+  await navigator.clipboard.writeText(text);
 }
 
 function showCopyFeedback(copied) {
@@ -185,6 +174,24 @@ async function loadDictionaryServices() {
   settingsController?.render(getAppState());
   announce("词典已准备好");
   return dictService;
+}
+
+function startDictionaryServices() {
+  if (!dictionaryReady) {
+    dictionaryReady = loadDictionaryServices();
+    dictionaryReady.catch(() => announce("词典加载失败，请刷新页面重试"));
+  }
+  return dictionaryReady;
+}
+
+function scheduleDictionaryStartup() {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(() => startDictionaryServices(), {
+      timeout: 2000,
+    });
+  } else {
+    window.setTimeout(() => startDictionaryServices(), 0);
+  }
 }
 
 async function ensurePhrasebookReady() {
@@ -276,7 +283,7 @@ async function analyzeSentence({ source = "manual" } = {}) {
       list.replaceChildren(
         createEmptyState("正在准备词典", "首次打开只需要一点时间"),
       );
-      await dictionaryReady;
+      await startDictionaryServices();
       if (runId !== analyzeRunId) return;
     }
 
@@ -515,7 +522,7 @@ function init() {
   });
   navigationController = createNavigationController({
     analyzeSentence,
-    getDictionaryReady: () => dictionaryReady,
+    getDictionaryReady: startDictionaryServices,
     getDictionaryService: () => dictService,
     renderSettings: () => settingsController.render(getAppState()),
     renderWordbook: () => wordbookController.render(),
@@ -531,9 +538,6 @@ function init() {
       settingsController.render(state);
     }
   });
-
-  dictionaryReady = loadDictionaryServices();
-  dictionaryReady.catch(() => announce("词典加载失败，请刷新页面重试"));
 
   document.getElementById("go-btn")?.addEventListener("click", analyzeSentence);
   document
@@ -570,6 +574,7 @@ function init() {
       }
     });
   setupImageOcr();
+  scheduleDictionaryStartup();
   registerServiceWorker();
   setupVoices();
   setupLearningTip();

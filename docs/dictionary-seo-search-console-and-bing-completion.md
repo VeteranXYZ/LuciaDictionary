@@ -11,6 +11,8 @@ It also records the GA4 setup completed later for the same production origin.
 It was updated again on 2026-07-15 after a sitewide SEO enhancement pass.
 It was reconciled on 2026-07-17 after the accessibility notes were merged into `/guide/` and the app shell was modularized.
 
+Current release note (2026-08-25): the historical GA4 implementation described below has been removed from the client. Current pages load no analytics script or analytics Cookie, and `npm run audit:seo` enforces that boundary.
+
 The Search Console property used was the verified Domain property `luciaandrayna.com`. That property covers subdomains, but the inspected URL and submitted sitemap for this app were specifically for `https://dict.luciaandrayna.com/`.
 
 ## Git State
@@ -65,7 +67,7 @@ Implemented signals:
 - Added visible breadcrumb navigation plus `WebPage` and `BreadcrumbList` JSON-LD on the four information pages.
 - Added a visible, ordered guide on `/guide/` with standard `WebPage` and `BreadcrumbList` structured data.
 - Expanded content on `/about/`, `/sources/`, and `/guide/`; the latter includes the former standalone accessibility guidance.
-- Expanded `npm run audit:seo` to enforce the exact canonical URL set, the absence of redirect rules, the absence of unsupported same-URL `hreflang` and SearchAction markup, social metadata, Organization JSON-LD, info-page structured data, homepage WebApplication data, GA4 page-view configuration, and Privacy-page GA4 disclosure.
+- Expanded `npm run audit:seo` to enforce the exact canonical URL set, the absence of redirect rules, the absence of unsupported same-URL `hreflang` and SearchAction markup, social metadata, Organization JSON-LD, info-page structured data, homepage WebApplication data, the absence of client analytics, and the Privacy-page analytics-free disclosure.
 
 Deliberately not implemented:
 
@@ -93,7 +95,7 @@ Verified after deployment:
 
 - Homepage returns `200`.
 - Homepage contains `<meta name="msvalidate.01" content="F0033F6901282859D6F7A01930532E70">`.
-- Homepage contains the GA4 Google tag for `G-1N76G8G0S5`.
+- At the time of the July verification, the homepage contained the GA4 Google tag; the 2026-08-25 release removes it.
 - `/sitemap.xml` returns `200` with `content-type: application/xml` and contains exactly the five current canonical URLs.
 - `/accessibility/`, `/how-to/`, and `/search` return `404`; `/guide/` has its own canonical URL, visible accessibility guidance, and page structured data.
 - `/word/apple` returns `404`.
@@ -149,9 +151,9 @@ Sitemap submission:
 
 Google Search Console import was not used because it would grant Bing read-only Google Search Console account access and periodic verification access. Manual Bing verification was completed instead.
 
-## Google Analytics 4
+## Historical Google Analytics 4 record
 
-GA4 was configured on 2026-07-15.
+GA4 was configured on 2026-07-15 and retired from the client on 2026-08-25. The following details are retained only as a historical operations record; they do not describe the current application.
 
 Property:
 
@@ -172,6 +174,7 @@ Web stream:
 
 Privacy and data minimization:
 
+- Historical state only; the 2026-08-25 release removes the GA4 client integration and supersedes the bullets below.
 - Enhanced Measurement is disabled in the GA4 stream.
 - As of 2026-07-23, the site uses a notice-only GA4 configuration with `analytics_storage: "granted"` so first-party Analytics cookies and session measurement remain available.
 - `ad_storage`, `ad_user_data`, and `ad_personalization` are all set to `denied`; the site does not display a consent banner.
@@ -181,12 +184,13 @@ Privacy and data minimization:
 - No typed sentences, uploaded images, saved words, wordbook entries, lookup text, user IDs, or custom learning events are sent to GA4.
 - The Privacy page provides a concise notice covering the first-party Analytics cookies, session measurement, processed data categories, disabled advertising features, and browser controls.
 
-Deployment verification:
+Historical deployment verification:
 
+- These checks describe the July deployment, not the current source tree.
 - Production HTML contains `gtag/js?id=G-1N76G8G0S5`.
 - Production HTML contains `gtag("config", "G-1N76G8G0S5", ...)`.
-- The next deployment will contain a Consent Mode default before the loader and config calls, with `analytics_storage: "granted"` and all advertising consent types denied.
-- The next deployment will contain `gtag("set", "ads_data_redaction", true)`.
+- The July deployment contained a Consent Mode default before the loader and config calls, with `analytics_storage: "granted"` and all advertising consent types denied.
+- The July deployment contained `gtag("set", "ads_data_redaction", true)`.
 - Production HTML contains `allow_google_signals: false`.
 - Production HTML contains `allow_ad_personalization_signals: false`.
 - After deployment, the GA4 home card for `Lucia Dictionary` showed 7 active users in the past 30 minutes.
@@ -238,5 +242,5 @@ Latest SEO and GA4 reconciliation validation on 2026-07-17:
 - Revisit Google URL Inspection after the daily quota resets if manual indexing request is still desired.
 - Recheck the dict sitemap after Search Console reads it again; its last read still predates the change from 6 to 5 canonical URLs.
 - Recheck Bing sitemap after processing; initial state is expected to show `Submitted - Processing` with 0 URLs discovered.
-- GA4 can take up to 48 hours to show normal aggregate reports. Realtime data started appearing after the site tag was deployed.
+- Confirm after the next authorized production deployment that page HTML no longer includes a GA loader and that no `_ga` Cookie is created.
 - `npm audit --audit-level=moderate` reports 0 vulnerabilities.

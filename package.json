@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node tools/generate-phrasebook.mjs && node tools/build-site-metadata.mjs && astro dev",
-    "dev:pages": "npm run build && wrangler pages dev",
+    "dev:cloudflare": "npm run build && wrangler dev",
     "build": "node tools/generate-phrasebook.mjs && node tools/build-site-metadata.mjs && astro build && node tools/build-service-worker.mjs",
     "build:runtime-lexicon": "node tools/build-runtime-lexicon.mjs",
     "build:phrasebook": "node tools/generate-phrasebook.mjs",

@@ -53,14 +53,14 @@ flowchart LR
   B --> F["Browser speech synthesis"]
   B --> G["Bounded dictionary and translation fallbacks"]
   B --> H["Same-origin /api/ocr"]
-  H --> I["Cloudflare Pages Function"]
+  H --> I["Cloudflare Worker"]
   I --> J["OCR.Space"]
   K["Generated service-worker precache"] --> A
   K --> C
   K --> D
 ```
 
-The interface binds immediately; dictionary data loads asynchronously and the phrasebook loads only when Chinese input needs it. The production service worker precaches the generated Astro JS/CSS and the local learning data, so the core English sentence flow works after installation without a network connection.
+The interface binds immediately; dictionary data starts during the browser's first idle window or immediately on user interaction, and the phrasebook loads only when Chinese input needs it. The production service worker precaches the generated Astro JS/CSS and the local learning data, so the core English sentence flow works after installation without a network connection.
 
 ## Lookup order
 
@@ -74,12 +74,13 @@ Chinese classroom phrases are matched against `public/assets/phrasebook.json` be
 
 ## OCR and network security
 
-The browser compresses an uploaded image and sends it to the same-origin `POST /api/ocr` endpoint. `functions/api/ocr.js` is the single supported deployment entry point. The shared handler:
+The browser compresses an uploaded image and sends it to the same-origin `POST /api/ocr` endpoint. `worker/index.js` is the single production deployment entry point and delegates to the shared handler, which:
 
 - keeps `OCR_SPACE_API_KEY` server-side;
 - rejects cross-site, non-multipart, oversized, unsupported, and signature-mismatched uploads;
-- applies the Cloudflare `OCR_RATE_LIMITER` binding (12 requests per client per minute);
+- applies layered Cloudflare limits per network (30/minute), globally (300/minute per location), and per client (12/minute), failing closed if any binding is unavailable;
 - aborts a slow upstream request after 15 seconds;
+- stops reading upstream responses after 256 KiB even when the provider omits `Content-Length`;
 - returns stable, non-sensitive errors and structured request logs;
 - never stores or logs image contents, recognized text, or the API key.
 
@@ -89,7 +90,7 @@ Dictionary, translation, and OCR requests share bounded timeout, abort, and retr
 
 - Astro 7 static output and Vite
 - JavaScript, Astro, and CSS
-- Cloudflare Pages Functions and Rate Limiting bindings
+- Cloudflare Worker Static Assets and Rate Limiting bindings
 - localStorage for user-owned local data
 - Service Worker/Cache API for offline use
 - Web Speech API for pronunciation and follow-along reading
@@ -112,14 +113,16 @@ public/
   assets/                  runtime dictionary, phonetics, phrasebook, and images
   sw.js                    service-worker source with build placeholders
 functions/
-  api/ocr.js               Pages Function route
+  api/ocr.js               legacy Pages compatibility adapter
   _shared/ocr-handler.js   validated OCR proxy implementation
+worker/
+  index.js                 production Worker and /api/ocr route
 tools/
   lexicon-data/            non-published source and legacy datasets
   build-*.mjs              deterministic data/offline builders
   audit-*.mjs              release quality gates
 tests/e2e/                 mobile Chromium user-flow tests
-wrangler.jsonc             reproducible Pages/observability/rate-limit config
+wrangler.jsonc             reproducible Worker assets/observability/rate-limit config
 ```
 
 ## Local development
@@ -136,16 +139,16 @@ npm run build
 npm run preview
 ```
 
-To exercise Pages Functions locally, copy `.dev.vars.example` to `.dev.vars`, set a non-production OCR key, then run:
+To exercise the production Worker route locally, copy `.dev.vars.example` to `.dev.vars`, set a non-production OCR key, then run:
 
 ```bash
-npm run dev:pages
+npm run dev:cloudflare
 ```
 
 Never commit `.dev.vars`. Production secrets are set through the Cloudflare project, for example:
 
 ```bash
-npx wrangler pages secret put OCR_SPACE_API_KEY --project-name luciadictionary
+npx wrangler secret put OCR_SPACE_API_KEY
 ```
 
 ## Data maintenance
@@ -168,9 +171,9 @@ The complete local release gate is:
 npm run verify
 ```
 
-It checks formatting and Astro types, runs unit tests, executes the OCR handler inside the Cloudflare runtime, runs mobile Chromium end-to-end/offline tests, rebuilds the site and generated service worker, audits lexicon/SEO/OCR coverage/translation/offline artifacts, checks generated Cloudflare binding types, compiles Pages Functions, and fails on moderate-or-higher dependency advisories.
+It checks formatting and Astro types, runs unit tests, executes the OCR handler inside the Cloudflare runtime, runs mobile Chromium end-to-end/offline tests, rebuilds the site and generated service worker, audits lexicon/SEO/OCR coverage/translation/offline artifacts, checks generated Cloudflare binding types, performs a Worker deployment dry run, and fails on moderate-or-higher dependency advisories.
 
-GitHub Actions runs the same gate on pushes to `main` and pull requests. Dependabot checks npm and GitHub Actions updates weekly.
+GitHub Actions runs the same gate on pushes to `main` and pull requests. Dependabot checks npm updates monthly.
 
 Useful focused commands:
 
@@ -190,6 +193,7 @@ npm run cf:build
 - A missing English word may be sent to `dictionaryapi.dev`; an English definition may then use the translation fallback.
 - A photo is sent only after the user selects it, through the same-origin Cloudflare endpoint to OCR.Space.
 - Cloudflare serves the site and endpoint and records bounded operational metadata; application logs intentionally exclude learning content.
+- No client-side analytics service is loaded and no analytics Cookie is set.
 
 See the in-app Privacy page and Guide, which includes accessibility notes, for user-facing details. Because this is designed for children to use with a parent, any future account, sync, analytics, or generated-content feature requires a separate privacy and content-safety review.
 

@@ -9,6 +9,10 @@ function makeEnvironment(overrides = {}) {
   return {
     OCR_SPACE_API_KEY: "test-secret",
     OCR_RATE_LIMITER: { limit: vi.fn(async () => ({ success: true })) },
+    OCR_IP_RATE_LIMITER: { limit: vi.fn(async () => ({ success: true })) },
+    OCR_GLOBAL_RATE_LIMITER: {
+      limit: vi.fn(async () => ({ success: true })),
+    },
     ...overrides,
   };
 }
@@ -26,6 +30,7 @@ function makeUploadRequest(options = {}) {
     headers: {
       origin: "https://dict.luciaandrayna.com",
       "sec-fetch-site": "same-origin",
+      "cf-connecting-ip": "203.0.113.10",
       "x-lucia-client": "12345678-test-client",
     },
     body: form,
@@ -34,7 +39,7 @@ function makeUploadRequest(options = {}) {
 
 const silentLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
 
-describe("OCR Pages Function in the Workers runtime", () => {
+describe("OCR Worker handler", () => {
   it("rejects non-POST and cross-site requests", async () => {
     const getResponse = await handleOcrRequest(
       new Request("https://dict.luciaandrayna.com/api/ocr"),
@@ -80,6 +85,43 @@ describe("OCR Pages Function in the Workers runtime", () => {
     expect(response.headers.get("retry-after")).toBe("60");
   });
 
+  it("enforces a stable network limit before caller-controlled client IDs", async () => {
+    const ipLimit = vi.fn(async () => ({ success: false }));
+    const clientLimit = vi.fn(async () => ({ success: true }));
+    const environment = makeEnvironment({
+      OCR_IP_RATE_LIMITER: { limit: ipLimit },
+      OCR_RATE_LIMITER: { limit: clientLimit },
+    });
+    const first = makeUploadRequest();
+    first.headers.set("x-lucia-client", "aaaaaaaa-client");
+    const second = makeUploadRequest();
+    second.headers.set("x-lucia-client", "bbbbbbbb-client");
+
+    expect(
+      (await handleOcrRequest(first, environment, { logger: silentLogger }))
+        .status,
+    ).toBe(429);
+    expect(
+      (await handleOcrRequest(second, environment, { logger: silentLogger }))
+        .status,
+    ).toBe(429);
+    expect(ipLimit).toHaveBeenNthCalledWith(1, {
+      key: "network:203.0.113.10",
+    });
+    expect(ipLimit).toHaveBeenNthCalledWith(2, {
+      key: "network:203.0.113.10",
+    });
+    expect(clientLimit).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when a stable rate limiter binding is unavailable", async () => {
+    const environment = makeEnvironment({ OCR_IP_RATE_LIMITER: undefined });
+    const response = await handleOcrRequest(makeUploadRequest(), environment, {
+      logger: silentLogger,
+    });
+    expect(response.status).toBe(503);
+  });
+
   it("checks file signatures instead of trusting the MIME type", async () => {
     const response = await handleOcrRequest(
       makeUploadRequest({ bytes: new Uint8Array([1, 2, 3, 4]) }),
@@ -121,5 +163,27 @@ describe("OCR Pages Function in the Workers runtime", () => {
     );
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({ error: "network_error" });
+  });
+
+  it("stops reading oversized upstream bodies without a content-length header", async () => {
+    const oversizedBody = JSON.stringify({
+      ParsedResults: [{ ParsedText: "x".repeat(300 * 1024) }],
+      IsErroredOnProcessing: false,
+    });
+    const response = await handleOcrRequest(
+      makeUploadRequest(),
+      makeEnvironment(),
+      {
+        fetchImpl: vi.fn(
+          async () =>
+            new Response(oversizedBody, {
+              headers: { "content-type": "application/json" },
+            }),
+        ),
+        logger: silentLogger,
+      },
+    );
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: "service_unavailable" });
   });
 });

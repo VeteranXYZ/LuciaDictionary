@@ -5,6 +5,8 @@
 **Perspective:** skeptical U.S. hiring manager  
 **Purpose:** reconstruct demonstrated working behavior, separate human and AI contribution, and only then map the evidence to professional roles
 
+**Post-audit engineering note (August 25, 2026):** the release-readiness follow-up corrected the README's Worker architecture and secret commands, removed client-side GA4, enabled explicit Worker observability, layered the OCR rate limits, bounded headerless upstream responses, and restored a clean dependency gate. Findings below remain unchanged as a record of the August 15 evidence snapshot.
+
 ## Executive conclusion
 
 The evidence does **not** support presenting the subject as the engineer who personally designed and coded every technical element in this repository. It does support a more specific and still valuable conclusion:
