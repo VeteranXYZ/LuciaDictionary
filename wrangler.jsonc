@@ -17,7 +17,26 @@
     "not_found_handling": "404-page",
     "run_worker_first": ["/api/*"],
   },
+  "ai": {
+    "binding": "AI",
+  },
   "ratelimits": [
+    {
+      "name": "TRANSLATE_IP_RATE_LIMITER",
+      "namespace_id": "981004",
+      "simple": {
+        "limit": 40,
+        "period": 60,
+      },
+    },
+    {
+      "name": "TRANSLATE_GLOBAL_RATE_LIMITER",
+      "namespace_id": "981005",
+      "simple": {
+        "limit": 400,
+        "period": 60,
+      },
+    },
     {
       "name": "OCR_RATE_LIMITER",
       "namespace_id": "981001",

@@ -177,7 +177,7 @@ test("keeps uncertain OCR tokens compact until individually confirmed", async ({
 
   await expect(page.locator("#word-list .word-card")).toHaveCount(3);
   await expect(page.locator(".ocr-uncertain")).toContainText(
-    "已收起 2 个可能识别有误的词",
+    "还有 2 个词没查到",
   );
   await expect(page.locator(".ocr-uncertain-chip")).toHaveCount(2);
   await expect(page.locator("#word-list")).not.toContainText("联网查词失败");
@@ -218,7 +218,10 @@ test("documents every optional network data flow", async ({ page }) => {
   await expect(page.locator("main#main-content")).toContainText(
     "dictionaryapi.dev",
   );
-  await expect(page.locator("main#main-content")).toContainText("Google");
+  await expect(page.locator("main#main-content")).toContainText(
+    "/api/translate",
+  );
+  await expect(page.locator("main#main-content")).toContainText("仅离线模式");
   await expect(page.locator("main#main-content")).toContainText("OCR.Space");
   await expect(page.locator("main#main-content")).toContainText("Cloudflare");
 });
@@ -255,3 +258,132 @@ for (const path of ["/how-to/", "/accessibility/", "/search"]) {
     await expect(page.locator("main#main-content")).toContainText("页面未找到");
   });
 }
+
+test("never sends a classroom sentence straight to a third party", async ({
+  page,
+}) => {
+  const external = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.origin !== new URL(page.url() || "http://localhost").origin) {
+      external.push(url.origin);
+    }
+  });
+
+  await page.goto("/");
+  external.length = 0;
+  await page.getByLabel("输入中文或英文课堂句子").fill("请把答案圈出来");
+  await page.getByRole("button", { name: "生成单词卡" }).click();
+  await expect(page.locator("#sentence-source")).toBeVisible();
+
+  // The old build called translate.googleapis.com directly from the browser.
+  expect(external).not.toContain("https://translate.googleapis.com");
+});
+
+test("labels a template substitution instead of silently rewriting the input", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByLabel("输入中文或英文课堂句子").fill("交上你的家庭作业");
+  await page.getByRole("button", { name: "生成单词卡" }).click();
+
+  await expect(page.locator("#sentence-text")).toHaveText(
+    "Turn in your homework.",
+  );
+  await expect(page.locator("#sentence-source")).toContainText("课堂短句库");
+});
+
+test("refuses to replace a long sentence with a partial template match", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByLabel("输入中文或英文课堂句子")
+    .fill("请交上你的家庭作业，然后安静地回到座位上等待");
+  await page.getByRole("button", { name: "生成单词卡" }).click();
+
+  // The template covers too little of the input to stand in for it, so the
+  // sentence must not silently become "Turn in your homework."
+  await expect(page.locator("#sentence-text")).not.toHaveText(
+    "Turn in your homework.",
+  );
+});
+
+test("keeps a classroom phrase as one card instead of splitting it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByLabel("输入中文或英文课堂句子")
+    .fill("Please show your work.");
+  await page.getByRole("button", { name: "生成单词卡" }).click();
+
+  await expect(
+    page.locator('#word-list .word-card[data-word="show your work"]'),
+  ).toBeVisible();
+  await expect(
+    page.locator('#word-list .word-card[data-word="show"]'),
+  ).toHaveCount(0);
+});
+
+test("offline-only mode stops offering network lookups", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("tab", { name: "设置" }).click();
+  await page
+    .locator('#offline-only-options button[data-offline-only="true"]')
+    .click();
+
+  await page.getByRole("tab", { name: "首页" }).click();
+  await page.getByLabel("输入中文或英文课堂句子").fill("The zyxwv machine.");
+  await page.getByRole("button", { name: "生成单词卡" }).click();
+
+  await expect(
+    page.locator('#word-list .word-card[data-word="zyxwv"]'),
+  ).toContainText("仅离线模式");
+  await expect(page.locator(".btn-online-lookup")).toHaveCount(0);
+});
+
+test("marking a review answer updates the card in place", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("输入中文或英文课堂句子").fill("Read and draw.");
+  await page.getByRole("button", { name: "生成单词卡" }).click();
+  for (const star of await page.locator("#word-list .btn-star").all()) {
+    await star.click();
+  }
+
+  await page.getByRole("tab", { name: "生词本" }).click();
+  const card = page.locator("#wb-list .word-card").first();
+  await card.locator(".review-btn.know").click();
+
+  await expect(card.locator(".review-btn.know")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(card.locator(".review-meta")).toContainText("学习中");
+});
+
+test("classroom phrase cards expose the authored practice details", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("tab", { name: "常用句" }).click();
+
+  const details = page.locator(".tpl-details").first();
+  await expect(details).toBeVisible();
+  await details.locator("summary").click();
+  await expect(details).toContainText("关键词");
+  await expect(details).toContainText("可以这样回答");
+});
+
+test("the tab bar is one tab stop with arrow-key navigation", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const home = page.getByRole("tab", { name: "首页" });
+  await home.focus();
+  await page.keyboard.press("ArrowRight");
+
+  await expect(page.getByRole("tab", { name: "生词本" })).toBeFocused();
+  await expect(page.locator("#pg-wordbook")).toBeVisible();
+  await expect(home).toHaveAttribute("tabindex", "-1");
+});

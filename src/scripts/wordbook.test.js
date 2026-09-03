@@ -1,16 +1,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  getWordbook,
   getDueWords,
   getReviewSummary,
-  recordWordEncounter,
+  getWordbook,
+  isStarred,
   recordQuizAnswer,
   recordReviewFeedback,
+  recordWordEncounter,
   removeWord,
   saveWordbook,
   toggleStar,
   validateImportedWordbook,
 } from "./wordbook.js";
+import { WORDBOOK_KEY } from "./storage.js";
 
 function installStorage() {
   const data = new Map();
@@ -156,5 +158,52 @@ describe("quiz answer updates", () => {
       due: 1,
       mastered: 1,
     });
+  });
+});
+
+describe("three-way review accounting", () => {
+  it("counts 不确定 separately instead of folding it into wrong", () => {
+    saveWordbook([{ w: "circle", m: "圈出" }]);
+    recordReviewFeedback("circle", "unsure");
+    const [item] = getWordbook();
+    expect(item.unsure).toBe(1);
+    expect(item.wrong).toBe(0);
+    expect(item.correct).toBe(0);
+    expect(item.lastResult).toBe("unsure");
+  });
+
+  it("still counts 忘记 as wrong", () => {
+    saveWordbook([{ w: "circle", m: "圈出" }]);
+    recordReviewFeedback("circle", "forgot");
+    const [item] = getWordbook();
+    expect(item.wrong).toBe(1);
+    expect(item.unsure).toBe(0);
+  });
+});
+
+describe("wordbook cache", () => {
+  it("hands out a fresh array so callers cannot mutate the cache", () => {
+    saveWordbook([{ w: "apple", m: "苹果" }]);
+    const first = getWordbook();
+    first.push({ w: "injected", m: "x" });
+    expect(getWordbook().map((item) => item.w)).toEqual(["apple"]);
+  });
+
+  it("serves repeated reads without re-reading storage", () => {
+    saveWordbook([{ w: "apple", m: "苹果" }]);
+    const reads = [];
+    const original = globalThis.localStorage.getItem;
+    globalThis.localStorage.getItem = function (key) {
+      reads.push(key);
+      return original.call(this, key);
+    };
+    try {
+      isStarred("apple");
+      isStarred("apple");
+      isStarred("banana");
+      expect(reads.filter((key) => key === WORDBOOK_KEY)).toHaveLength(0);
+    } finally {
+      globalThis.localStorage.getItem = original;
+    }
   });
 });

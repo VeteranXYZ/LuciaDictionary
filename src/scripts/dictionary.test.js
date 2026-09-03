@@ -57,9 +57,15 @@ describe("dictionary lookup", () => {
   });
 });
 
-const coreLexicon = JSON.parse(
+// The runtime ships the lexicon as an eager head plus a deferred long tail;
+// lookups must succeed across both once the tail has been merged in.
+const coreLexiconHead = JSON.parse(
   fs.readFileSync("public/assets/lexicon/core-lexicon.json", "utf8"),
 );
+const coreLexiconExtended = JSON.parse(
+  fs.readFileSync("public/assets/lexicon/core-lexicon-extended.json", "utf8"),
+);
+const coreLexicon = { ...coreLexiconHead, ...coreLexiconExtended };
 const sourceCoreLexicon = JSON.parse(
   fs.readFileSync("tools/lexicon-data/core-lexicon.source.json", "utf8"),
 );
@@ -128,16 +134,30 @@ describe("local lexicon layers", () => {
     expect(lookupLayered(layers, "address")).not.toBe("旧地址释义");
   });
 
-  it("keeps explicit phrase extraction available outside the main flow", () => {
-    expect(
-      extractLookupTerms(
-        "Write your email address and read the privacy policy.",
-        phraseLexicon,
-      ).slice(0, 2),
-    ).toEqual(["email address", "privacy policy"]);
+  it("returns phrases and words in sentence reading order", () => {
+    const terms = extractLookupTerms(
+      "Write your email address and read the privacy policy.",
+      phraseLexicon,
+    );
+    expect(terms).toContain("email address");
+    expect(terms).toContain("privacy policy");
+    expect(terms.indexOf("write")).toBeLessThan(terms.indexOf("email address"));
+    expect(terms.indexOf("email address")).toBeLessThan(
+      terms.indexOf("privacy policy"),
+    );
   });
 
-  it("main analysis extracts word cards only instead of phrase cards", () => {
+  it("does not also split a matched phrase into its own words", () => {
+    const terms = extractLookupTerms(
+      "Write your email address.",
+      phraseLexicon,
+    );
+    expect(terms).toContain("email address");
+    expect(terms).not.toContain("email");
+    expect(terms).not.toContain("address");
+  });
+
+  it("main analysis resolves classroom phrases as single cards", () => {
     const service = createDictionaryService({
       dict: {},
       coreLexicon,
@@ -150,26 +170,12 @@ describe("local lexicon layers", () => {
     });
 
     expect(service.extractLookupTerms("grow together")).toEqual([
-      "grow",
-      "together",
+      "grow together",
     ]);
     expect(service.extractLookupTerms("email address")).toEqual([
-      "email",
-      "address",
-    ]);
-    expect(service.extractLookupTerms("privacy policy")).toEqual([
-      "privacy",
-      "policy",
-    ]);
-    expect(service.extractLookupTerms("grow together")).not.toContain(
-      "grow together",
-    );
-    expect(service.extractLookupTerms("email address")).not.toContain(
       "email address",
-    );
-    expect(service.extractLookupTerms("privacy policy")).not.toContain(
-      "privacy policy",
-    );
+    ]);
+    expect(service.lookup("privacy policy")).toBe("隐私政策");
   });
 
   it("filters isolated OCR noise while keeping a and I", () => {

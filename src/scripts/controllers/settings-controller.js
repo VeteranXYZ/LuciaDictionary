@@ -47,6 +47,28 @@ export function createSettingsController({ getDictionaryCount }) {
       }),
     );
 
+    const offlineOptions = document.getElementById("offline-only-options");
+    if (offlineOptions) {
+      offlineOptions.replaceChildren(
+        ...[
+          ["关闭", false],
+          ["开启", true],
+        ].map(([label, value]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          const active = Boolean(state.settings.offlineOnly) === value;
+          button.className = "set-btn" + (active ? " active" : "");
+          button.dataset.offlineOnly = String(value);
+          button.textContent = label;
+          button.setAttribute("aria-pressed", String(active));
+          button.addEventListener("click", () =>
+            setSetting("offlineOnly", value),
+          );
+          return button;
+        }),
+      );
+    }
+
     const dictCount = document.getElementById("dict-count");
     if (dictCount)
       dictCount.textContent = getDictionaryCount().toLocaleString();

@@ -8,11 +8,13 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "node tools/generate-phrasebook.mjs && node tools/build-site-metadata.mjs && astro dev",
+    "dev": "node tools/generate-phrasebook.mjs && node tools/build-phrase-lexicon.mjs && node tools/build-site-metadata.mjs && astro dev",
     "dev:cloudflare": "npm run build && wrangler dev",
-    "build": "node tools/generate-phrasebook.mjs && node tools/build-site-metadata.mjs && astro build && node tools/build-service-worker.mjs",
+    "build": "node tools/generate-phrasebook.mjs && node tools/build-phrase-lexicon.mjs && node tools/build-site-metadata.mjs && astro build && node tools/build-service-worker.mjs && node tools/build-security-headers.mjs",
     "build:runtime-lexicon": "node tools/build-runtime-lexicon.mjs",
     "build:phrasebook": "node tools/generate-phrasebook.mjs",
+    "build:phrase-lexicon": "node tools/build-phrase-lexicon.mjs",
+    "build:security-headers": "node tools/build-security-headers.mjs",
     "build:site-metadata": "node tools/build-site-metadata.mjs",
     "build:lexicon": "node tools/build-core-lexicon.mjs",
     "build:hfv-ecdict-core": "node tools/build-hfv-ecdict-core.mjs",
@@ -22,6 +24,7 @@
     "audit:ocr-sample": "node tools/audit-ocr-sample-coverage.mjs",
     "audit:translation-quality": "node tools/audit-translation-quality.mjs",
     "audit:offline": "node tools/audit-offline-build.mjs",
+    "audit:deps": "npm audit --audit-level=moderate",
     "audit:all": "npm run audit:lexicon && npm run audit:seo && npm run audit:ocr-sample && npm run audit:translation-quality && npm run audit:offline",
     "preview": "astro preview",
     "preview:cloudflare": "npm run build && wrangler dev",
@@ -37,7 +40,7 @@
     "cf:build": "wrangler deploy --dry-run",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run format:check && npm run check && npm run test:all && npm run build && npm run audit:all && npm run cf:types:check && npm run cf:build && npm audit --audit-level=moderate"
+    "verify": "npm run format:check && npm run check && npm run test:all && npm run build && npm run audit:all && npm run cf:types:check && npm run cf:build"
   },
   "dependencies": {
     "terser": "^5.49.0"

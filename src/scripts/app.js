@@ -8,7 +8,11 @@ import {
   writeCache,
 } from "./storage.js";
 import { STOP_WORDS, createDictionaryService } from "./dictionary.js";
-import { CHINESE_RE, createTranslationService } from "./translation.js";
+import {
+  CHINESE_RE,
+  OFFLINE_ONLY_ERROR,
+  createTranslationService,
+} from "./translation.js";
 import {
   getSentenceSpeechLabel,
   renderSpeakableText,
@@ -27,6 +31,7 @@ import {
 } from "./wordbook.js";
 import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
 import { registerServiceWorker } from "./offline.js";
+import { extendedLexiconPath } from "../config/site.js";
 import { buildWordCard, createEmptyState, setCardMeaning } from "./ui.js";
 import { getAppState, subscribeAppState } from "./app-state.js";
 import { createMissionController } from "./controllers/mission-controller.js";
@@ -39,17 +44,22 @@ const NETWORK_CONCURRENCY = 3;
 let dictData = {};
 let coreLexicon = {};
 let phonetics = {};
+let phraseLexicon = {};
 let phrasebook = [];
 let curSentence = "";
 let curSentenceDisplay = "";
+let sentenceSource = "";
 let analyzeRunId = 0;
 let dictService = null;
 let translationService = null;
 let dictionaryReady = null;
+let extendedLexiconReady = null;
 let phrasebookReady = null;
 let activeNetworkRequests = 0;
 const networkQueue = [];
 let copyFeedbackTimer = null;
+let missionCandidates = new Map();
+let missionRefreshTimer = null;
 let missionController = null;
 let navigationController = null;
 let settingsController = null;
@@ -117,6 +127,32 @@ function setSentenceText(text) {
   if (sentenceText) renderSpeakableText(sentenceText, text);
 }
 
+// The child must be able to see where the English came from: a stored classroom
+// phrase, a real translation, or a best-effort pile of words.
+const SENTENCE_SOURCE_NOTES = {
+  template: {
+    text: "这句英文来自应用内置的课堂短句库。",
+    tone: "info",
+  },
+  online: {
+    text: "这句英文由翻译服务生成，可能和老师的原话略有不同。",
+    tone: "info",
+  },
+  "local-words": {
+    text: "没能翻译整句。下面只是句子里可能相关的单词，不是完整的英文句子。",
+    tone: "warning",
+  },
+};
+
+function setSentenceSource(source) {
+  const el = document.getElementById("sentence-source");
+  if (!el) return;
+  const note = SENTENCE_SOURCE_NOTES[source];
+  el.hidden = !note;
+  el.className = "sentence-source" + (note ? ` is-${note.tone}` : "");
+  el.textContent = note?.text || "";
+}
+
 async function copyText(text) {
   if (!navigator.clipboard?.writeText) {
     throw new Error("Clipboard API is unavailable");
@@ -153,10 +189,11 @@ function createCurrentTranslationService() {
 }
 
 async function loadDictionaryServices() {
-  [dictData, coreLexicon, phonetics] = await Promise.all([
+  [dictData, coreLexicon, phonetics, phraseLexicon] = await Promise.all([
     loadJsonAsset("assets/dict.json", {}),
     loadJsonAsset("assets/lexicon/core-lexicon.json", {}),
     loadJsonAsset("assets/phonetics.json", {}),
+    loadJsonAsset("assets/lexicon/phrase-lexicon.json", {}),
   ]);
   if (!Object.keys(coreLexicon).length)
     throw new Error("Local dictionary failed to load");
@@ -164,6 +201,7 @@ async function loadDictionaryServices() {
   dictService = createDictionaryService({
     dict: dictData,
     coreLexicon,
+    phraseLexicon,
     phonetics,
     translateText: (...args) => translationService.translateText(...args),
     enqueueNetwork,
@@ -173,7 +211,34 @@ async function loadDictionaryServices() {
   createCurrentTranslationService();
   settingsController?.render(getAppState());
   announce("词典已准备好");
+  scheduleExtendedLexicon();
   return dictService;
+}
+
+// The long-tail shard is fetched after the app is usable. Analysis waits for it
+// only when a sentence actually contains a word the head could not resolve.
+function ensureExtendedLexiconReady() {
+  if (!dictService) return Promise.resolve(false);
+  if (!extendedLexiconReady) {
+    extendedLexiconReady = loadJsonAsset(extendedLexiconPath.slice(1), {})
+      .then((entries) => {
+        const added = dictService.extendCoreLexicon(entries);
+        if (added) settingsController?.render(getAppState());
+        return added > 0;
+      })
+      .catch(() => false);
+  }
+  return extendedLexiconReady;
+}
+
+function scheduleExtendedLexicon() {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(() => ensureExtendedLexiconReady(), {
+      timeout: 5000,
+    });
+  } else {
+    window.setTimeout(() => ensureExtendedLexiconReady(), 1200);
+  }
 }
 
 function startDictionaryServices() {
@@ -212,17 +277,46 @@ function isCurrentAnalyzeRun(runId) {
   return runId == null || runId === analyzeRunId;
 }
 
+// A "local-words" result is a bag of related words, not a sentence, so it must
+// not be read aloud as one or used as cloze material.
+function isReadableSentence() {
+  return sentenceSource !== "local-words";
+}
+
+function renderMissionPreview() {
+  missionController.renderPreview(Array.from(missionCandidates.values()));
+}
+
+function recordResolvedMeaning(runId, word, meaning) {
+  if (!meaning || runId !== analyzeRunId || !isReadableSentence()) return;
+  const key = String(word).toLowerCase();
+  const candidate = missionCandidates.get(key);
+  if (!candidate || candidate.meaning) return;
+  missionCandidates.set(key, { ...candidate, meaning });
+  clearTimeout(missionRefreshTimer);
+  // Meanings land one network response at a time; rebuild once they settle,
+  // and never while the child is part-way through the exercise.
+  missionRefreshTimer = setTimeout(() => {
+    if (runId === analyzeRunId && !missionController.isStarted()) {
+      renderMissionPreview();
+    }
+  }, 400);
+}
+
 function createOcrUncertainPanel(words, lookupWord) {
   const panel = document.createElement("section");
   panel.className = "ocr-uncertain";
-  panel.setAttribute("aria-label", "可能识别有误的词");
+  panel.setAttribute("aria-label", "还没查到的词");
 
   const copy = document.createElement("div");
   copy.className = "ocr-uncertain-copy";
   const title = document.createElement("strong");
-  title.textContent = `已收起 ${words.length} 个可能识别有误的词`;
+  title.textContent = `还有 ${words.length} 个词没查到`;
   const hint = document.createElement("span");
-  hint.textContent = "这些词可能是图片识别误差。点一下可以联网确认。";
+  // These are simply words the local dictionary does not carry — they may be
+  // names or rarer words, not necessarily OCR mistakes.
+  hint.textContent =
+    "本地词典里没有这些词，也可能是拍照识别看错了。点一下可以联网查一查。";
   copy.append(title, hint);
 
   const chips = document.createElement("div");
@@ -241,9 +335,9 @@ function createOcrUncertainPanel(words, lookupWord) {
         button.remove();
         const remaining = chips.querySelectorAll("button").length;
         title.textContent = remaining
-          ? `还有 ${remaining} 个词可能识别有误`
-          : "已确认全部可查询词";
-        if (!remaining) hint.textContent = "查询到的词已加入下方单词卡。";
+          ? `还有 ${remaining} 个词没查到`
+          : "这些词都查过了";
+        if (!remaining) hint.textContent = "查到的词已经加到上面的单词卡里。";
       } else {
         button.disabled = false;
         button.classList.add("is-missing");
@@ -272,7 +366,11 @@ async function analyzeSentence({ source = "manual" } = {}) {
   setAnalyzeBusy(true);
   bar?.classList.add("visible");
   resetSentenceSpeech();
+  sentenceSource = "";
+  missionCandidates = new Map();
+  clearTimeout(missionRefreshTimer);
   setSentenceText(raw);
+  setSentenceSource("");
   setSentenceSpeakLabel(getSentenceSpeechLabel("idle"));
   list.setAttribute("aria-busy", "true");
   missionContainer?.replaceChildren();
@@ -296,14 +394,22 @@ async function analyzeSentence({ source = "manual" } = {}) {
         const resolved = await translationService.resolveChineseInput(raw);
         if (runId !== analyzeRunId) return;
         sentence = resolved.sentence;
+        sentenceSource = resolved.source;
         setSentenceText(sentence);
-        setSentenceSpeakLabel("朗读英文句子");
+        setSentenceSource(resolved.source);
+        setSentenceSpeakLabel(
+          isReadableSentence() ? "朗读英文句子" : "朗读这些单词",
+        );
       } catch (e) {
         if (runId !== analyzeRunId) return;
         list.replaceChildren(
           createEmptyState(
-            "中文翻译暂时不可用",
-            "请检查网络，或先输入英文句子",
+            e?.code === OFFLINE_ONLY_ERROR
+              ? "仅离线模式下无法翻译中文"
+              : "中文翻译暂时不可用",
+            e?.code === OFFLINE_ONLY_ERROR
+              ? "可以在设置里关闭仅离线模式，或直接输入英文句子"
+              : "请检查网络，或先输入英文句子",
           ),
         );
         return;
@@ -312,7 +418,18 @@ async function analyzeSentence({ source = "manual" } = {}) {
 
     if (runId !== analyzeRunId) return;
     curSentence = sentence;
-    const words = dictService.extractLookupTerms(sentence);
+    let words = dictService.extractLookupTerms(sentence);
+
+    const needsExtendedLexicon = words.some(
+      (word) =>
+        !STOP_WORDS.has(word.toLowerCase()) && !dictService.lookup(word),
+    );
+    if (needsExtendedLexicon) {
+      await ensureExtendedLexiconReady();
+      if (runId !== analyzeRunId) return;
+      // New entries can also merge two words into one phrase card.
+      words = dictService.extractLookupTerms(sentence);
+    }
     list.replaceChildren();
 
     if (!words.length) {
@@ -343,8 +460,12 @@ async function analyzeSentence({ source = "manual" } = {}) {
       getCachedOnlineWord,
       lookupOnlineData: dictService.lookupOnlineData,
       sourceSentence: () => curSentence,
-      setMeaning: (card, meaning) =>
-        setCardMeaning(card, word.toLowerCase(), meaning, updateStarredMeaning),
+      setMeaning: (card, meaning) => {
+        setCardMeaning(card, word.toLowerCase(), meaning, updateStarredMeaning);
+        // A meaning that only arrives from the network still deserves a place
+        // in the mission — those are often exactly the words worth practising.
+        recordResolvedMeaning(runId, word, meaning);
+      },
       isCurrentRun: isCurrentAnalyzeRun,
       runId,
     });
@@ -393,17 +514,22 @@ async function analyzeSentence({ source = "manual" } = {}) {
         }),
       );
     }
-    missionController.renderPreview(
+    missionCandidates = new Map(
       visibleWords
         .filter((word) => !STOP_WORDS.has(word.toLowerCase()))
-        .map((word) => ({
-          word,
-          meaning: dictService.lookup(word),
-          band: dictService.lookupLearningBand(word),
-        })),
+        .map((word) => [
+          word.toLowerCase(),
+          {
+            word,
+            meaning: dictService.lookup(word) || "",
+            band: dictService.lookupLearningBand(word),
+          },
+        ]),
     );
+    // A pile of unrelated words is not a sentence to practise inside.
+    if (isReadableSentence()) renderMissionPreview();
     const uncertainNote = uncertainWords.length
-      ? `，另收起 ${uncertainWords.length} 个待确认词`
+      ? `，另有 ${uncertainWords.length} 个词还没查到`
       : "";
     announce(`已生成 ${visibleWords.length} 张单词卡${uncertainNote}`);
   } catch {
@@ -505,8 +631,7 @@ function setupLearningTip() {
 function init() {
   saveWordbook(getWordbook());
   settingsController = createSettingsController({
-    getDictionaryCount: () =>
-      new Set([...Object.keys(dictData), ...Object.keys(coreLexicon)]).size,
+    getDictionaryCount: () => dictService?.countLoadedWords() || 0,
   });
   wordbookController = createWordbookController({
     announce,
@@ -524,6 +649,7 @@ function init() {
     analyzeSentence,
     getDictionaryReady: startDictionaryServices,
     getDictionaryService: () => dictService,
+    loadPhrasebook: ensurePhrasebookReady,
     renderSettings: () => settingsController.render(getAppState()),
     renderWordbook: () => wordbookController.render(),
     speak,

@@ -2,7 +2,8 @@ const CACHE_PREFIX = "lucia-local-core-";
 const CACHE_NAME = "lucia-local-core-__BUILD_HASH__";
 const BUILD_ASSET_PREFIX = "/_a/";
 const PRECACHE_URLS = /* __PRECACHE_URLS__ */ [];
-const PRECACHE_PATHS = new Set(PRECACHE_URLS);
+const DEFERRED_PRECACHE_URLS = /* __DEFERRED_PRECACHE_URLS__ */ [];
+const PRECACHE_PATHS = new Set([...PRECACHE_URLS, ...DEFERRED_PRECACHE_URLS]);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -24,7 +25,15 @@ self.addEventListener("activate", (event) => {
             .map((key) => caches.delete(key)),
         ),
       )
-      .then(() => self.clients.claim()),
+      .then(() => self.clients.claim())
+      .then(() =>
+        // Best effort: the app works offline without these, and a failure here
+        // must never leave the worker stuck in activating.
+        caches
+          .open(CACHE_NAME)
+          .then((cache) => cache.addAll(DEFERRED_PRECACHE_URLS))
+          .catch(() => {}),
+      ),
   );
 });
 

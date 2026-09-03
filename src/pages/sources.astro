@@ -38,10 +38,33 @@ const structuredData = buildInfoPageStructuredData({
       </p>
     </section>
     <section>
-      <h2>词典数据来源</h2>
+      <h2>词典数据来源与许可</h2>
       <p>
-        核心词典由高频词汇数据和 ECDICT
-        等公开词典数据整理生成。页面上的“基础词、进阶词、拓展词”用于帮助安排学习顺序，不代表学校年级标准或考试等级认证。
+        核心词典由公开的高频词汇表与开源词典数据整理、筛选和改写生成。本站会按以下许可条款使用并再分发这些数据：
+      </p>
+      <ul class="source-list">
+        <li>
+          <strong>ECDICT</strong> · 英汉字典数据库，采用 MIT 许可证。项目地址：<a
+            href="https://github.com/skywind3000/ECDICT"
+            rel="noopener noreferrer"
+            target="_blank">github.com/skywind3000/ECDICT</a
+          >。本站使用其中的中文释义与音标字段，并针对小学课堂场景做了筛选和改写。
+        </li>
+        <li>
+          <strong>高频词汇表</strong> ·
+          用于确定词条收录范围与学习分级的公开词频数据，仅用于排序，不随应用分发原始词频文件。
+        </li>
+        <li>
+          <strong>dictionaryapi.dev</strong> ·
+          联网补充释义的来源，其英文释义主要来自 Wiktionary，遵循 <a
+            href="https://creativecommons.org/licenses/by-sa/3.0/"
+            rel="noopener noreferrer"
+            target="_blank">CC BY-SA 3.0</a
+          >。这类释义只在本地查不到时按需获取，并缓存在你的浏览器中。
+        </li>
+      </ul>
+      <p>
+        页面上的“基础词、进阶词、拓展词”是本站为安排学习顺序自定的分级，不代表学校年级标准或考试等级认证。
       </p>
     </section>
     <section>
@@ -53,9 +76,14 @@ const structuredData = buildInfoPageStructuredData({
     <section>
       <h2>联网补充</h2>
       <p>
-        本地内容不足时，应用可能通过 dictionaryapi.dev 补充英文释义，并通过
-        Google
-        翻译备用服务生成中文结果。联网结果可能随服务状态而变化，并会缓存在当前浏览器中。
+        本地内容不足时，应用可能通过 dictionaryapi.dev
+        补充英文释义。中文翻译由本站自己的接口完成：句子先发送到同源的 <code
+          >/api/translate</code
+        >，再由服务端调用 Cloudflare Workers AI
+        的翻译模型，浏览器不会直接连接任何第三方翻译服务。联网结果可能随服务状态而变化，并会缓存在当前浏览器中。
+      </p>
+      <p>
+        在设置页开启“仅离线模式”后，上述联网补充和图片识别都会停止，应用只使用自带的词典与课堂短句。
       </p>
     </section>
     <section>

@@ -136,6 +136,22 @@ const { version } = Astro.props;
       </header>
       <div class="storage-action">
         <div>
+          <strong>仅离线模式</strong>
+          <p>
+            开启后只用应用自带的词典和课堂短句，不再联网查词、翻译或识别图片
+          </p>
+        </div>
+        <div
+          class="set-options"
+          id="offline-only-options"
+          role="group"
+          aria-label="仅离线模式"
+        >
+        </div>
+      </div>
+
+      <div class="storage-action">
+        <div>
           <strong>查询缓存</strong>
           <p>包括自动音标、在线释义和中文翻译</p>
         </div>
@@ -201,8 +217,8 @@ const { version } = Astro.props;
             src={luciaMascotPath}
             srcset={luciaMascotSrcSet}
             sizes="68px"
-            width="768"
-            height="768"
+            width="320"
+            height="320"
             loading="lazy"
             alt="Lucia 猴子插画"
           />

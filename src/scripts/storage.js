@@ -6,7 +6,11 @@ export const TIP_DISMISSED_KEY = "lucia-learning-tip-dismissed";
 export const WORDBOOK_KEY = "lucia-wordbook";
 export const CLIENT_ID_KEY = "lucia-client-id";
 
-export const DEFAULT_SETTINGS = { speed: "normal", repeat: 3 };
+export const DEFAULT_SETTINGS = {
+  speed: "normal",
+  repeat: 3,
+  offlineOnly: false,
+};
 export const SETTING_STORAGE_PREFIX = "lucia-";
 export const CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
 export const CACHE_MAX_ITEMS = 240;
@@ -57,6 +61,12 @@ export function setSetting(key, value) {
 
 export function getSettingStorageKey(key) {
   return SETTING_STORAGE_PREFIX + key;
+}
+
+// "Offline only" is a parent-facing promise: while it is on, nothing the child
+// types or photographs may leave the device, whatever the caller asks for.
+export function isNetworkAllowed() {
+  return getSetting("offlineOnly") !== true;
 }
 
 export function trimCacheEntries(value, maxItems = CACHE_MAX_ITEMS) {
