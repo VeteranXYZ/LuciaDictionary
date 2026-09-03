@@ -86,6 +86,7 @@ export function normalizeWordbookItem(item) {
     sourceSentences,
     correct: Math.max(0, Number(item?.correct || 0)),
     wrong: Math.max(0, Number(item?.wrong || 0)),
+    unsure: Math.max(0, Number(item?.unsure || 0)),
     lastReviewedAt: item?.lastReviewedAt ? Number(item.lastReviewedAt) : null,
     level,
     mastery: MASTERY_STATES.includes(item?.mastery)
@@ -134,6 +135,7 @@ export function mergeWordbookItem(existing, incoming) {
     sourceSentences,
     correct: Math.max(existing.correct || 0, incoming.correct || 0),
     wrong: Math.max(existing.wrong || 0, incoming.wrong || 0),
+    unsure: Math.max(existing.unsure || 0, incoming.unsure || 0),
     level: Math.max(existing.level || 0, incoming.level || 0),
     lastReviewedAt:
       Math.max(existing.lastReviewedAt || 0, incoming.lastReviewedAt || 0) ||
@@ -160,17 +162,42 @@ export function mergeWordbookItem(existing, incoming) {
   };
 }
 
+// getWordbook() sits on hot paths — every word card asks whether it is starred,
+// so a sentence used to cost dozens of parse-and-normalize passes.
+let wordbookCache = null;
+
+export function invalidateWordbookCache() {
+  wordbookCache = null;
+}
+
 export function getWordbook() {
-  return normalizeWordbook(readStoredJson(WORDBOOK_KEY, []));
+  if (!wordbookCache) {
+    wordbookCache = normalizeWordbook(readStoredJson(WORDBOOK_KEY, []));
+  }
+  // Callers splice and push into the result, so hand out a fresh array while
+  // still sharing the (treated-as-immutable) item objects.
+  return wordbookCache.slice();
 }
 
 export function saveWordbook(wordbook) {
-  return writeStoredJson(WORDBOOK_KEY, normalizeWordbook(wordbook));
+  const normalized = normalizeWordbook(wordbook);
+  wordbookCache = normalized;
+  const written = writeStoredJson(WORDBOOK_KEY, normalized);
+  if (!written) invalidateWordbookCache();
+  return written;
+}
+
+function findCachedItem(word) {
+  const key = String(word || "")
+    .toLowerCase()
+    .trim();
+  if (!key) return null;
+  if (!wordbookCache) getWordbook();
+  return wordbookCache.find((item) => item.w === key) || null;
 }
 
 export function isStarred(word) {
-  const key = String(word || "").toLowerCase();
-  return getWordbook().some((item) => item.w === key);
+  return Boolean(findCachedItem(word));
 }
 
 export function updateWordbookItem(word, updater) {
@@ -188,8 +215,7 @@ export function updateWordbookItem(word, updater) {
 
 export function updateStarredMeaning(word, meaning) {
   if (!word || !meaning) return;
-  const key = String(word).toLowerCase().trim();
-  const existing = getWordbook().find((item) => item.w === key);
+  const existing = findCachedItem(word);
   if (!existing || existing.m) return existing || null;
   updateWordbookItem(word, (item) => ({ ...item, m: item.m || meaning }));
 }
@@ -317,7 +343,10 @@ export function recordReviewFeedback(word, result, now = Date.now()) {
     return {
       ...item,
       correct: (item.correct || 0) + (result === "know" ? 1 : 0),
-      wrong: (item.wrong || 0) + (result === "know" ? 0 : 1),
+      // "不确定" is its own answer, not a wrong one. Folding it into `wrong`
+      // made the three-way feedback report as two-way.
+      wrong: (item.wrong || 0) + (result === "forgot" ? 1 : 0),
+      unsure: (item.unsure || 0) + (result === "unsure" ? 1 : 0),
       level,
       mastery: masteryForLevel(level),
       intervalDays,

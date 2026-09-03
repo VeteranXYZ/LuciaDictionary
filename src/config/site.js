@@ -33,8 +33,9 @@ export const manifestPath = "/manifest.webmanifest";
 export const serviceWorkerPath = "/sw.js";
 export const siteLogo = `${siteOrigin}${logoPath}`;
 
-export const themeColor = "#6B8E5A";
-export const backgroundColor = "#FFF8E6";
+export const themeColor = "#77509D";
+export const backgroundColor = "#FBFAF6";
+export const darkThemeColor = "#16141C";
 
 export const infoPages = [
   {
@@ -77,6 +78,7 @@ export const corePrecacheUrls = [
   manifestPath,
   "/assets/dict.json",
   "/assets/lexicon/core-lexicon.json",
+  "/assets/lexicon/phrase-lexicon.json",
   "/assets/phonetics.json",
   "/assets/phrasebook.json",
   logoPath,
@@ -88,3 +90,11 @@ export const corePrecacheUrls = [
   "/assets/monkey-160.webp",
   faviconPngPath,
 ];
+
+// Cached after activation instead of during install, so the first visit is not
+// held up by half a megabyte of long-tail vocabulary it probably will not need.
+export const deferredPrecacheUrls = [
+  "/assets/lexicon/core-lexicon-extended.json",
+];
+
+export const extendedLexiconPath = "/assets/lexicon/core-lexicon-extended.json";

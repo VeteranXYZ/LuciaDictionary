@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createQuizQuestion, handleQuizAnswer, quizState } from "./quiz.js";
+import {
+  createQuizQuestion,
+  getQuizOptionLabel,
+  handleQuizAnswer,
+  quizState,
+  resetQuizSession,
+} from "./quiz.js";
 import { getWordbook, saveWordbook } from "./wordbook.js";
 
 function installStorage() {
@@ -46,5 +52,33 @@ describe("spaced review question selection", () => {
       { w: "solve", m: "解答", nextReviewAt: 10000 },
     ];
     expect(createQuizQuestion(words, () => 0, 100).correct.w).toBe("read");
+  });
+});
+
+describe("quiz option quality", () => {
+  const wb = [
+    { w: "circle", m: "圈出" },
+    { w: "ring", m: "圈出" },
+    { w: "draw", m: "画" },
+    { w: "write", m: "写" },
+    { w: "read", m: "读" },
+  ];
+
+  it("never offers two options that read the same", () => {
+    for (let seed = 0; seed < 40; seed++) {
+      const random = () => (seed % 7) / 7 + 0.01;
+      const question = createQuizQuestion(wb, random);
+      const labels = question.options.map((option) =>
+        getQuizOptionLabel(option, question.flipped),
+      );
+      expect(new Set(labels).size).toBe(labels.length);
+    }
+  });
+
+  it("resets the round counter so the score line stays truthful", () => {
+    quizState.score = 3;
+    quizState.total = 9;
+    resetQuizSession();
+    expect(quizState).toMatchObject({ score: 0, total: 0, current: null });
   });
 });

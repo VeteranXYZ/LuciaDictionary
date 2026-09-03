@@ -30,17 +30,26 @@ Sitemap: ${siteOrigin}/sitemap.xml
 `;
 
 const manifest = {
+  // A stable id keeps an installed app pointed at this entry across updates.
+  id: "/",
   name: siteName,
   short_name: appShortName,
   description: appDescription,
+  lang: "zh-CN",
+  dir: "ltr",
   start_url: "/",
   scope: "/",
   display: "standalone",
+  orientation: "portrait",
+  categories: ["education", "books", "kids"],
   background_color: backgroundColor,
   theme_color: themeColor,
   icons: [
     { src: faviconPngPath, sizes: "192x192", type: "image/png" },
     { src: logoPath, sizes: "512x512", type: "image/png" },
+    // Android crops "any" icons into its mask; without a maskable entry the
+    // installed icon ends up as artwork on a white square.
+    { src: logoPath, sizes: "512x512", type: "image/png", purpose: "maskable" },
   ],
 };
 

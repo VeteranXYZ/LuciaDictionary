@@ -1,12 +1,21 @@
 {
+  "id": "/",
   "name": "Lucia's Dictionary",
   "short_name": "Lucia 词典",
   "description": "把课堂英语句子变成能读、能懂、能复习的单词卡。",
+  "lang": "zh-CN",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#FFF8E6",
-  "theme_color": "#6B8E5A",
+  "orientation": "portrait",
+  "categories": [
+    "education",
+    "books",
+    "kids"
+  ],
+  "background_color": "#FBFAF6",
+  "theme_color": "#77509D",
   "icons": [
     {
       "src": "/favicon.png",
@@ -17,6 +26,12 @@
       "src": "/assets/logo.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

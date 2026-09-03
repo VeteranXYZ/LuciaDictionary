@@ -5,7 +5,7 @@ Lucia's Dictionary is a mobile-first, local-first English classroom learning too
 ## Learning loop
 
 1. Enter or photograph a classroom sentence.
-2. Translate Chinese input locally when a known phrase matches, with a bounded online fallback when needed.
+2. Translate Chinese input locally when a stored classroom phrase covers it almost entirely, with a bounded same-origin fallback when needed. The English shown always states where it came from.
 3. Split the English sentence into child-friendly word cards with meanings, phonetics, learning bands, and speech.
 4. Turn the real classroom sentence into a short Classroom Relay mission that explains which words deserve attention and why.
 5. Practice selected words through listening, meaning recall, and a cloze inside the original sentence.
@@ -26,20 +26,9 @@ A mission selects up to five words and rotates through three exercise types:
 
 Completing a mission updates the existing spaced-review schedule, records the source sentence for each selected word, stores a bounded local mission history, and produces a parent handoff card. Mission content and learning history stay in `localStorage`; the feature adds no account, child profile, analytics event, or new network request.
 
-## OpenAI Build Week 2026 extension
+## Classroom Relay provenance
 
-Lucia's Dictionary existed before the July 13, 2026 submission period. The pre-existing project already supported sentence input, OCR, local word cards, pronunciation, a wordbook, basic spaced review, and quizzes. Work added during Build Week is intentionally separated here for judging:
-
-- the Classroom Relay mission model and bounded local mission history;
-- an explainable word-priority engine based on actual review state;
-- listening, meaning, and original-sentence cloze mission stages;
-- multi-sentence classroom encounter memory for each learned word;
-- a completion summary and immediate parent-child practice prompt;
-- unit and mobile end-to-end coverage for the new learning loop.
-
-This extension was designed and implemented with **Codex and GPT-5.6** during OpenAI Build Week through Codex Session `019f675a-a32d-7eb0-9e13-4d4df7cd9969`, with dated commit history retained for judging. Codex with GPT-5.6 helped inspect the pre-existing architecture, refine the classroom-to-home learning concept, design the explainable priority and persistence models, implement the Classroom Relay vertical slice, add automated coverage, and verify the mobile production experience.
-
-The final product decisions remained human-directed: Lucia's Dictionary does not generate homework answers, create child accounts, or upload learning history. The child-facing recommendation and practice loop is intentionally local, deterministic, and explainable to parents.
+Classroom Relay was added on top of a project that already supported sentence input, OCR, local word cards, pronunciation, a wordbook, spaced review, and quizzes. It was designed and implemented with AI assistance, with dated commit history retained. The product decisions stayed human-directed: the app does not generate homework answers, create child accounts, or upload learning history, and its recommendation and practice loop is local, deterministic, and explainable to parents.
 
 ## Architecture
 
@@ -51,10 +40,11 @@ flowchart LR
   B --> E["localStorage wordbook, schedule, settings, cache"]
   B --> L["Classroom Relay recommendation and mission history"]
   B --> F["Browser speech synthesis"]
-  B --> G["Bounded dictionary and translation fallbacks"]
-  B --> H["Same-origin /api/ocr"]
+  B --> G["Bounded dictionary fallback · dictionaryapi.dev"]
+  B --> H["Same-origin /api/ocr and /api/translate"]
   H --> I["Cloudflare Worker"]
   I --> J["OCR.Space"]
+  I --> M["Workers AI translation"]
   K["Generated service-worker precache"] --> A
   K --> C
   K --> D
@@ -64,9 +54,12 @@ The interface binds immediately; dictionary data starts during the browser's fir
 
 ## Lookup order
 
-1. Compact runtime core lexicon: `public/assets/lexicon/core-lexicon.json`
-2. Legacy local dictionary: `public/assets/dict.json`
-3. `dictionaryapi.dev`, followed by a translation fallback for the returned definition
+1. Runtime phrase lexicon: `public/assets/lexicon/phrase-lexicon.json` — multi-word classroom phrases such as `show your work` resolve as one card instead of being split
+2. Compact runtime core lexicon: `public/assets/lexicon/core-lexicon.json` (eager head) and `core-lexicon-extended.json` (deferred long tail)
+3. Legacy local dictionary: `public/assets/dict.json`
+4. `dictionaryapi.dev`, followed by a translation fallback for the returned definition
+
+The runtime core lexicon ships as two shards. The head carries every `foundation` and `developing` word and is precached at install; the long tail is fetched after first paint and is only awaited when a sentence actually contains a word the head cannot resolve.
 
 The source lexicon and retired comparison datasets live under `tools/lexicon-data/`; they are build inputs and are not published. Runtime entries include normalized forms and one of three learning bands: `foundation`, `developing`, or `expanding`.
 
@@ -84,7 +77,9 @@ The browser compresses an uploaded image and sends it to the same-origin `POST /
 - returns stable, non-sensitive errors and structured request logs;
 - never stores or logs image contents, recognized text, or the API key.
 
-Dictionary, translation, and OCR requests share bounded timeout, abort, and retry behavior. The service worker never caches `/api/*` responses.
+`POST /api/translate` is the same-origin translation route. It applies the same shape of protection: cross-site rejection, JSON-only bodies bounded at 4 KiB, a 600-character input cap, an allow-list of the `en` / `zh-CN` pair, per-network (40/minute) and global (400/minute) rate limits that fail closed, and a 12-second upstream abort. It logs only sizes and durations, never the sentence or its translation.
+
+Dictionary, translation, and OCR requests share bounded timeout, abort, and retry behavior. The service worker never caches `/api/*` responses. The published CSP allows no inline script: `tools/build-security-headers.mjs` hashes the JSON-LD blocks at build time and `npm run audit:seo` fails if `'unsafe-inline'` reappears.
 
 ## Technology
 
@@ -110,16 +105,17 @@ src/
   scripts/                 local learning features and unit tests
   styles/                  mobile-first design system
 public/
-  assets/                  runtime dictionary, phonetics, phrasebook, and images
+  assets/                  runtime dictionary shards, phonetics, phrasebook, and images
+  _headers                 security-header template with a CSP hash placeholder
   sw.js                    service-worker source with build placeholders
-functions/
-  api/ocr.js               legacy Pages compatibility adapter
-  _shared/ocr-handler.js   validated OCR proxy implementation
 worker/
-  index.js                 production Worker and /api/ocr route
+  index.js                 production Worker and its /api routes
+  lib/ocr-handler.js       validated OCR proxy implementation
+  lib/translate-handler.js same-origin translation proxy over Workers AI
+  lib/security-headers.js  API response hardening
 tools/
-  lexicon-data/            non-published source and legacy datasets
-  build-*.mjs              deterministic data/offline builders
+  lexicon-data/            non-published source datasets
+  build-*.mjs              deterministic data/offline/header builders
   audit-*.mjs              release quality gates
 tests/e2e/                 mobile Chromium user-flow tests
 wrangler.jsonc             reproducible Worker assets/observability/rate-limit config
@@ -151,15 +147,20 @@ Never commit `.dev.vars`. Production secrets are set through the Cloudflare proj
 npx wrangler secret put OCR_SPACE_API_KEY
 ```
 
+`/api/translate` uses the Workers AI binding declared in `wrangler.jsonc`; Workers AI must be enabled for the account before translation works in production.
+
 ## Data maintenance
 
 `tools/lexicon-data/core-lexicon.source.json` is the canonical rich source. Generate the compact public dataset and run its quality checks with:
 
 ```bash
 npm run build:runtime-lexicon
+npm run build:phrase-lexicon
 npm run audit:lexicon
 npm run audit:translation-quality
 ```
+
+`build:runtime-lexicon` emits both core-lexicon shards; `build:phrase-lexicon` emits the multi-word runtime phrase layer, skipping source phrases that still lack a real Chinese meaning and reporting how many were skipped.
 
 Translation audit exceptions must be explicit in `tools/translation-quality-allowlist.json`; deliberate corrections belong in `tools/translation-overrides.json`. The audit exits non-zero on a new suspicious value.
 
@@ -171,7 +172,9 @@ The complete local release gate is:
 npm run verify
 ```
 
-It checks formatting and Astro types, runs unit tests, executes the OCR handler inside the Cloudflare runtime, runs mobile Chromium end-to-end/offline tests, rebuilds the site and generated service worker, audits lexicon/SEO/OCR coverage/translation/offline artifacts, checks generated Cloudflare binding types, performs a Worker deployment dry run, and fails on moderate-or-higher dependency advisories.
+It checks formatting and Astro types, runs unit tests, executes the API handlers inside the Cloudflare runtime, runs mobile Chromium end-to-end/offline tests, rebuilds the site plus the generated service worker and CSP headers, audits lexicon/SEO/OCR coverage/translation/offline artifacts, checks generated Cloudflare binding types, and performs a Worker deployment dry run.
+
+Dependency advisories run as a separate `npm run audit:deps` job. They are reported but do not fail the gate, because a new upstream advisory should not turn `main` red on its own.
 
 GitHub Actions runs the same gate on pushes to `main` and pull requests. Dependabot checks npm updates monthly.
 
@@ -189,8 +192,9 @@ npm run cf:build
 ## Privacy boundaries
 
 - Local input analysis, word cards, speech, saved words, review schedules, settings, and cached lookups stay in the browser.
-- A missing Chinese phrase may be sent to Google Translate fallback.
-- A missing English word may be sent to `dictionaryapi.dev`; an English definition may then use the translation fallback.
+- **Offline-only mode** in Settings stops every optional network call — online lookup, translation, and OCR — and the UI stops offering them.
+- Translation never leaves the origin from the browser: text goes to the same-origin `POST /api/translate`, which calls Cloudflare Workers AI server-side. Chrome's on-device `Translator` is tried first and is bounded by a timeout so a model download can never stall the flow.
+- A missing English word may be sent to `dictionaryapi.dev`; an English definition may then use the translation proxy.
 - A photo is sent only after the user selects it, through the same-origin Cloudflare endpoint to OCR.Space.
 - Cloudflare serves the site and endpoint and records bounded operational metadata; application logs intentionally exclude learning content.
 - No client-side analytics service is loaded and no analytics Cookie is set.
@@ -203,6 +207,8 @@ See the in-app Privacy page and Guide, which includes accessibility notes, for u
 - Public dictionary and translation services can be unavailable or change behavior; local coverage remains the primary experience.
 - Browser voices and speech quality vary by device.
 - OCR requires network access and a configured Cloudflare secret.
+- Translation requires the Workers AI binding to be enabled for the Worker; without it `/api/translate` returns `service_unavailable` and the app degrades to local phrase matching.
+- HEIC photos cannot be decoded by every browser; the app names the format and asks for a JPEG instead.
 - Learning bands are broad product bands, not formal school-grade certifications.
 
 The completed 2026 upgrade, measurements, acceptance gates, and next-stage options are tracked in [docs/optimization-upgrade-roadmap.md](docs/optimization-upgrade-roadmap.md).
