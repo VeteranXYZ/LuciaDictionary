@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   cleanOcrText,
   createCompressionPlan,
+  estimateStepBytes,
+  formatBytes,
   getOcrErrorMessage,
+  isHeicImage,
   isSupportedOcrImage,
   mapOcrResponseError,
-  formatBytes,
+  pickNextStepIndex,
 } from "./ocr.js";
 
 describe("cleanOcrText", () => {
@@ -63,5 +66,40 @@ describe("OCR error helpers", () => {
     expect(isSupportedOcrImage({ type: "image/heic" })).toBe(true);
     expect(isSupportedOcrImage({ type: "", name: "camera.HEIC" })).toBe(true);
     expect(isSupportedOcrImage({ type: "image/gif" })).toBe(false);
+  });
+});
+
+describe("compression step search", () => {
+  const plan = [
+    { width: 1600, height: 1200, quality: 0.82 },
+    { width: 1600, height: 1200, quality: 0.44 },
+    { width: 800, height: 600, quality: 0.82 },
+    { width: 800, height: 600, quality: 0.44 },
+  ];
+
+  it("scales the estimate by pixel count and quality", () => {
+    expect(estimateStepBytes(1000, plan[0], plan[2])).toBeCloseTo(250);
+    expect(estimateStepBytes(1000, plan[0], plan[1])).toBeCloseTo(536.6, 0);
+  });
+
+  it("jumps straight to a step that can plausibly fit", () => {
+    expect(pickNextStepIndex(plan, 0, 1000, 260)).toBe(2);
+  });
+
+  it("falls back to the smallest step when nothing is predicted to fit", () => {
+    expect(pickNextStepIndex(plan, 0, 100000, 1)).toBe(plan.length - 1);
+  });
+
+  it("stops once the smallest step has been tried", () => {
+    expect(pickNextStepIndex(plan, plan.length - 1, 100000, 1)).toBe(-1);
+  });
+});
+
+describe("unreadable image errors", () => {
+  it("names HEIC explicitly so the fix is actionable", () => {
+    expect(isHeicImage({ type: "image/heic" })).toBe(true);
+    expect(isHeicImage({ type: "", name: "IMG_0001.HEIC" })).toBe(true);
+    expect(isHeicImage({ type: "image/jpeg" })).toBe(false);
+    expect(getOcrErrorMessage({ code: "heic_unsupported" })).toContain("HEIC");
   });
 });

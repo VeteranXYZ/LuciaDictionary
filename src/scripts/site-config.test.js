@@ -2,6 +2,8 @@ import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   corePrecacheUrls,
+  deferredPrecacheUrls,
+  extendedLexiconPath,
   publicPagePaths,
   siteName,
   siteOrigin,
@@ -33,5 +35,24 @@ describe("generated site metadata", () => {
       if (url === "/") continue;
       expect(serviceWorker).not.toContain(JSON.stringify(url));
     }
+  });
+});
+
+describe("precache tiers", () => {
+  it("keeps the eager tier free of the long-tail lexicon", () => {
+    expect(corePrecacheUrls).toContain("/assets/lexicon/core-lexicon.json");
+    expect(corePrecacheUrls).toContain("/assets/lexicon/phrase-lexicon.json");
+    expect(corePrecacheUrls).not.toContain(extendedLexiconPath);
+  });
+
+  it("still caches the long tail, just after activation", () => {
+    expect(deferredPrecacheUrls).toContain(extendedLexiconPath);
+  });
+
+  it("does not list any asset in both tiers", () => {
+    const overlap = deferredPrecacheUrls.filter((url) =>
+      corePrecacheUrls.includes(url),
+    );
+    expect(overlap).toEqual([]);
   });
 });

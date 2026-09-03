@@ -20,10 +20,123 @@ export const TPL_ICONS = {
 
 let activeTplCat = 0;
 
-export function renderTemplates({ speak, learnSentence }) {
+function appendListSection(parent, className, title, items, render) {
+  if (!items.length) return;
+  const section = document.createElement("div");
+  section.className = className;
+  const heading = document.createElement("strong");
+  heading.textContent = title;
+  const list = document.createElement("ul");
+  for (const item of items) {
+    const li = document.createElement("li");
+    render(li, item);
+    list.appendChild(li);
+  }
+  section.append(heading, list);
+  parent.appendChild(section);
+}
+
+// The classroom data already carries步骤、关键词 and sample replies for the
+// richer entries; they used to be generated into the phrasebook and then never
+// shown to anyone.
+export function buildTemplateDetails(item, id) {
+  const steps = item.stepsZh.length ? item.stepsZh : item.steps;
+  if (!steps.length && !item.keywords.length && !item.childReply.length) {
+    return null;
+  }
+
+  const details = document.createElement("details");
+  details.className = "tpl-details";
+  const summary = document.createElement("summary");
+  summary.textContent = "怎么做 · 关键词 · 可以这样回答";
+  summary.id = `tpl-summary-${id}`;
+  details.appendChild(summary);
+
+  const body = document.createElement("div");
+  body.className = "tpl-details-body";
+
+  appendListSection(body, "tpl-steps", "怎么做", steps, (li, step) => {
+    li.textContent = step;
+  });
+
+  appendListSection(
+    body,
+    "tpl-keywords",
+    "关键词",
+    item.keywords,
+    (li, keyword) => {
+      const word = document.createElement("b");
+      word.textContent = keyword.word;
+      li.append(word);
+      if (keyword.cn) li.append(document.createTextNode(` · ${keyword.cn}`));
+    },
+  );
+
+  appendListSection(
+    body,
+    "tpl-replies",
+    "可以这样回答",
+    item.childReply,
+    (li, reply) => {
+      const en = document.createElement("b");
+      en.textContent = reply.en;
+      li.append(en);
+      if (reply.cn) li.append(document.createTextNode(` · ${reply.cn}`));
+    },
+  );
+
+  details.appendChild(body);
+  return details;
+}
+
+// The generated phrasebook carries步骤/关键词/回答 for every classroom line the
+// tab list shows. Matching on the English text lets this page use that content
+// without duplicating it into the source template file.
+let enrichmentIndex = null;
+
+export function buildEnrichmentIndex(phrasebook) {
+  const index = new Map();
+  for (const entry of phrasebook || []) {
+    const key = String(entry?.en || "")
+      .toLowerCase()
+      .trim();
+    if (key && !index.has(key)) index.set(key, normalizePhrasebookEntry(entry));
+  }
+  return index;
+}
+
+export function enrichTemplateEntry(item, index) {
+  const match = index?.get(item.en.toLowerCase().trim());
+  if (!match) return item;
+  return {
+    ...item,
+    steps: item.steps.length ? item.steps : match.steps,
+    stepsZh: item.stepsZh.length ? item.stepsZh : match.stepsZh,
+    keywords: item.keywords.length ? item.keywords : match.keywords,
+    childReply: item.childReply.length ? item.childReply : match.childReply,
+  };
+}
+
+export function resetTemplateEnrichment() {
+  enrichmentIndex = null;
+}
+
+export function renderTemplates({ speak, learnSentence, loadEnrichment }) {
   const tabs = document.getElementById("tpl-tabs");
   const list = document.getElementById("tpl-list");
   if (!tabs || !list) return;
+
+  if (!enrichmentIndex && loadEnrichment) {
+    // Render immediately from local data, then fill in the details once the
+    // lazily loaded phrasebook arrives.
+    loadEnrichment().then((phrasebook) => {
+      if (enrichmentIndex || !phrasebook?.length) return;
+      enrichmentIndex = buildEnrichmentIndex(phrasebook);
+      if (!document.getElementById("pg-templates")?.hidden) {
+        renderTemplates({ speak, learnSentence });
+      }
+    });
+  }
 
   tabs.replaceChildren();
   TEMPLATES.forEach((cat, index) => {
@@ -35,14 +148,17 @@ export function renderTemplates({ speak, learnSentence }) {
     btn.appendChild(span);
     btn.addEventListener("click", () => {
       activeTplCat = index;
-      renderTemplates({ speak, learnSentence });
+      renderTemplates({ speak, learnSentence, loadEnrichment });
     });
     tabs.appendChild(btn);
   });
 
   list.replaceChildren();
-  TEMPLATES[activeTplCat].items.forEach((rawItem) => {
-    const item = normalizePhrasebookEntry(rawItem, TEMPLATES[activeTplCat].cat);
+  TEMPLATES[activeTplCat].items.forEach((rawItem, index) => {
+    const item = enrichTemplateEntry(
+      normalizePhrasebookEntry(rawItem, TEMPLATES[activeTplCat].cat),
+      enrichmentIndex,
+    );
     const div = document.createElement("div");
     div.className = "tpl-item";
 
@@ -52,6 +168,7 @@ export function renderTemplates({ speak, learnSentence }) {
     const cn = document.createElement("div");
     cn.className = "cn";
     cn.textContent = item.cn;
+    const details = buildTemplateDetails(item, `${activeTplCat}-${index}`);
     const actions = document.createElement("div");
     actions.className = "actions";
 
@@ -73,6 +190,7 @@ export function renderTemplates({ speak, learnSentence }) {
 
     actions.append(speakBtn, learnBtn);
     div.append(en, cn, actions);
+    if (details) div.appendChild(details);
     list.appendChild(div);
   });
 }

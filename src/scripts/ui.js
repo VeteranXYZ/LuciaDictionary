@@ -1,4 +1,5 @@
 import { cleanPhonetic } from "./phonetic.js";
+import { isNetworkAllowed } from "./storage.js";
 import { emptyMascotPath } from "../config/site.js";
 import { LEARNING_BAND_LABELS } from "./learning-labels.js";
 
@@ -12,13 +13,18 @@ export const BOOK_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
 export const LOCAL_MISSING_MESSAGE = "暂时没有释义，可联网查词";
 export const ONLINE_FAILURE_MESSAGE = "联网查词失败，请稍后再试";
+export const OFFLINE_ONLY_MESSAGE = "仅离线模式下没有这个词的释义";
 export const ONLINE_LOOKUP_BUTTON_LABEL = "联网查词";
 export { LEARNING_BAND_LABELS } from "./learning-labels.js";
 
 export function getLookupFallbackMessage({
   explicitLookup = false,
   failed = false,
+  networkAllowed = true,
 } = {}) {
+  // Offering "联网查词" while offline-only mode is on would promise something
+  // the app has just been told not to do.
+  if (!networkAllowed) return OFFLINE_ONLY_MESSAGE;
   return explicitLookup && failed
     ? ONLINE_FAILURE_MESSAGE
     : LOCAL_MISSING_MESSAGE;
@@ -44,6 +50,8 @@ export function createEmptyState(message, strongText) {
   mascot.className = "empty-mascot";
   const img = document.createElement("img");
   img.src = emptyMascotPath;
+  img.width = 160;
+  img.height = 160;
   img.alt = "Lucia 猴子插画";
   mascot.appendChild(img);
 
@@ -201,7 +209,11 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
   }
 
   if (!allowNetwork) {
-    if (fillMeaning) setMutedText(cnEl, getLookupFallbackMessage());
+    if (fillMeaning)
+      setMutedText(
+        cnEl,
+        getLookupFallbackMessage({ networkAllowed: isNetworkAllowed() }),
+      );
     if (phoneticEl && !phoneticEl.textContent.trim())
       phoneticEl.textContent = "暂无音标";
     return;
@@ -247,7 +259,7 @@ export function buildWordCard(word, index, meaning, container, options) {
   const key = word.toLowerCase();
   const skipOnlineLookup = !meaning && options.stopWords.has(key);
   const displayMeaning = skipOnlineLookup
-    ? "常用功能词，帮助句子表达语法关系"
+    ? "小小的连接词，帮句子里的词连在一起"
     : meaning;
   const {
     card,
@@ -295,7 +307,7 @@ export function buildWordCard(word, index, meaning, container, options) {
   });
 
   actions.append(star, speakBtn);
-  if (!displayMeaning && !skipOnlineLookup) {
+  if (!displayMeaning && !skipOnlineLookup && isNetworkAllowed()) {
     const onlineBtn = document.createElement("button");
     onlineBtn.className = "btn-online-lookup";
     onlineBtn.textContent = ONLINE_LOOKUP_BUTTON_LABEL;

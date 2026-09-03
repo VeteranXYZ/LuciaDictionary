@@ -69,9 +69,16 @@ if (!headers.includes("X-Robots-Tag: noindex, nofollow"))
 if (!headers.includes("frame-ancestors 'none'"))
   fail("_headers missing CSP frame protection");
 
-const routes = readDist("_routes.json");
-if (!routes.includes('"include"') || !routes.includes('"exclude"')) {
-  fail("_routes.json missing include/exclude rules");
+// _routes.json is a Cloudflare Pages file. This project deploys as a Worker
+// with static assets, where routing comes from wrangler.jsonc instead.
+if (existsSync(join(dist, "_routes.json"))) {
+  fail("_routes.json is a Pages-only file and must not be emitted");
+}
+if (headers.includes("'unsafe-inline'")) {
+  fail("_headers must not allow inline scripts or styles");
+}
+if (!/script-src 'self' 'sha256-/.test(headers)) {
+  fail("_headers CSP is missing generated inline script hashes");
 }
 
 const routeFiles = new Map(

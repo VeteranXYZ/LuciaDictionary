@@ -1,4 +1,5 @@
 import { cleanDisplayTranslation } from "./meaningCleaner.js";
+import { isNetworkAllowed } from "./storage.js";
 import { fetchWithPolicy } from "./network.js";
 import { cleanPhonetic } from "./phonetic.js";
 import { siteOwner } from "../config/site.js";
@@ -176,12 +177,21 @@ export function getPhraseMeaning(phraseLexicon, term) {
   return phraseLexicon?.[key]?.cn || null;
 }
 
+export function addCoreFormsToIndex(forms, base, entry) {
+  for (const form of getEntryForms(entry)) {
+    if (!form) continue;
+    const key = String(form).toLowerCase();
+    // The lookup side always reads lowercase keys, so the guard has to test the
+    // same key it writes.
+    if (!forms[key]) forms[key] = base;
+  }
+  return forms;
+}
+
 export function buildCoreFormIndex(coreLexicon = {}) {
   const forms = {};
   for (const [base, entry] of Object.entries(coreLexicon || {})) {
-    for (const form of getEntryForms(entry)) {
-      if (form && !forms[form]) forms[form.toLowerCase()] = base;
-    }
+    addCoreFormsToIndex(forms, base, entry);
   }
   return forms;
 }
@@ -349,41 +359,43 @@ export function findPhraseMatches(phraseLexicon, text) {
 
 export function extractLookupTerms(text, phraseLexicon = {}) {
   const source = String(text || "");
-  const phraseMatches = [];
   const occupied = [];
-  for (const match of findPhraseMatches(phraseLexicon, source)) {
-    if (
-      occupied.some(
-        (range) =>
-          Math.max(range[0], match.index) < Math.min(range[1], match.end),
-      )
-    )
-      continue;
-    occupied.push([match.index, match.end]);
-    phraseMatches.push(match);
-  }
-
   const terms = [];
   const seen = new Set();
-  for (const match of phraseMatches) {
-    if (!seen.has(match.term)) {
-      seen.add(match.term);
-      terms.push(match.term);
-    }
+
+  // Longest phrase wins its span, so "show your work" is never also split into
+  // "show" + "work" cards.
+  const matches = findPhraseMatches(phraseLexicon, source).sort(
+    (a, b) => b.term.length - a.term.length || a.index - b.index,
+  );
+  for (const match of matches) {
+    const overlaps = occupied.some(
+      (range) =>
+        Math.max(range[0], match.index) < Math.min(range[1], match.end),
+    );
+    if (overlaps || seen.has(match.term)) continue;
+    occupied.push([match.index, match.end]);
+    seen.add(match.term);
+    terms.push({ term: match.term, index: match.index });
   }
 
   const chars = source.split("");
   for (const [start, end] of occupied) {
     for (let i = start; i < end; i++) chars[i] = " ";
   }
-  for (const word of chars.join("").match(/[a-zA-Z']+/g) || []) {
-    const key = word.toLowerCase();
-    if (!seen.has(key)) {
-      seen.add(key);
-      terms.push(word);
-    }
+
+  let cursor = 0;
+  const remainder = chars.join("");
+  for (const word of extractWordTerms(remainder)) {
+    if (seen.has(word.toLowerCase())) continue;
+    const at = remainder.toLowerCase().indexOf(word.toLowerCase(), cursor);
+    seen.add(word.toLowerCase());
+    terms.push({ term: word, index: at < 0 ? Number.MAX_SAFE_INTEGER : at });
+    if (at >= 0) cursor = at;
   }
-  return terms;
+
+  // Reading order keeps the word cards lined up with the sentence above them.
+  return terms.sort((a, b) => a.index - b.index).map((item) => item.term);
 }
 
 export function extractWordTerms(text) {
@@ -439,6 +451,19 @@ export function createDictionaryService({
   const formIndex = buildCoreFormIndex(coreLexicon);
   const lookupLayers = { phraseLexicon, coreLexicon, formIndex, dict };
 
+  // The long-tail shard arrives after first paint; merging in place keeps every
+  // already-captured reference to these layers valid.
+  function extendCoreLexicon(entries) {
+    let added = 0;
+    for (const [word, entry] of Object.entries(entries || {})) {
+      if (coreLexicon[word]) continue;
+      coreLexicon[word] = entry;
+      addCoreFormsToIndex(formIndex, word, entry);
+      added++;
+    }
+    return added;
+  }
+
   async function lookupOnlineData(word) {
     const w = normalizeLookupTerm(word);
     if (!w || w.includes(" ")) return null;
@@ -446,6 +471,7 @@ export function createDictionaryService({
 
     const cached = getCachedOnlineWord(w);
     if (cached) return cached;
+    if (!isNetworkAllowed()) return null;
 
     const res = await enqueueNetwork(() =>
       fetchWithPolicy(
@@ -494,6 +520,9 @@ export function createDictionaryService({
   }
 
   return {
+    extendCoreLexicon,
+    countLoadedWords: () =>
+      new Set([...Object.keys(dict), ...Object.keys(coreLexicon)]).size,
     lookup: (word) => lookupLayered(lookupLayers, word),
     lookupLearningBand: (word) => {
       const resolved = lookupCoreBase(coreLexicon, formIndex, word);
@@ -505,7 +534,7 @@ export function createDictionaryService({
       lookupLocalPhonetic(dict, phonetics, word, coreLexicon, formIndex),
     reverseLookupChineseWords: (text) =>
       reverseLookupChineseWords({ ...dict, ...coreLexicon }, text),
-    extractLookupTerms: (text) => extractWordTerms(text),
+    extractLookupTerms: (text) => extractLookupTerms(text, phraseLexicon),
     lookupOnlineData,
   };
 }

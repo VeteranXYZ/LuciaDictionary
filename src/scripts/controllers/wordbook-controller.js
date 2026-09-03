@@ -20,6 +20,19 @@ import {
 } from "../ui.js";
 import { MASTERY_LABELS } from "../learning-labels.js";
 
+const REVIEW_CHOICES = [
+  ["know", "会"],
+  ["unsure", "不确定"],
+  ["forgot", "忘记"],
+];
+
+function reviewMetaText(entry) {
+  const masteryLabel = MASTERY_LABELS[entry.mastery] || MASTERY_LABELS.new;
+  return entry.nextReviewAt > Date.now()
+    ? `${masteryLabel} · ${new Date(entry.nextReviewAt).toLocaleDateString("zh-CN")} 再复习`
+    : `${masteryLabel} · 今天复习`;
+}
+
 export function createWordbookController({
   announce,
   getCachedOnlineWord,
@@ -65,27 +78,16 @@ export function createWordbookController({
     if (clearButton) clearButton.disabled = !hasItems;
   }
 
-  function render(wordbook = getWordbook()) {
-    syncHomeCards(wordbook);
-    const dictionaryService = getDictionaryService();
+  // What the list currently shows, so a review tap can be applied in place
+  // instead of tearing down and rebuilding every card.
+  let renderedWords = [];
+
+  function renderSummary(wordbook) {
     const stats = document.getElementById("wb-stats");
-    const actions = document.getElementById("wb-actions");
-    const list = document.getElementById("wb-list");
-    if (!stats || !actions || !list || !dictionaryService) return;
-
-    if (!wordbook.length) {
-      stats.hidden = true;
-      actions.hidden = false;
-      setActionState(false);
-      list.replaceChildren(
-        createEmptyState("生词本还是空的", "在首页点 ☆ 把单词收藏到这里吧"),
-      );
-      return;
-    }
-
+    if (!stats) return;
+    const summary = getReviewSummary(wordbook);
     stats.hidden = false;
     stats.replaceChildren();
-    const summary = getReviewSummary(wordbook);
     for (const [value, text] of [
       [summary.total, "收藏"],
       [summary.due, "今日复习"],
@@ -108,10 +110,53 @@ export function createWordbookController({
         ? `复习 ${summary.due} 个`
         : "朗读全部";
     }
+  }
 
+  function patchReviewState(wordbook) {
+    const sameList =
+      wordbook.length === renderedWords.length &&
+      wordbook.every((entry, index) => entry.w === renderedWords[index]);
+    if (!sameList) return false;
+
+    for (const entry of wordbook) {
+      const card = findCard(entry.w);
+      if (!card) return false;
+      const meta = card.querySelector(".review-meta");
+      if (meta) meta.textContent = reviewMetaText(entry);
+      for (const button of card.querySelectorAll(".review-btn")) {
+        const selected = button.dataset.result === entry.lastResult;
+        button.setAttribute("aria-pressed", String(selected));
+        button.classList.toggle("is-selected", selected);
+      }
+    }
+    renderSummary(wordbook);
+    return true;
+  }
+
+  function render(wordbook = getWordbook()) {
+    syncHomeCards(wordbook);
+    const dictionaryService = getDictionaryService();
+    const stats = document.getElementById("wb-stats");
+    const actions = document.getElementById("wb-actions");
+    const list = document.getElementById("wb-list");
+    if (!stats || !actions || !list || !dictionaryService) return;
+
+    if (!wordbook.length) {
+      renderedWords = [];
+      stats.hidden = true;
+      actions.hidden = false;
+      setActionState(false);
+      list.replaceChildren(
+        createEmptyState("生词本还是空的", "在首页点 ☆ 把单词收藏到这里吧"),
+      );
+      return;
+    }
+
+    renderSummary(wordbook);
     actions.hidden = false;
     setActionState(true);
     list.replaceChildren();
+    renderedWords = wordbook.map((entry) => entry.w);
 
     wordbook.forEach((entry, index) => {
       const bandKey = dictionaryService.lookupLearningBand(entry.w);
@@ -169,21 +214,18 @@ export function createWordbookController({
       feedback.className = "review-feedback";
       const reviewMeta = document.createElement("span");
       reviewMeta.className = "review-meta";
-      const masteryLabel = MASTERY_LABELS[entry.mastery] || MASTERY_LABELS.new;
-      reviewMeta.textContent =
-        entry.nextReviewAt > Date.now()
-          ? `${masteryLabel} · ${new Date(entry.nextReviewAt).toLocaleDateString("zh-CN")} 再复习`
-          : `${masteryLabel} · 今天复习`;
+      reviewMeta.textContent = reviewMetaText(entry);
       feedback.appendChild(reviewMeta);
-      for (const [result, text] of [
-        ["know", "会"],
-        ["unsure", "不确定"],
-        ["forgot", "忘记"],
-      ]) {
+      for (const [result, text] of REVIEW_CHOICES) {
         const button = document.createElement("button");
         button.type = "button";
         button.className = `review-btn ${result}`;
+        button.dataset.result = result;
         button.textContent = text;
+        button.setAttribute(
+          "aria-pressed",
+          String(entry.lastResult === result),
+        );
         button.addEventListener("click", (event) => {
           event.stopPropagation();
           recordReviewFeedback(entry.w, result);
@@ -207,21 +249,27 @@ export function createWordbookController({
     });
   }
 
+  function findCard(word) {
+    return document.querySelector(
+      `#wb-list .word-card[data-word="${CSS.escape(word)}"]`,
+    );
+  }
+
   function reviewAll() {
     const allWords = getWordbook();
     const dueWords = getDueWords(allWords);
+    // Due words are ordered by review date, the list by save date. Looking the
+    // card up by word keeps the highlight on the word actually being spoken.
     const wordbook = dueWords.length ? dueWords : allWords;
     if (!wordbook.length) return;
     let index = 0;
     const next = () => {
       if (index >= wordbook.length) return;
-      const cards = document.querySelectorAll("#wb-list .word-card");
-      if (cards[index]) cards[index].classList.add("speaking");
-      const currentIndex = index;
+      const card = findCard(wordbook[index].w);
+      card?.classList.add("speaking");
+      card?.scrollIntoView({ block: "nearest", behavior: "smooth" });
       speak(wordbook[index].w, () => {
-        if (cards[currentIndex]) {
-          cards[currentIndex].classList.remove("speaking");
-        }
+        card?.classList.remove("speaking");
         index++;
         setTimeout(next, 320);
       });
@@ -244,8 +292,13 @@ export function createWordbookController({
     const link = document.createElement("a");
     link.href = url;
     link.download = "lucia-wordbook.json";
+    link.rel = "noopener";
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    // Revoking in the same tick cancels the download on Safari and iOS before
+    // the blob has been read.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   async function importItems(event) {
@@ -282,7 +335,11 @@ export function createWordbookController({
     if (change.scope !== "all" && change.scope !== "wordbook") return;
     syncHomeCards(state.wordbook);
     const page = document.getElementById("pg-wordbook");
-    if (page && !page.hidden && getDictionaryService()) render(state.wordbook);
+    if (!page || page.hidden || !getDictionaryService()) return;
+    // Marking 会 / 不确定 / 忘记 leaves the list itself unchanged. Rebuilding it
+    // threw away the tapped button's focus and the reader's scroll position.
+    if (patchReviewState(state.wordbook)) return;
+    render(state.wordbook);
   }
 
   return { onStateChange, render, setup, syncHomeCards };
