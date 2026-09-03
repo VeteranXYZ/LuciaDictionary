@@ -34,6 +34,7 @@ const structuredData = buildInfoPageStructuredData({
         <li>网站不使用 Google Analytics，也不设置分析 Cookie。</li>
         <li>本地内容不足时，查词和翻译功能可能会访问第三方服务。</li>
         <li>使用拍照识别时，所选图片会发送给 OCR.Space 处理。</li>
+        <li>在设置页开启“仅离线模式”后，以上联网功能会全部停止。</li>
       </ul>
     </section>
     <section>
@@ -43,13 +44,17 @@ const structuredData = buildInfoPageStructuredData({
         localStorage
         保存在当前浏览器中。清除浏览器数据或更换设备后，这些本地数据可能丢失或无法自动同步。
       </p>
+      <p>
+        为了限制图片识别接口被滥用，浏览器还会在本地生成一个随机标识符并随识别请求发送。它与姓名、邮箱、账号无关，不用于分析或广告，清除浏览器数据后会重新生成。
+      </p>
     </section>
     <section>
       <h2>什么时候会联网</h2>
       <p>
         大部分英文单词卡使用应用自带的数据。本地内容不足时，单词可能会发送给
-        dictionaryapi.dev 查询，其释义可能通过 Google
-        翻译备用服务转换成中文。输入中文句子时，应用会先查询本地课堂短句；没有合适结果时才使用联网翻译。
+        dictionaryapi.dev 查询。中文翻译不再由浏览器直接连接第三方服务：句子会发送到本站同源的
+        <code>/api/translate</code> 接口，再由服务端调用 Cloudflare Workers AI
+        完成翻译。输入中文句子时，应用会先查询本地课堂短句；没有合适结果时才使用联网翻译。
       </p>
       <p>
         拍照识别会先在浏览器中压缩所选图片，再通过本站的图片识别接口转发给
@@ -74,7 +79,7 @@ const structuredData = buildInfoPageStructuredData({
     <section>
       <h2>你可以怎样管理数据</h2>
       <p>
-        你可以在设置页清除查询缓存，在生词本中移除单个词或清空全部单词，也可以备份生词本。还可以通过浏览器设置清除此网站保存在本机的数据。
+        你可以在设置页开启“仅离线模式”彻底关闭所有联网功能，清除查询缓存，在生词本中移除单个词或清空全部单词，也可以备份生词本。还可以通过浏览器设置清除此网站保存在本机的数据。
       </p>
     </section>
   </InfoPageShell>

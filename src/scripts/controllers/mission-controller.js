@@ -13,6 +13,7 @@ export function createMissionController({ announce, getSentence, speak }) {
   let currentMission = null;
   let questionIndex = 0;
   let results = [];
+  let started = false;
 
   function stageLabel(type) {
     return (
@@ -48,6 +49,7 @@ export function createMissionController({ announce, getSentence, speak }) {
     });
     questionIndex = 0;
     results = [];
+    started = false;
 
     if (!currentMission) {
       container.hidden = true;
@@ -60,7 +62,7 @@ export function createMissionController({ announce, getSentence, speak }) {
     const header = createHeader(
       "3 分钟课堂小练习",
       "用 3 分钟练熟这句话",
-      "会根据生词本和复习记录，先练现在最需要记住的词。",
+      "会根据生词本和复习记录，先练现在最需要记住的词。开始练习后，这些词会自动加入生词本，方便之后复习。",
     );
     const targets = document.createElement("div");
     targets.className = "mission-targets";
@@ -87,6 +89,7 @@ export function createMissionController({ announce, getSentence, speak }) {
     if (!currentMission) return;
     questionIndex = 0;
     results = [];
+    started = true;
     if (recordEncounter) {
       for (const target of currentMission.targets) {
         recordWordEncounter(
@@ -130,15 +133,15 @@ export function createMissionController({ announce, getSentence, speak }) {
     const body = document.createElement("div");
     body.className = "mission-question-body";
     body.append(type, prompt);
+    let listenButton = null;
     if (question.type === "listen") {
-      const listen = document.createElement("button");
-      listen.type = "button";
-      listen.className = "mission-listen";
-      listen.setAttribute("aria-label", "播放目标单词发音");
-      listen.textContent = "▶ 播放发音";
-      listen.addEventListener("click", () => speak(question.word));
-      body.appendChild(listen);
-      setTimeout(() => speak(question.word), 250);
+      listenButton = document.createElement("button");
+      listenButton.type = "button";
+      listenButton.className = "mission-listen";
+      listenButton.setAttribute("aria-label", "播放目标单词发音");
+      listenButton.textContent = "▶ 播放发音";
+      listenButton.addEventListener("click", () => speak(question.word));
+      body.appendChild(listenButton);
     }
 
     const options = document.createElement("div");
@@ -153,6 +156,9 @@ export function createMissionController({ announce, getSentence, speak }) {
       options.appendChild(button);
     }
     container.replaceChildren(progress, body, options);
+    // Never speak unprompted — the app is used in classrooms and at bedtime.
+    // Focusing the button puts the sound one keypress or tap away instead.
+    listenButton?.focus({ preventScroll: true });
   }
 
   function answerQuestion(selectedWord, options) {
@@ -258,5 +264,5 @@ export function createMissionController({ announce, getSentence, speak }) {
     announce("课堂小练习已完成，答题结果已保存");
   }
 
-  return { renderPreview };
+  return { renderPreview, isStarted: () => started };
 }

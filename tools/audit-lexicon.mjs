@@ -12,8 +12,42 @@ function readJson(path) {
 
 const core = readJson("tools/lexicon-data/core-lexicon.source.json");
 const phrases = readJson("tools/lexicon-data/phrase-lexicon.json");
-const runtime = readJson("public/assets/lexicon/core-lexicon.json");
+// The runtime lexicon ships as an eager head plus a deferred long tail. Both
+// shards together must still account for every source entry, and no word may
+// appear in both.
+const runtimeHead = readJson("public/assets/lexicon/core-lexicon.json");
+const runtimeExtended = readJson(
+  "public/assets/lexicon/core-lexicon-extended.json",
+);
+const runtimePhrases = readJson("public/assets/lexicon/phrase-lexicon.json");
+const runtime = { ...runtimeHead, ...runtimeExtended };
 const errors = [];
+
+const duplicateShardWords = Object.keys(runtimeHead).filter(
+  (word) => word in runtimeExtended,
+);
+if (duplicateShardWords.length) {
+  errors.push(
+    `words appear in both runtime shards: ${duplicateShardWords.slice(0, 5).join(", ")}`,
+  );
+}
+if (
+  Object.keys(runtimeHead).length + Object.keys(runtimeExtended).length !==
+  Object.keys(runtime).length
+) {
+  errors.push("runtime shard split lost or duplicated entries");
+}
+for (const [word, entry] of Object.entries(runtimeHead)) {
+  if (!["foundation", "developing"].includes(entry?.[4])) {
+    errors.push(`eager shard carries a long-tail word: ${word}`);
+    break;
+  }
+}
+for (const [phrase, entry] of Object.entries(runtimePhrases)) {
+  if (!phrase.includes(" "))
+    errors.push(`runtime phrase is a single word: ${phrase}`);
+  if (!entry?.cn) errors.push(`runtime phrase missing cn: ${phrase}`);
+}
 
 function resolveCore(word) {
   const key = word.toLowerCase();
@@ -81,7 +115,10 @@ const missingBefore = required.words.filter(
 const coveredNow = required.words.filter((word) => resolveCore(word));
 
 console.log(`core entries: ${Object.keys(core).length}`);
-console.log(`runtime entries: ${Object.keys(runtime).length}`);
+console.log(
+  `runtime entries: ${Object.keys(runtime).length} (eager ${Object.keys(runtimeHead).length}, deferred ${Object.keys(runtimeExtended).length})`,
+);
+console.log(`runtime phrase entries: ${Object.keys(runtimePhrases).length}`);
 console.log(`phrase entries: ${Object.keys(phrases).length}`);
 console.log(`required words missing in old dict: ${missingBefore.length}`);
 console.log(
@@ -106,6 +143,8 @@ if (Object.keys(core).length < 3000)
   errors.push("core lexicon has fewer than 3000 entries");
 if (Object.keys(phrases).length < 300)
   errors.push("phrase lexicon has fewer than 300 entries");
+if (Object.keys(runtimePhrases).length < 20)
+  errors.push("runtime phrase lexicon has fewer than 20 entries");
 
 if (errors.length) {
   console.error(errors.join("\n"));

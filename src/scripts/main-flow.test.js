@@ -72,10 +72,14 @@ describe("main analysis flow source", () => {
     );
   });
 
-  it("counts unique local dictionary words in settings", () => {
+  it("counts unique local dictionary words through the dictionary service", () => {
     const source = fs.readFileSync("src/scripts/app.js", "utf8");
-    expect(source).toMatch(
-      /new Set\(\[\s*\.\.\.Object\.keys\(dictData\),\s*\.\.\.Object\.keys\(coreLexicon\),?\s*\]\)\.size/,
+    const dictionary = fs.readFileSync("src/scripts/dictionary.js", "utf8");
+    // The count has to come from the service so it grows when the deferred
+    // lexicon shard is merged in.
+    expect(source).toContain("dictService?.countLoadedWords()");
+    expect(dictionary).toMatch(
+      /countLoadedWords: \(\) =>\s*new Set\(\[\s*\.\.\.Object\.keys\(dict\),\s*\.\.\.Object\.keys\(coreLexicon\),?\s*\]\)\.size/,
     );
   });
 });

@@ -87,7 +87,7 @@ Implementation references:
 - `public/sitemap.xml` contains 5 canonical URLs.
 - `public/robots.txt` allows the public site, disallows `/api/` and `/assets/*.json`, and points to `https://dict.luciaandrayna.com/sitemap.xml`.
 - Production `robots.txt` also includes Cloudflare Managed Content before the app rules.
-- No `public/_redirects` file is emitted. `public/_headers`, `public/_routes.json`, and `functions/_middleware.js` enforce noindex API headers and correct static asset routing.
+- No `public/_redirects` file is emitted. `public/_headers` (built into `dist/_headers` with generated CSP script hashes) enforces the noindex API headers; static asset routing comes from the `assets` block in `wrangler.jsonc`. The Pages-era `public/_routes.json` and `functions/_middleware.js` were removed once the project moved to a Worker with static assets.
 
 ## Production Verification
 

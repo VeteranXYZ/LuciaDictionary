@@ -4,6 +4,27 @@ import { shuffle } from "./random.js";
 
 export const quizState = { current: null, score: 0, total: 0 };
 
+// Pending advance timers must never outlive the page the child is looking at:
+// they used to keep rendering questions (and speaking) after navigating away.
+let advanceTimer = null;
+
+export function cancelPendingQuiz() {
+  clearTimeout(advanceTimer);
+  advanceTimer = null;
+}
+
+export function resetQuizSession() {
+  cancelPendingQuiz();
+  quizState.current = null;
+  quizState.score = 0;
+  quizState.total = 0;
+}
+
+function scheduleNextQuestion(render, delayMs) {
+  cancelPendingQuiz();
+  advanceTimer = setTimeout(render, delayMs);
+}
+
 export function getQuizMeaning(entry) {
   return String(entry?.m || "").trim();
 }
@@ -22,14 +43,26 @@ export function createQuizQuestion(
   if (wb.length < 4) return null;
   const due = getDueWords(wb, now);
   const correct = shuffle(due.length ? due : wb, random)[0];
-  const distractors = shuffle(
-    wb.filter((item) => item.w !== correct.w),
-    random,
-  ).slice(0, 3);
-  const options = shuffle([correct, ...distractors], random);
   const type = random() > 0.5 ? "listen" : "read";
   const correctMeaning = getQuizMeaning(correct);
   const flipped = type === "read" && !correctMeaning;
+
+  // Two entries that share a label make the question unanswerable, so compare
+  // the rendered option text rather than the word.
+  const usedLabels = new Set([getQuizOptionLabel(correct, flipped)]);
+  const distractors = [];
+  for (const item of shuffle(
+    wb.filter((item) => item.w !== correct.w),
+    random,
+  )) {
+    if (distractors.length >= 3) break;
+    const label = getQuizOptionLabel(item, flipped);
+    if (usedLabels.has(label)) continue;
+    usedLabels.add(label);
+    distractors.push(item);
+  }
+
+  const options = shuffle([correct, ...distractors], random);
   return { correct, options, type, flipped };
 }
 
@@ -42,6 +75,7 @@ export function handleQuizAnswer(word, correctWord) {
 }
 
 export function renderQuiz({ getWordbook, speak }) {
+  cancelPendingQuiz();
   const wb = getWordbook().filter((item) => item?.w);
   const container = document.getElementById("quiz-content");
   if (!container) return;
@@ -78,10 +112,13 @@ export function renderQuiz({ getWordbook, speak }) {
 
   const card = document.createElement("div");
   card.className = "quiz-card";
+  let speakButton = null;
 
   const score = document.createElement("div");
   score.className = "quiz-score";
-  score.textContent = `本轮答对 ${quizState.score} / ${quizState.total}`;
+  score.textContent = quizState.total
+    ? `这次进入测验后答对 ${quizState.score} / ${quizState.total}`
+    : "开始答题吧";
   card.appendChild(score);
 
   const prompt = document.createElement("div");
@@ -103,13 +140,12 @@ export function renderQuiz({ getWordbook, speak }) {
   } else {
     prompt.textContent = "听发音，选出正确的单词";
     card.appendChild(prompt);
-    const speakBtn = document.createElement("button");
-    speakBtn.className = "btn-action moss quiz-speak";
-    speakBtn.id = "quiz-speak-btn";
-    speakBtn.innerHTML = SPEAKER_SVG + "<span>播放发音</span>";
-    speakBtn.addEventListener("click", () => speak(correct.w));
-    card.appendChild(speakBtn);
-    setTimeout(() => speak(correct.w), 300);
+    speakButton = document.createElement("button");
+    speakButton.className = "btn-action moss quiz-speak";
+    speakButton.id = "quiz-speak-btn";
+    speakButton.innerHTML = SPEAKER_SVG + "<span>播放发音</span>";
+    speakButton.addEventListener("click", () => speak(correct.w));
+    card.appendChild(speakButton);
   }
 
   const opts = document.createElement("div");
@@ -124,7 +160,7 @@ export function renderQuiz({ getWordbook, speak }) {
       if (isCorrect) {
         btn.classList.add("correct");
         showCelebration();
-        setTimeout(() => renderQuiz({ getWordbook, speak }), 1200);
+        scheduleNextQuestion(() => renderQuiz({ getWordbook, speak }), 1200);
         return;
       }
 
@@ -133,7 +169,7 @@ export function renderQuiz({ getWordbook, speak }) {
         if (option.dataset.word === correct.w) option.classList.add("correct");
         option.disabled = true;
       });
-      setTimeout(() => renderQuiz({ getWordbook, speak }), 1800);
+      scheduleNextQuestion(() => renderQuiz({ getWordbook, speak }), 1800);
     });
     opts.appendChild(btn);
   }
@@ -149,4 +185,6 @@ export function renderQuiz({ getWordbook, speak }) {
   skip.addEventListener("click", () => renderQuiz({ getWordbook, speak }));
 
   container.replaceChildren(card, skip);
+  // Same rule as the mission: audio only after a deliberate tap.
+  speakButton?.focus({ preventScroll: true });
 }
