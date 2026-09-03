@@ -43,7 +43,7 @@
     "verify": "npm run format:check && npm run check && npm run test:all && npm run build && npm run audit:all && npm run cf:types:check && npm run cf:build"
   },
   "dependencies": {
-    "terser": "^5.49.0"
+    "terser": "^5.51.2"
   },
   "overrides": {
     "sharp": "0.35.3"
