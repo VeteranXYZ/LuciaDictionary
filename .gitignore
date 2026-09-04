@@ -3,6 +3,9 @@ node_modules/
 dist/
 .astro/
 .wrangler/
+# Generated from wrangler.jsonc by `npm run check`. Committing it meant every
+# wrangler bump landed a stale file and turned the release gate red.
+worker-configuration.d.ts
 playwright-report/
 test-results/
 

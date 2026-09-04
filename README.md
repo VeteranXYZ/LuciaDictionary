@@ -172,7 +172,7 @@ The complete local release gate is:
 npm run verify
 ```
 
-It checks formatting and Astro types, runs unit tests, executes the API handlers inside the Cloudflare runtime, runs mobile Chromium end-to-end/offline tests, rebuilds the site plus the generated service worker and CSP headers, audits lexicon/SEO/OCR coverage/translation/offline artifacts, checks generated Cloudflare binding types, and performs a Worker deployment dry run.
+It checks formatting and Astro types, runs unit tests, executes the API handlers inside the Cloudflare runtime, runs mobile Chromium end-to-end/offline tests, rebuilds the site plus the generated service worker and CSP headers, audits lexicon/SEO/OCR coverage/translation/offline artifacts, and performs a Worker deployment dry run.
 
 Dependency advisories run as a separate `npm run audit:deps` job. They are reported but do not fail the gate, because a new upstream advisory should not turn `main` red on its own.
 
@@ -185,9 +185,10 @@ npm run test:unit
 npm run test:worker
 npm run test:e2e
 npm run audit:all
-npm run cf:types:check
 npm run cf:build
 ```
+
+`worker-configuration.d.ts` is generated from `wrangler.jsonc` by `npm run check` and is not committed. Committing it meant every Wrangler bump landed a stale file and turned the gate red on a Dependabot PR that could not regenerate it.
 
 ## Privacy boundaries
 
