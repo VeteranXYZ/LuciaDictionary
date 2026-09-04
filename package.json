@@ -29,18 +29,17 @@
     "preview": "astro preview",
     "preview:cloudflare": "npm run build && wrangler dev",
     "deploy": "npm run build && wrangler deploy",
-    "check": "astro check",
+    "check": "npm run cf:types && astro check",
     "test": "npm run test:unit && npm run test:worker",
     "test:unit": "vitest run --config vitest.config.js",
     "test:worker": "vitest run --config vitest.worker.config.js",
     "test:e2e": "playwright test",
     "test:all": "npm test && npm run test:e2e",
     "cf:types": "wrangler types worker-configuration.d.ts",
-    "cf:types:check": "wrangler types worker-configuration.d.ts --check",
     "cf:build": "wrangler deploy --dry-run",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run format:check && npm run check && npm run test:all && npm run build && npm run audit:all && npm run cf:types:check && npm run cf:build"
+    "verify": "npm run format:check && npm run check && npm run test:all && npm run build && npm run audit:all && npm run cf:build"
   },
   "dependencies": {
     "terser": "^5.51.2"
