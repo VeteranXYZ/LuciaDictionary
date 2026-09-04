@@ -80,81 +80,9 @@
   --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Paper texture, swapped for a darker grain in dark mode */
-  --paper-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .28 0 0 0 0 .2 0 0 0 .07 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
-  --paper-glow-1: rgba(232, 165, 180, 0.07);
-  --paper-glow-2: rgba(119, 80, 157, 0.045);
-
+  /* This design system is light-only by choice. Declaring it stops browsers
+     and Android's "force dark" from inventing a dark palette of their own. */
   color-scheme: light;
-}
-
-/* ============================================================
-   Dark theme · same design system, re-pointed tokens
-   Homework happens at night, and a bright page in a dark room is
-   the reason a child looks away from it.
-   ============================================================ */
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Brand — lifted so purple keeps contrast against a dark ground */
-    --ink: #b795e2;
-    --ink-deep: #ccb1ee;
-    --ink-soft: #2c2440;
-    --ink-50: #241f33;
-
-    /* Accents */
-    --moss: #93c07c;
-    --moss-soft: #232f1e;
-    --tangerine: #f0a869;
-    --tangerine-soft: #3a2a1a;
-    --honey: #f3c25e;
-    --sakura: #edaebc;
-    --sakura-soft: #33232a;
-    --brick: #e78472;
-    --moss-press: #a6cf90;
-    --moss-border: #415137;
-    --moss-text: #b2d69b;
-    --moss-text-strong: #cbe8b8;
-    --honey-press: #d9a63c;
-    --honey-text: #f2d9a2;
-    --brick-press: #f09b8a;
-    --brick-surface: #34211d;
-    --brick-text: #f0a99c;
-    --ink-press: #0f0d14;
-
-    /* Neutrals */
-    --paper: #16141c;
-    --paper-deep: #1d1a26;
-    --cream: #201d2a;
-    --cream-2: #272233;
-    --line: #342e44;
-    --line-soft: #2b2637;
-
-    /* Text */
-    --ink-text: #ece7f3;
-    --mute: #b6acc6;
-    --whisper: #a49ab5;
-    --phonetic: #aab4ca;
-    --ink-06: rgba(236, 231, 243, 0.06);
-    --ink-08: rgba(236, 231, 243, 0.09);
-    --ink-20: rgba(0, 0, 0, 0.45);
-    --purple-28: rgba(0, 0, 0, 0.5);
-    --white-72: rgba(255, 255, 255, 0.06);
-
-    --sticker-shadow:
-      0 2px 3px rgba(0, 0, 0, 0.4), 0 12px 30px -12px rgba(0, 0, 0, 0.6);
-    --card-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px -16px rgba(0, 0, 0, 0.6);
-    --card-shadow-hover:
-      0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 36px -18px rgba(0, 0, 0, 0.7);
-    --shadow-purple-soft: 0 10px 24px -12px rgba(0, 0, 0, 0.6);
-
-    --paper-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .035 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
-    --paper-glow-1: rgba(232, 165, 180, 0.05);
-    --paper-glow-2: rgba(139, 92, 184, 0.07);
-
-    color-scheme: dark;
-  }
 }
 
 /* ============================================================
@@ -190,9 +118,17 @@ body {
   position: relative;
   /* paper texture */
   background-image:
-    radial-gradient(circle at 20% 10%, var(--paper-glow-1), transparent 40%),
-    radial-gradient(circle at 85% 70%, var(--paper-glow-2), transparent 45%),
-    var(--paper-grain);
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(232, 165, 180, 0.07),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 70%,
+      rgba(119, 80, 157, 0.045),
+      transparent 45%
+    ),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .28 0 0 0 0 .2 0 0 0 .07 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
 }
 
 button {
@@ -3271,12 +3207,12 @@ textarea#sentence-input::placeholder {
 .mission-parent-card {
   margin-top: 14px;
   padding: 16px;
-  border: 2px dashed var(--honey-press);
+  border: 2px dashed #d4aa43;
   border-radius: var(--r-md);
   background: var(--cream-2);
 }
 .mission-parent-card strong {
-  color: var(--honey-text);
+  color: #6a4a0c;
 }
 .mission-parent-card p {
   margin-top: 6px;

@@ -6,7 +6,6 @@ import {
   homeTitle,
   logoPath,
   manifestPath,
-  darkThemeColor,
   themeColor,
 } from "../config/site.js";
 import {
@@ -71,16 +70,7 @@ const jsonLd = [
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-    <meta
-      name="theme-color"
-      content={themeColor}
-      media="(prefers-color-scheme: light)"
-    />
-    <meta
-      name="theme-color"
-      content={darkThemeColor}
-      media="(prefers-color-scheme: dark)"
-    />
+    <meta name="theme-color" content={themeColor} />
     <link
       rel="icon"
       type="image/png"

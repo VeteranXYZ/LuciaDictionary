@@ -33,9 +33,10 @@ export const manifestPath = "/manifest.webmanifest";
 export const serviceWorkerPath = "/sw.js";
 export const siteLogo = `${siteOrigin}${logoPath}`;
 
-export const themeColor = "#77509D";
+// theme_color tints the browser/PWA chrome sitting directly above the page, so
+// it has to be the colour at the very top of the viewport: the paper surface.
+export const themeColor = "#FBFAF6";
 export const backgroundColor = "#FBFAF6";
-export const darkThemeColor = "#16141C";
 
 export const infoPages = [
   {
