@@ -14,8 +14,10 @@ export const brandSubtitle = "Lucia 的小学英语学习伙伴";
 export const appShortName = "Lucia 词典";
 export const appDescription = "把课堂英语句子变成能读、能懂、能复习的单词卡。";
 export const siteOwner = "Lucia & Rayna";
-export const sitePublisher = "HIEI";
+export const sitePublisher = "Max";
 export const contactEmail = "hello@luciaandrayna.com";
+export const sourceRepositoryUrl =
+  "https://github.com/VeteranXYZ/LuciaDictionary";
 export const copyrightYear = new Date().getUTCFullYear();
 
 export const logoPath = "/assets/logo.png";

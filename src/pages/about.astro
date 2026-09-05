@@ -1,6 +1,7 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import InfoPageShell from "../components/InfoPageShell.astro";
+import RepositoryLink from "../components/RepositoryLink.astro";
 import { buildInfoPageStructuredData } from "../lib/seo.js";
 import { infoPageById, siteName } from "../config/site.js";
 
@@ -51,6 +52,16 @@ const structuredData = buildInfoPageStructuredData({
       <p>
         常见课堂短句、核心词汇、音标、朗读设置、查询缓存和生词本会尽量在当前浏览器中处理和保存。无需注册账号；更换设备或清除浏览器数据后，本地学习记录可能不会保留。
       </p>
+    </section>
+    <section class="open-source-note">
+      <div>
+        <h2>开放与共建</h2>
+        <p>
+          Lucia's Dictionary
+          已开放源代码。欢迎查看项目实现、反馈问题，或一起让它更适合孩子和家长使用。
+        </p>
+      </div>
+      <RepositoryLink label="查看 GitHub 仓库" />
     </section>
   </InfoPageShell>
 </MainLayout>

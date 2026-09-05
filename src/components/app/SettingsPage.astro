@@ -1,5 +1,6 @@
 ---
 import AppPanel from "./AppPanel.astro";
+import RepositoryLink from "../RepositoryLink.astro";
 import {
   contactEmail,
   copyrightYear,
@@ -242,15 +243,18 @@ const { version } = Astro.props;
       </div>
 
       <div class="about-foot">
-        <p>
-          © {copyrightYear}
+        <p class="about-attribution">
+          © {copyrightYear}{" "}
           <strong>{siteOwner}</strong> · Powered by <strong
             >{sitePublisher}</strong
           >
         </p>
-        <p class="about-contact">
-          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-        </p>
+        <div class="about-links">
+          <RepositoryLink meta="GitHub" />
+          <a class="about-contact" href={`mailto:${contactEmail}`}
+            >{contactEmail}</a
+          >
+        </div>
       </div>
     </footer>
   </div>

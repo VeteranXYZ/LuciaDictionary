@@ -1,4 +1,5 @@
 ---
+import RepositoryLink from "./RepositoryLink.astro";
 import {
   brandSubtitle,
   copyrightYear,
@@ -96,7 +97,11 @@ const currentPage = infoPages.find((page) => page.id === current);
   </a>
 
   <footer class="info-footer">
-    © {copyrightYear}
-    {siteOwner} · Powered by {sitePublisher}
+    <p>
+      {`© ${copyrightYear} ${siteOwner} · Powered by `}<strong
+        >{sitePublisher}</strong
+      >
+    </p>
+    <RepositoryLink quiet />
   </footer>
 </main>
