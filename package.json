@@ -48,13 +48,13 @@
     "sharp": "0.35.5"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.10",
+    "@astrojs/check": "^0.9.12",
     "@cloudflare/vitest-plugin": "^1.9.1",
     "@cloudflare/workers-types": "^5.20261123.1",
-    "@playwright/test": "^1.62.1",
-    "@types/node": "^26.4.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
     "astro": "^7.4.13",
-    "prettier": "^3.9.6",
+    "prettier": "^3.10.1",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.12",
