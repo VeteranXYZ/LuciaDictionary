@@ -1,6 +1,14 @@
-import { WORDBOOK_KEY, readStoredJson, writeStoredJson } from "./storage.js";
+import {
+  WORDBOOK_KEY,
+  readStoredJson,
+  writeStoredJson,
+  subscribeStorage,
+  withStorageLock,
+} from "./storage.js";
 import { MASTERY_STATES } from "./learning-labels.js";
 
+export const WORDBOOK_SAVE_ERROR =
+  "未能保存学习记录。请检查浏览器存储空间和网站数据权限，然后重试。";
 export const REVIEW_DAY_MS = 24 * 60 * 60 * 1000;
 export const REVIEW_INTERVALS = [0, 1, 2, 4, 7, 30];
 export const REVIEW_RESULTS = new Set(["know", "unsure", "forgot"]);
@@ -78,7 +86,10 @@ export function normalizeWordbookItem(item) {
   const sourceSentences = normalizeSourceSentences(item);
   return {
     w: word,
-    m: String(item?.m || item?.meaning || ""),
+    m: String(item?.m || item?.meaning || "")
+      .split("；")
+      .filter((part) => !part.endsWith("中文释义暂时不可用"))
+      .join("；"),
     t: Number(item?.t || item?.createdAt || Date.now()),
     sourceSentence: String(
       item?.sourceSentence || sourceSentences[0]?.text || "",
@@ -166,6 +177,11 @@ export function mergeWordbookItem(existing, incoming) {
 // so a sentence used to cost dozens of parse-and-normalize passes.
 let wordbookCache = null;
 
+subscribeStorage(({ key, external }) => {
+  if (external && (key === WORDBOOK_KEY || key === null))
+    invalidateWordbookCache();
+});
+
 export function invalidateWordbookCache() {
   wordbookCache = null;
 }
@@ -200,72 +216,54 @@ export function isStarred(word) {
   return Boolean(findCachedItem(word));
 }
 
-export function updateWordbookItem(word, updater) {
+async function editWordbook(edit) {
+  try {
+    return await withStorageLock(WORDBOOK_KEY, () => {
+      // Reload under the lock. A storage event from the previous writer may
+      // still be queued while this tab is already handling the next click.
+      invalidateWordbookCache();
+      const words = getWordbook();
+      const result = edit(words);
+      return result != null && saveWordbook(words) ? result : null;
+    });
+  } catch {
+    return null;
+  }
+}
+
+export function updateStarredMeaning(word, meaning) {
+  const existing = findCachedItem(word);
+  if (!meaning || !existing || existing.m) return;
+  return editWordbook((words) => {
+    const index = words.findIndex((entry) => entry.w === existing.w);
+    if (index < 0 || words[index].m) return null;
+    words[index] = { ...words[index], m: meaning };
+    return true;
+  });
+}
+
+export function toggleStar(word, meaning, sourceSentence = "", desired) {
   const key = String(word || "")
     .toLowerCase()
     .trim();
   if (!key) return null;
-  const wb = getWordbook();
-  const index = wb.findIndex((item) => item.w === key);
-  if (index < 0) return null;
-  wb[index] = normalizeWordbookItem(updater(wb[index])) || wb[index];
-  saveWordbook(wb);
-  return wb[index];
+  return editWordbook((words) => {
+    const index = words.findIndex((item) => item.w === key);
+    const add = desired ?? index < 0;
+    if (add && index < 0)
+      words.push(normalizeWordbookItem({ w: key, m: meaning, sourceSentence }));
+    if (!add && index >= 0) words.splice(index, 1);
+    return add;
+  });
 }
 
-export function updateStarredMeaning(word, meaning) {
-  if (!word || !meaning) return;
-  const existing = findCachedItem(word);
-  if (!existing || existing.m) return existing || null;
-  updateWordbookItem(word, (item) => ({ ...item, m: item.m || meaning }));
-}
-
-export function toggleStar(word, meaning, sourceSentence = "") {
-  const key = String(word || "")
-    .toLowerCase()
-    .trim();
-  if (!key) return false;
-  const wb = getWordbook();
-  const index = wb.findIndex((item) => item.w === key);
-  if (index >= 0) {
-    wb.splice(index, 1);
-    saveWordbook(wb);
-    return false;
-  }
-  wb.push(
-    normalizeWordbookItem({
-      w: key,
-      m: meaning,
-      t: Date.now(),
-      sourceSentence,
-      correct: 0,
-      wrong: 0,
-      lastReviewedAt: null,
-      level: 0,
-      mastery: "new",
-      intervalDays: 0,
-      nextReviewAt: 0,
-      lastResult: "",
-      reviewHistory: [],
-    }),
-  );
-  saveWordbook(wb);
-  return true;
-}
-
-export function recordWordEncounter(
-  word,
-  meaning,
-  sourceSentence,
-  now = Date.now(),
-) {
+function applyEncounter(wb, word, meaning, sourceSentence, now) {
   const key = String(word || "")
     .toLowerCase()
     .trim();
   const sentence = String(sourceSentence || "").trim();
   if (!key || !sentence) return null;
 
-  const wb = getWordbook();
   let index = wb.findIndex((item) => item.w === key);
   if (index < 0) {
     wb.push(
@@ -303,59 +301,104 @@ export function recordWordEncounter(
       ...item.sourceSentences.filter((source) => source.text !== sentence),
     ],
   });
-  saveWordbook(wb);
   return wb[index];
 }
 
+export function recordWordEncounter(
+  word,
+  meaning,
+  sourceSentence,
+  now = Date.now(),
+) {
+  return editWordbook((words) =>
+    applyEncounter(words, word, meaning, sourceSentence, now),
+  );
+}
+
+export function recordMissionEncounters(targets, sentence, now = Date.now()) {
+  return editWordbook(
+    (words) =>
+      targets.every((target) =>
+        applyEncounter(words, target.word, target.meaning, sentence, now),
+      ) || null,
+  );
+}
+
 export function removeWord(word) {
-  const key = String(word || "").toLowerCase();
-  saveWordbook(getWordbook().filter((item) => item.w !== key));
+  return editWordbook((words) => {
+    const index = words.findIndex((entry) => entry.w === word.toLowerCase());
+    if (index >= 0) words.splice(index, 1);
+    return true;
+  });
 }
 
 export function clearWordbookItems() {
-  saveWordbook([]);
+  return editWordbook((words) => {
+    words.length = 0;
+    return true;
+  });
 }
 
 export function recordQuizAnswer(word, isCorrect, now = Date.now()) {
   return recordReviewFeedback(word, isCorrect ? "know" : "forgot", now);
 }
 
-export function recordReviewFeedback(word, result, now = Date.now()) {
+function applyReview(words, word, result, now) {
   if (!REVIEW_RESULTS.has(result)) return null;
-  return updateWordbookItem(word, (item) => {
-    const level = Math.max(
-      0,
-      Math.min(
-        5,
-        (item.level || 0) +
-          (result === "know" ? 1 : result === "forgot" ? -1 : 0),
-      ),
-    );
-    const intervalDays =
-      result === "forgot"
-        ? 10 / 1440
-        : result === "unsure"
-          ? 1
-          : REVIEW_INTERVALS[level] || 30;
-    const history = [...(item.reviewHistory || []), { at: now, result }].slice(
-      -20,
-    );
-    return {
-      ...item,
-      correct: (item.correct || 0) + (result === "know" ? 1 : 0),
-      // "不确定" is its own answer, not a wrong one. Folding it into `wrong`
-      // made the three-way feedback report as two-way.
-      wrong: (item.wrong || 0) + (result === "forgot" ? 1 : 0),
-      unsure: (item.unsure || 0) + (result === "unsure" ? 1 : 0),
-      level,
-      mastery: masteryForLevel(level),
-      intervalDays,
-      nextReviewAt: now + intervalDays * REVIEW_DAY_MS,
-      lastReviewedAt: now,
-      lastResult: result,
-      reviewHistory: history,
-    };
-  });
+  const index = words.findIndex((entry) => entry.w === word.toLowerCase());
+  if (index < 0) return null;
+  const item = words[index];
+  const level = Math.max(
+    0,
+    Math.min(
+      5,
+      (item.level || 0) +
+        (result === "know" ? 1 : result === "forgot" ? -1 : 0),
+    ),
+  );
+  const intervalDays =
+    result === "forgot"
+      ? 10 / 1440
+      : result === "unsure"
+        ? 1
+        : REVIEW_INTERVALS[level] || 30;
+  const history = [...(item.reviewHistory || []), { at: now, result }].slice(
+    -20,
+  );
+  words[index] = {
+    ...item,
+    correct: (item.correct || 0) + (result === "know" ? 1 : 0),
+    // "不确定" is its own answer, not a wrong one. Folding it into `wrong`
+    // made the three-way feedback report as two-way.
+    wrong: (item.wrong || 0) + (result === "forgot" ? 1 : 0),
+    unsure: (item.unsure || 0) + (result === "unsure" ? 1 : 0),
+    level,
+    mastery: masteryForLevel(level),
+    intervalDays,
+    nextReviewAt: now + intervalDays * REVIEW_DAY_MS,
+    lastReviewedAt: now,
+    lastResult: result,
+    reviewHistory: history,
+  };
+  return words[index];
+}
+
+export function recordReviewFeedback(word, result, now = Date.now()) {
+  return editWordbook((words) => applyReview(words, word, result, now));
+}
+
+export function recordMissionReviews(results, now = Date.now()) {
+  return editWordbook(
+    (words) =>
+      results.every((result) =>
+        applyReview(
+          words,
+          result.word,
+          result.correct ? "know" : "forgot",
+          now,
+        ),
+      ) || null,
+  );
 }
 
 export function getDueWords(wordbook = getWordbook(), now = Date.now()) {
@@ -399,7 +442,13 @@ export async function importWordbookFile(file) {
   const parsed = JSON.parse(text);
   const validation = validateImportedWordbook(parsed);
   if (!validation.ok) return validation;
-  const merged = mergeImportedWordbook(getWordbook(), validation.items);
-  saveWordbook(merged);
-  return { ok: true, items: merged };
+  const merged = await editWordbook((words) => {
+    const items = mergeImportedWordbook(words, validation.items);
+    words.length = 0;
+    for (const item of items) words.push(item);
+    return items;
+  });
+  return merged
+    ? { ok: true, items: merged }
+    : { ok: false, error: WORDBOOK_SAVE_ERROR };
 }

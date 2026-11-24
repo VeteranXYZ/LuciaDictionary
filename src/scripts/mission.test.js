@@ -77,7 +77,7 @@ describe("classroom mission recommendation", () => {
     );
   });
 
-  it("summarizes results and stores a bounded local history", () => {
+  it("summarizes results and stores a bounded local history", async () => {
     const mission = createLearningMission({
       sentence: "Plants need water.",
       candidates,
@@ -93,7 +93,7 @@ describe("classroom mission recommendation", () => {
     expect(summary).toMatchObject({ total: 2, correct: 1 });
     expect(summary.parentPrompt).toContain("是什么意思");
 
-    saveMissionResult(mission, results, 456);
+    await saveMissionResult(mission, results, 456);
     expect(getMissionHistory()[0]).toMatchObject({
       id: "mission-123",
       completedAt: 456,
@@ -102,4 +102,8 @@ describe("classroom mission recommendation", () => {
       1,
     );
   });
+});
+
+it("blanks the original curly-apostrophe contraction", () => {
+  expect(createClozeText("We can’t swim.", "can't")).toBe("We _____ swim.");
 });

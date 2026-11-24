@@ -2,19 +2,15 @@ import {
   readCache,
   writeCache,
   isNetworkAllowed,
+  assertNetworkAllowed,
+  getNetworkSignal,
   TRANSLATE_CACHE,
 } from "./storage.js";
-import { fetchWithPolicy } from "./network.js";
+import { fetchJsonWithPolicy } from "./network.js";
 
 export const CHINESE_RE = /[\u3400-\u9fff]/;
 export const TRANSLATE_ENDPOINT = "/api/translate";
-export const OFFLINE_ONLY_ERROR = "offline_only";
-
-export function createOfflineOnlyError() {
-  const error = new Error("Offline-only mode blocks network translation");
-  error.code = OFFLINE_ONLY_ERROR;
-  return error;
-}
+export { OFFLINE_ONLY_ERROR } from "./storage.js";
 
 export function normalizeText(text) {
   return String(text || "")
@@ -82,43 +78,21 @@ export function flattenPhrasebook(phrasebook) {
     .filter((entry) => entry.en || entry.cn);
 }
 
-// A template may only stand in for the user's own sentence when it covers
-// almost all of it. Substring matching alone silently replaced a long
-// classroom sentence with a short template and dropped the rest of the input.
-export const PHRASEBOOK_MIN_COVERAGE = 0.8;
-
-export function phraseMatchCoverage(query, candidate) {
-  if (!query || !candidate) return 0;
-  if (query === candidate) return 1;
-  const [short, long] =
-    query.length <= candidate.length ? [query, candidate] : [candidate, query];
-  if (!long.includes(short)) return 0;
-  return short.length / long.length;
-}
-
-export function findPhrasebookMatch(text, phrasebook, options = {}) {
-  const minCoverage = options.minCoverage ?? PHRASEBOOK_MIN_COVERAGE;
+export function findPhrasebookMatch(text, phrasebook) {
   const normalized = normalizeText(text);
   if (!normalized) return null;
-
-  let best = null;
-  for (const item of flattenPhrasebook(phrasebook)) {
+  for (const entry of flattenPhrasebook(phrasebook)) {
     for (const field of ["cn", "en"]) {
-      const coverage = phraseMatchCoverage(
-        normalized,
-        normalizeText(item[field]),
-      );
-      if (coverage < minCoverage) continue;
-      if (!best || coverage > best.coverage) {
-        best = { entry: item, coverage, field };
+      if (normalizeText(entry[field]) === normalized) {
+        return { entry, field, coverage: 1 };
       }
     }
   }
-  return best;
+  return null;
 }
 
-export function matchPhrasebook(text, phrasebook, options = {}) {
-  return findPhrasebookMatch(text, phrasebook, options)?.entry || null;
+export function matchPhrasebook(text, phrasebook) {
+  return findPhrasebookMatch(text, phrasebook)?.entry || null;
 }
 
 export function findTemplateTranslation(text, phrasebook) {
@@ -148,7 +122,11 @@ export async function translateOnDevice(
     api = globalThis.Translator,
   } = {},
 ) {
-  if (typeof api?.create !== "function") return "";
+  if (
+    typeof api?.create !== "function" ||
+    (!isNetworkAllowed() && !api.availability)
+  )
+    return "";
   try {
     return await withTimeout(
       (async () => {
@@ -174,12 +152,18 @@ export async function translateOnDevice(
   }
 }
 
+function cacheTranslation(key, text, source) {
+  const cache = readCache(TRANSLATE_CACHE);
+  cache[key] = { text, source, cachedAt: Date.now() };
+  writeCache(TRANSLATE_CACHE, cache);
+}
+
 export function createTranslationService({
   dictService,
   phrasebook,
   enqueueNetwork,
 }) {
-  async function translateText(text, from, to) {
+  async function translateText(text, from, to, parentSignal) {
     const value = String(text || "").trim();
     if (!value) return "";
 
@@ -187,39 +171,42 @@ export function createTranslationService({
     const cache = readCache(TRANSLATE_CACHE);
     if (cache[key]?.text) return cache[key].text;
 
+    const signal = parentSignal || getNetworkSignal();
     const onDevice = await translateOnDevice(value, from, to);
     if (onDevice) {
-      cache[key] = { text: onDevice, cachedAt: Date.now(), source: "browser" };
-      writeCache(TRANSLATE_CACHE, cache);
+      cacheTranslation(key, onDevice, "browser");
       return onDevice;
     }
 
-    if (!isNetworkAllowed()) throw createOfflineOnlyError();
+    assertNetworkAllowed();
+    signal.throwIfAborted();
 
     // Same-origin only: the sentence never goes to a third party from the
     // child's browser, and the upstream provider stays a server-side detail.
-    const res = await enqueueNetwork(() =>
-      fetchWithPolicy(
-        TRANSLATE_ENDPOINT,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: value, from, to }),
-        },
-        { timeoutMs: 12000, retries: 0 },
-      ),
+    const res = await enqueueNetwork(
+      () =>
+        fetchJsonWithPolicy(
+          TRANSLATE_ENDPOINT,
+          {
+            method: "POST",
+            signal,
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ text: value, from, to }),
+          },
+          { timeoutMs: 12000, retries: 0, checkAccess: assertNetworkAllowed },
+        ),
+      signal,
     );
     if (!res.ok) throw new Error("Translate request failed");
-    const data = await res.json();
+    const data = res.data;
     const translated = String(data?.text || "").trim();
     if (!translated) throw new Error("Translate response was empty");
 
-    cache[key] = {
-      text: translated,
-      cachedAt: Date.now(),
-      source: data?.provider ? `server:${data.provider}` : "server",
-    };
-    writeCache(TRANSLATE_CACHE, cache);
+    cacheTranslation(
+      key,
+      translated,
+      data?.provider ? `server:${data.provider}` : "server",
+    );
     return translated;
   }
 

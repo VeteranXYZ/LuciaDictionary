@@ -1,3 +1,5 @@
+import { BodyTooLargeError, readBoundedBody } from "./bounded-body.js";
+
 const MAX_TEXT_LENGTH = 600;
 const MAX_BODY_BYTES = 4 * 1024;
 const WORKERS_AI_MODEL = "@cf/meta/m2m100-1.2b";
@@ -71,20 +73,6 @@ async function enforceRateLimits(request, env, logger, requestId) {
   return { available: true, allowed: true };
 }
 
-async function readBoundedJson(request) {
-  const declaredLength = Number(request.headers.get("content-length") || 0);
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
-    return null;
-  }
-  const text = await request.text();
-  if (text.length > MAX_BODY_BYTES) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
 export async function translateWithWorkersAi(env, { text, from, to }) {
   const ai = env?.AI;
   if (!ai?.run) return null;
@@ -142,7 +130,15 @@ export async function handleTranslateRequest(request, env, options = {}) {
       "retry-after": "60",
     });
 
-  const body = await readBoundedJson(request);
+  let body;
+  try {
+    const bounded = await readBoundedBody(request, MAX_BODY_BYTES);
+    body = await bounded.json();
+  } catch (error) {
+    return error instanceof BodyTooLargeError
+      ? respond({ error: "payload_too_large" }, 413)
+      : respond({ error: "invalid_request" }, 400);
+  }
   if (!body) return respond({ error: "invalid_request" }, 400);
 
   const text = String(body.text || "").trim();

@@ -1,5 +1,10 @@
-import { fetchWithPolicy } from "./network.js";
-import { getClientId, isNetworkAllowed } from "./storage.js";
+import { fetchJsonWithPolicy } from "./network.js";
+import {
+  getClientId,
+  isNetworkAllowed,
+  getNetworkSignal,
+  assertNetworkAllowed,
+} from "./storage.js";
 
 const OCR_ENDPOINT = "/api/ocr";
 const DEFAULT_MAX_SIDE = 1600;
@@ -242,8 +247,11 @@ export async function recognizeImageText(file, options = {}) {
   if (typeof navigator !== "undefined" && navigator.onLine === false)
     throw createOcrError("offline");
 
+  const signal = getNetworkSignal();
   options.onProgress?.("compressing");
   const image = await compressImageFile(file, options);
+  signal.throwIfAborted();
+  assertNetworkAllowed();
   options.onProgress?.("uploading", image);
 
   const formData = new FormData();
@@ -252,17 +260,19 @@ export async function recognizeImageText(file, options = {}) {
   let data = {};
   try {
     const clientId = getClientId();
-    response = await fetchWithPolicy(
+    response = await fetchJsonWithPolicy(
       OCR_ENDPOINT,
       {
         method: "POST",
         body: formData,
+        signal,
         headers: clientId ? { "x-lucia-client": clientId } : {},
       },
-      { timeoutMs: 20000, retries: 0 },
+      { timeoutMs: 20000, retries: 0, checkAccess: assertNetworkAllowed },
     );
-    data = await response.json().catch(() => ({}));
+    data = response.data || {};
   } catch (e) {
+    if (e?.code === "offline_only") throw createOcrError("offline_only");
     throw createOcrError("network_error");
   }
 

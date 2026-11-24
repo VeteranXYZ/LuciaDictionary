@@ -1,4 +1,4 @@
-import { fetchWithPolicy } from "./network.js";
+import { fetchJsonWithPolicy } from "./network.js";
 
 export const ONLINE_DICT_CACHE = "lucia-online-dict-v1";
 export const TRANSLATE_CACHE = "lucia-translate-v1";
@@ -17,19 +17,64 @@ export const CACHE_MAX_ITEMS = 240;
 
 const storageSubscribers = new Set();
 
-function publishStorageChange(key, value) {
+function publishStorageChange(key, value, external = false) {
   for (const subscriber of storageSubscribers) {
     try {
-      subscriber({ key, value });
+      subscriber({ key, value, external });
     } catch {
       // A rendering subscriber must never make a successful local write fail.
     }
   }
 }
 
+globalThis.window?.addEventListener("storage", (event) => {
+  if (event.storageArea === window.localStorage) {
+    publishStorageChange(
+      event.key,
+      event.key === getSettingStorageKey("offlineOnly")
+        ? event.newValue === "true"
+        : undefined,
+      true,
+    );
+  }
+});
+
 export function subscribeStorage(subscriber) {
   storageSubscribers.add(subscriber);
   return () => storageSubscribers.delete(subscriber);
+}
+
+// Run the synchronous localStorage read/modify/write as one cross-tab edit.
+// IndexedDB readwrite transactions also serialize writers in older browsers.
+export async function withStorageLock(key, edit) {
+  if (globalThis.navigator?.locks) return navigator.locks.request(key, edit);
+  if (typeof window === "undefined") return edit();
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open("lucia-storage-locks", 1);
+    open.onupgradeneeded = () => open.result.createObjectStore("locks");
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const db = open.result;
+      const tx = db.transaction("locks", "readwrite");
+      let result;
+      tx.objectStore("locks").get(key).onsuccess = () => {
+        try {
+          result = edit();
+        } catch (error) {
+          tx.abort();
+          reject(error);
+        }
+      };
+      tx.oncomplete = () => {
+        db.close();
+        resolve(result);
+      };
+      tx.onabort = () => {
+        db.close();
+        reject(tx.error);
+      };
+    };
+  });
 }
 
 export function readStoredJson(key, fallback) {
@@ -56,7 +101,7 @@ export function getSetting(key) {
 }
 
 export function setSetting(key, value) {
-  writeStoredJson(getSettingStorageKey(key), value);
+  return writeStoredJson(getSettingStorageKey(key), value);
 }
 
 export function getSettingStorageKey(key) {
@@ -68,6 +113,35 @@ export function getSettingStorageKey(key) {
 export function isNetworkAllowed() {
   return getSetting("offlineOnly") !== true;
 }
+
+export const OFFLINE_ONLY_ERROR = "offline_only";
+function offlineError() {
+  return Object.assign(new Error("Offline-only mode is enabled"), {
+    code: OFFLINE_ONLY_ERROR,
+  });
+}
+
+let networkAccess = new AbortController();
+
+export function assertNetworkAllowed() {
+  if (!isNetworkAllowed()) throw offlineError();
+}
+
+export function getNetworkSignal() {
+  return isNetworkAllowed()
+    ? networkAccess.signal
+    : AbortSignal.abort(offlineError());
+}
+
+subscribeStorage(({ key, value }) => {
+  if (
+    key === getSettingStorageKey("offlineOnly") &&
+    (value === true || !isNetworkAllowed())
+  ) {
+    networkAccess.abort(offlineError());
+    networkAccess = new AbortController();
+  }
+});
 
 export function trimCacheEntries(value, maxItems = CACHE_MAX_ITEMS) {
   return Object.fromEntries(
@@ -131,13 +205,13 @@ export function getClientId(
 
 export async function loadJsonAsset(path, fallback) {
   try {
-    const res = await fetchWithPolicy(
+    const res = await fetchJsonWithPolicy(
       path,
       {},
       { timeoutMs: 15000, retries: 1 },
     );
     if (!res.ok) return fallback;
-    return await res.json();
+    return res.data;
   } catch (e) {
     return fallback;
   }

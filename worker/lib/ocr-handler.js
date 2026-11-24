@@ -1,3 +1,5 @@
+import { BodyTooLargeError, readBoundedBody } from "./bounded-body.js";
+
 const OCR_SPACE_ENDPOINT = "https://api.ocr.space/parse/image";
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 const MAX_MULTIPART_BYTES = MAX_UPLOAD_BYTES + 128 * 1024;
@@ -104,43 +106,6 @@ async function enforceRateLimits(request, env, logger, requestId) {
   return { available: true, allowed: true };
 }
 
-class UpstreamResponseTooLargeError extends Error {}
-
-async function readBoundedJson(response) {
-  const declaredLength = Number(response.headers.get("content-length") || 0);
-  if (
-    Number.isFinite(declaredLength) &&
-    declaredLength > MAX_UPSTREAM_RESPONSE_BYTES
-  ) {
-    throw new UpstreamResponseTooLargeError();
-  }
-
-  if (!response.body) return {};
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let decoded = "";
-  let totalBytes = 0;
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      totalBytes += value.byteLength;
-      if (totalBytes > MAX_UPSTREAM_RESPONSE_BYTES) {
-        await reader.cancel("upstream_response_too_large");
-        throw new UpstreamResponseTooLargeError();
-      }
-      decoded += decoder.decode(value, { stream: true });
-    }
-    decoded += decoder.decode();
-  } finally {
-    reader.releaseLock();
-  }
-
-  return JSON.parse(decoded);
-}
-
 async function hasValidImageSignature(file) {
   const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   if (file.type === "image/jpeg") {
@@ -220,8 +185,11 @@ export async function handleOcrRequest(request, env, options = {}) {
 
   let formData;
   try {
-    formData = await request.formData();
-  } catch {
+    const bounded = await readBoundedBody(request, MAX_MULTIPART_BYTES);
+    formData = await bounded.formData();
+  } catch (error) {
+    if (error instanceof BodyTooLargeError)
+      return respond("file_too_large", 413);
     return respond("unsupported_file_type", 415);
   }
 
@@ -255,10 +223,14 @@ export async function handleOcrRequest(request, env, options = {}) {
       body: upstreamForm,
       signal: controller.signal,
     });
-    data = await readBoundedJson(upstream);
+    const bounded = await readBoundedBody(
+      upstream,
+      MAX_UPSTREAM_RESPONSE_BYTES,
+    );
+    data = await bounded.json();
   } catch (error) {
     const timedOut = controller.signal.aborted || error?.name === "AbortError";
-    const tooLarge = error instanceof UpstreamResponseTooLargeError;
+    const tooLarge = error instanceof BodyTooLargeError;
     return respond(
       timedOut || tooLarge ? "service_unavailable" : "network_error",
       timedOut ? 504 : 502,

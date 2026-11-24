@@ -1,5 +1,6 @@
+import { setSetting } from "./storage.js";
 import fs from "node:fs";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createDictionaryService,
   extractLookupTerms,
@@ -311,5 +312,110 @@ describe("local lexicon layers", () => {
         ["foundation", "developing", "expanding"].includes(entry[4]),
       ),
     ).toBe(true);
+  });
+});
+
+describe("word cards from the original sentence", () => {
+  it("keeps repeated classroom phrases on one offline card", () => {
+    expect(
+      extractLookupTerms("Clean up, then clean up!", phraseLexicon),
+    ).toEqual(["clean up", "then"]);
+    expect(lookupLayered({ phraseLexicon }, "clean up")).toBe("收拾干净");
+  });
+  it("preserves contractions and their position in a mixed phrase sentence", () => {
+    const terms = extractLookupTerms(
+      "Don’t show your work yet. I can't swim.",
+      phraseLexicon,
+    );
+    expect(terms).toEqual([
+      "don't",
+      "show your work",
+      "yet",
+      "I",
+      "can't",
+      "swim",
+    ]);
+    expect(lookupLayered({}, "don’t")).toContain("不要");
+    expect(lookupLayered({}, "can't")).toContain("不能");
+  });
+
+  it("only displays phonetics recorded for the actual word form", () => {
+    const service = createDictionaryService({
+      coreLexicon,
+      dict: {},
+      phonetics: { went: "/went/" },
+    });
+    expect(service.lookupLocalPhonetic("went")).toBe("went");
+    expect(service.lookupLocalPhonetic("children")).toBe("");
+    expect(service.lookupLocalPhonetic("child")).toBeTruthy();
+  });
+});
+
+describe("optional dictionary requests", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  function onlineDictionary(overrides) {
+    return createDictionaryService({
+      dict: {},
+      phonetics: {},
+      enqueueNetwork: (task) => task(),
+      getCachedOnlineWord: () => null,
+      setCachedOnlineWord: () => {},
+      ...overrides,
+    });
+  }
+
+  it("revokes a queued lookup even if offline-only is subsequently switched off", async () => {
+    const values = new Map();
+    vi.stubGlobal("localStorage", {
+      getItem: (k) => values.get(k) ?? null,
+      setItem: (k, v) => values.set(k, v),
+    });
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    let dispatch;
+    const service = onlineDictionary({
+      enqueueNetwork: (job) =>
+        new Promise((resolve) => {
+          dispatch = () => resolve(job());
+        }),
+    });
+    const pending = service.lookupOnlineData("classroomexample");
+    setSetting("offlineOnly", true);
+    setSetting("offlineOnly", false);
+    dispatch();
+    await expect(pending).rejects.toMatchObject({ code: "offline_only" });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("retries a failed definition translation without saving an error as a meaning", async () => {
+    vi.stubGlobal("fetch", async () =>
+      Response.json([
+        {
+          meanings: [
+            {
+              partOfSpeech: "noun",
+              definitions: [{ definition: "a school exercise" }],
+            },
+          ],
+        },
+      ]),
+    );
+    const translated = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValue("练习");
+    const cache = vi.fn();
+    const service = onlineDictionary({
+      translateText: translated,
+      setCachedOnlineWord: cache,
+    });
+    await expect(
+      service.lookupOnlineData("classroomexample"),
+    ).rejects.toThrow();
+    expect(cache).not.toHaveBeenCalled();
+    await expect(
+      service.lookupOnlineData("classroomexample"),
+    ).resolves.toMatchObject({ meaning: "名词：练习" });
+    expect(cache).toHaveBeenCalledOnce();
   });
 });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  importWordbookFile,
   getDueWords,
   getReviewSummary,
   getWordbook,
@@ -31,8 +32,8 @@ function installStorage() {
 describe("wordbook CRUD", () => {
   beforeEach(installStorage);
 
-  it("adds and removes words with source sentence support", () => {
-    expect(toggleStar("Went", "去", "I went home.")).toBe(true);
+  it("adds and removes words with source sentence support", async () => {
+    expect(await toggleStar("Went", "去", "I went home.")).toBe(true);
     expect(getWordbook()[0]).toMatchObject({
       w: "went",
       m: "去",
@@ -42,7 +43,7 @@ describe("wordbook CRUD", () => {
       level: 0,
     });
 
-    removeWord("went");
+    await removeWord("went");
     expect(getWordbook()).toEqual([]);
   });
 
@@ -57,10 +58,23 @@ describe("wordbook CRUD", () => {
     });
   });
 
-  it("tracks repeated encounters in real classroom sentences", () => {
-    recordWordEncounter("grow", "生长", "Plants grow.", 100);
-    recordWordEncounter("grow", "生长", "Plants grow.", 200);
-    recordWordEncounter("grow", "生长", "Children grow.", 300);
+  it("drops legacy translation failure messages while preserving valid saved definitions", async () => {
+    const data = [
+      { w: "lichen", m: "名词：中文释义暂时不可用", t: 2 },
+      { w: "chalk", m: "名词：粉笔；动词：中文释义暂时不可用", t: 1 },
+    ];
+    const result = await importWordbookFile(new Blob([JSON.stringify(data)]));
+    expect(result.ok).toBe(true);
+    expect(getWordbook().map(({ w, m }) => [w, m])).toEqual([
+      ["lichen", ""],
+      ["chalk", "名词：粉笔"],
+    ]);
+  });
+
+  it("tracks repeated encounters in real classroom sentences", async () => {
+    await recordWordEncounter("grow", "生长", "Plants grow.", 100);
+    await recordWordEncounter("grow", "生长", "Plants grow.", 200);
+    await recordWordEncounter("grow", "生长", "Children grow.", 300);
 
     expect(getWordbook()[0]).toMatchObject({
       w: "grow",
@@ -93,9 +107,9 @@ describe("wordbook CRUD", () => {
 describe("quiz answer updates", () => {
   beforeEach(installStorage);
 
-  it("updates correct, wrong, review time, and level", () => {
+  it("updates correct, wrong, review time, and level", async () => {
     saveWordbook([{ w: "read", m: "阅读", t: 1 }]);
-    recordQuizAnswer("read", true, 100);
+    await recordQuizAnswer("read", true, 100);
     expect(getWordbook()[0]).toMatchObject({
       correct: 1,
       wrong: 0,
@@ -103,7 +117,7 @@ describe("quiz answer updates", () => {
       lastReviewedAt: 100,
     });
 
-    recordQuizAnswer("read", false, 200);
+    await recordQuizAnswer("read", false, 200);
     expect(getWordbook()[0]).toMatchObject({
       correct: 1,
       wrong: 1,
@@ -112,9 +126,9 @@ describe("quiz answer updates", () => {
     });
   });
 
-  it("schedules know, unsure, and forgot feedback locally", () => {
+  it("schedules know, unsure, and forgot feedback locally", async () => {
     saveWordbook([{ w: "read", m: "阅读", t: 1 }]);
-    recordReviewFeedback("read", "know", 1000);
+    await recordReviewFeedback("read", "know", 1000);
     expect(getWordbook()[0]).toMatchObject({
       mastery: "learning",
       level: 1,
@@ -122,14 +136,14 @@ describe("quiz answer updates", () => {
       lastResult: "know",
     });
 
-    recordReviewFeedback("read", "unsure", 2000);
+    await recordReviewFeedback("read", "unsure", 2000);
     expect(getWordbook()[0]).toMatchObject({
       level: 1,
       nextReviewAt: 2000 + 86400000,
       lastResult: "unsure",
     });
 
-    recordReviewFeedback("read", "forgot", 3000);
+    await recordReviewFeedback("read", "forgot", 3000);
     expect(getWordbook()[0]).toMatchObject({
       level: 0,
       nextReviewAt: 3000 + 600000,
@@ -162,9 +176,9 @@ describe("quiz answer updates", () => {
 });
 
 describe("three-way review accounting", () => {
-  it("counts 不确定 separately instead of folding it into wrong", () => {
+  it("counts 不确定 separately instead of folding it into wrong", async () => {
     saveWordbook([{ w: "circle", m: "圈出" }]);
-    recordReviewFeedback("circle", "unsure");
+    await recordReviewFeedback("circle", "unsure");
     const [item] = getWordbook();
     expect(item.unsure).toBe(1);
     expect(item.wrong).toBe(0);
@@ -172,9 +186,9 @@ describe("three-way review accounting", () => {
     expect(item.lastResult).toBe("unsure");
   });
 
-  it("still counts 忘记 as wrong", () => {
+  it("still counts 忘记 as wrong", async () => {
     saveWordbook([{ w: "circle", m: "圈出" }]);
-    recordReviewFeedback("circle", "forgot");
+    await recordReviewFeedback("circle", "forgot");
     const [item] = getWordbook();
     expect(item.wrong).toBe(1);
     expect(item.unsure).toBe(0);
@@ -206,4 +220,19 @@ describe("wordbook cache", () => {
       globalThis.localStorage.getItem = original;
     }
   });
+});
+
+it("reports a failed import without losing the previous wordbook", async () => {
+  installStorage();
+  await toggleStar("apple", "苹果");
+  localStorage.setItem = () => {
+    throw new DOMException("full", "QuotaExceededError");
+  };
+  const result = await importWordbookFile(
+    new Blob(['[{"w":"pear","m":"梨"}]']),
+  );
+  expect(result).toMatchObject({ ok: false });
+  expect(await toggleStar("pear", "梨")).toBeNull();
+  expect(await recordReviewFeedback("apple", "know")).toBeNull();
+  expect(getWordbook()).toMatchObject([{ w: "apple", level: 0 }]);
 });

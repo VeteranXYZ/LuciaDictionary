@@ -1,4 +1,8 @@
-import { getDueWords, recordQuizAnswer } from "./wordbook.js";
+import {
+  getDueWords,
+  recordQuizAnswer,
+  WORDBOOK_SAVE_ERROR,
+} from "./wordbook.js";
 import { SPEAKER_SVG, createEmptyState, showCelebration } from "./ui.js";
 import { shuffle } from "./random.js";
 
@@ -11,27 +15,22 @@ let advanceTimer = null;
 export function cancelPendingQuiz() {
   clearTimeout(advanceTimer);
   advanceTimer = null;
+  quizState.current = null;
 }
 
 export function resetQuizSession() {
   cancelPendingQuiz();
-  quizState.current = null;
   quizState.score = 0;
   quizState.total = 0;
 }
 
 function scheduleNextQuestion(render, delayMs) {
-  cancelPendingQuiz();
+  clearTimeout(advanceTimer);
   advanceTimer = setTimeout(render, delayMs);
 }
 
 export function getQuizMeaning(entry) {
   return String(entry?.m || "").trim();
-}
-
-export function getQuizOptionLabel(entry, flipped) {
-  if (!flipped) return entry.w;
-  return getQuizMeaning(entry) || entry.w;
 }
 
 export function createQuizQuestion(
@@ -43,32 +42,25 @@ export function createQuizQuestion(
   if (wb.length < 4) return null;
   const due = getDueWords(wb, now);
   const correct = shuffle(due.length ? due : wb, random)[0];
-  const type = random() > 0.5 ? "listen" : "read";
-  const correctMeaning = getQuizMeaning(correct);
-  const flipped = type === "read" && !correctMeaning;
-
-  // Two entries that share a label make the question unanswerable, so compare
-  // the rendered option text rather than the word.
-  const usedLabels = new Set([getQuizOptionLabel(correct, flipped)]);
+  const type = !getQuizMeaning(correct) || random() > 0.5 ? "listen" : "read";
+  const usedWords = new Set([correct.w]);
   const distractors = [];
-  for (const item of shuffle(
-    wb.filter((item) => item.w !== correct.w),
-    random,
-  )) {
+  for (const item of shuffle(wb, random)) {
     if (distractors.length >= 3) break;
-    const label = getQuizOptionLabel(item, flipped);
-    if (usedLabels.has(label)) continue;
-    usedLabels.add(label);
+    if (usedWords.has(item.w)) continue;
+    usedWords.add(item.w);
     distractors.push(item);
   }
 
   const options = shuffle([correct, ...distractors], random);
-  return { correct, options, type, flipped };
+  return { correct, options, type };
 }
 
-export function handleQuizAnswer(word, correctWord) {
+export async function handleQuizAnswer(word, correctWord) {
+  const question = quizState.current;
   const isCorrect = word === correctWord;
-  recordQuizAnswer(correctWord, isCorrect);
+  if (!(await recordQuizAnswer(correctWord, isCorrect))) return null;
+  if (question !== quizState.current) return isCorrect;
   quizState.total++;
   if (isCorrect) quizState.score++;
   return isCorrect;
@@ -79,21 +71,6 @@ export function renderQuiz({ getWordbook, speak }) {
   const wb = getWordbook().filter((item) => item?.w);
   const container = document.getElementById("quiz-content");
   if (!container) return;
-
-  document.querySelectorAll(".quiz-opt").forEach((el) => {
-    el.classList.remove(
-      "correct",
-      "wrong",
-      "selected",
-      "active",
-      "chosen",
-      "on",
-    );
-    el.disabled = false;
-    el.style.removeProperty("background");
-    el.style.removeProperty("border-color");
-    el.style.removeProperty("color");
-  });
 
   if (wb.length < 4) {
     container.replaceChildren(
@@ -106,7 +83,7 @@ export function renderQuiz({ getWordbook, speak }) {
   }
 
   const question = createQuizQuestion(wb);
-  const { correct, options, type, flipped } = question;
+  const { correct, options, type } = question;
   const correctMeaning = getQuizMeaning(correct);
   quizState.current = question;
 
@@ -124,18 +101,10 @@ export function renderQuiz({ getWordbook, speak }) {
   const prompt = document.createElement("div");
   prompt.className = "quiz-q";
   if (type === "read") {
-    if (flipped) {
-      prompt.appendChild(document.createTextNode("单词 "));
-      const strong = document.createElement("strong");
-      strong.textContent = correct.w;
-      prompt.appendChild(strong);
-      prompt.appendChild(document.createTextNode(" 的中文是？"));
-    } else {
-      const strong = document.createElement("strong");
-      strong.textContent = correctMeaning;
-      prompt.appendChild(strong);
-      prompt.appendChild(document.createTextNode(" 的英文是？"));
-    }
+    const strong = document.createElement("strong");
+    strong.textContent = correctMeaning;
+    prompt.appendChild(strong);
+    prompt.appendChild(document.createTextNode(" 的英文是？"));
     card.appendChild(prompt);
   } else {
     prompt.textContent = "听发音，选出正确的单词";
@@ -154,9 +123,19 @@ export function renderQuiz({ getWordbook, speak }) {
     const btn = document.createElement("button");
     btn.className = "quiz-opt";
     btn.dataset.word = opt.w;
-    btn.textContent = getQuizOptionLabel(opt, flipped);
-    btn.addEventListener("click", () => {
-      const isCorrect = handleQuizAnswer(btn.dataset.word, correct.w);
+    btn.textContent = opt.w;
+    btn.addEventListener("click", async () => {
+      if (opts.dataset.answered) return;
+      opts.dataset.answered = "true";
+      for (const option of opts.children) option.disabled = true;
+      const isCorrect = await handleQuizAnswer(btn.dataset.word, correct.w);
+      if (quizState.current !== question || !opts.isConnected) return;
+      if (isCorrect == null) {
+        delete opts.dataset.answered;
+        for (const option of opts.children) option.disabled = false;
+        alert(WORDBOOK_SAVE_ERROR);
+        return;
+      }
       if (isCorrect) {
         btn.classList.add("correct");
         showCelebration();
@@ -165,7 +144,7 @@ export function renderQuiz({ getWordbook, speak }) {
       }
 
       btn.classList.add("wrong");
-      document.querySelectorAll(".quiz-opt").forEach((option) => {
+      opts.querySelectorAll(".quiz-opt").forEach((option) => {
         if (option.dataset.word === correct.w) option.classList.add("correct");
         option.disabled = true;
       });

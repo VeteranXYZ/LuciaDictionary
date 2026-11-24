@@ -5,8 +5,9 @@ import {
 } from "../mission.js";
 import {
   getWordbook,
-  recordReviewFeedback,
-  recordWordEncounter,
+  recordMissionReviews,
+  recordMissionEncounters,
+  WORDBOOK_SAVE_ERROR,
 } from "../wordbook.js";
 
 export function createMissionController({ announce, getSentence, speak }) {
@@ -81,22 +82,30 @@ export function createMissionController({ announce, getSentence, speak }) {
     start.type = "button";
     start.className = "mission-primary";
     start.textContent = `开始练习 · ${currentMission.targets.length} 个词`;
-    start.addEventListener("click", () => startMission(true));
+    start.addEventListener("click", async () => {
+      start.disabled = true;
+      await startMission(true);
+      start.disabled = false;
+    });
     container.replaceChildren(header, targets, start);
   }
 
-  function startMission(recordEncounter = false) {
+  async function startMission(recordEncounter = false) {
     if (!currentMission) return;
     questionIndex = 0;
     results = [];
     started = true;
     if (recordEncounter) {
-      for (const target of currentMission.targets) {
-        recordWordEncounter(
-          target.word,
-          target.meaning,
-          currentMission.sentence,
-        );
+      const mission = currentMission;
+      const saved = await recordMissionEncounters(
+        mission.targets,
+        mission.sentence,
+      );
+      if (mission !== currentMission) return;
+      if (!saved) {
+        started = false;
+        alert(WORDBOOK_SAVE_ERROR);
+        return;
       }
     }
     renderQuestion();
@@ -191,6 +200,7 @@ export function createMissionController({ announce, getSentence, speak }) {
         ? "下一题"
         : "查看学习结果";
     next.addEventListener("click", () => {
+      next.disabled = true;
       questionIndex++;
       renderQuestion();
     });
@@ -206,20 +216,21 @@ export function createMissionController({ announce, getSentence, speak }) {
     announce(correct ? "回答正确" : `正确答案是 ${question.word}`);
   }
 
-  function finish() {
+  async function finish() {
     const container = document.getElementById("classroom-mission");
     if (!container || !currentMission || !results.length) return;
-    for (const result of results) {
-      recordReviewFeedback(result.word, result.correct ? "know" : "forgot");
-    }
-    saveMissionResult(currentMission, results);
+    const mission = currentMission;
+    const answers = results;
+    const savedReviews = await recordMissionReviews(answers);
+    const saved = savedReviews && (await saveMissionResult(mission, answers));
+    if (currentMission !== mission) return;
     const summary = summarizeMission(currentMission, results);
     container.className = "classroom-mission mission-complete";
 
     const header = createHeader(
       "练习完成",
       "这句话现在更熟悉了",
-      `答对 ${summary.correct} / ${summary.total} 个词。结果已保存，下次会优先复习没记住的词。`,
+      `答对 ${summary.correct} / ${summary.total} 个词。${saved ? "结果已保存，下次会优先复习没记住的词。" : WORDBOOK_SAVE_ERROR}`,
     );
     const resultGrid = document.createElement("div");
     resultGrid.className = "mission-result-grid";
@@ -261,7 +272,7 @@ export function createMissionController({ announce, getSentence, speak }) {
     retry.addEventListener("click", () => startMission());
     actions.append(speakSentence, retry);
     container.replaceChildren(header, resultGrid, parent, actions);
-    announce("课堂小练习已完成，答题结果已保存");
+    announce(saved ? "课堂小练习已完成，答题结果已保存" : WORDBOOK_SAVE_ERROR);
   }
 
   return { renderPreview, isStarted: () => started };

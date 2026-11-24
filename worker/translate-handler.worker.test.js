@@ -142,3 +142,20 @@ describe("translate handler", () => {
     }
   });
 });
+
+it("counts UTF-8 bytes before parsing and returns 413", async () => {
+  const translate = vi.fn();
+  const request = makeRequest({
+    text: "hello",
+    from: "en",
+    to: "zh-CN",
+    note: "字".repeat(1400),
+  });
+  const response = await handleTranslateRequest(
+    request,
+    makeEnvironment(),
+    options(translate),
+  );
+  expect(response.status).toBe(413);
+  expect(translate).not.toHaveBeenCalled();
+});

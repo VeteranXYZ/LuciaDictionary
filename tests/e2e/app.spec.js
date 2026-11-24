@@ -328,19 +328,23 @@ test("keeps a classroom phrase as one card instead of splitting it", async ({
 
 test("offline-only mode stops offering network lookups", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("tab", { name: "设置" }).click();
-  await page
-    .locator('#offline-only-options button[data-offline-only="true"]')
-    .click();
-
-  await page.getByRole("tab", { name: "首页" }).click();
   await page.getByLabel("输入中文或英文课堂句子").fill("The zyxwv machine.");
   await page.getByRole("button", { name: "生成单词卡" }).click();
-
-  await expect(
-    page.locator('#word-list .word-card[data-word="zyxwv"]'),
-  ).toContainText("仅离线模式");
-  await expect(page.locator(".btn-online-lookup")).toHaveCount(0);
+  const card = page.locator('#word-list .word-card[data-word="zyxwv"]');
+  const lookup = card.getByRole("button", { name: "联网查词" });
+  await expect(lookup).toBeVisible();
+  async function setOffline(value) {
+    await page.getByRole("tab", { name: "设置" }).click();
+    await page
+      .locator(`#offline-only-options [data-offline-only="${value}"]`)
+      .click();
+    await page.getByRole("tab", { name: "首页" }).click();
+  }
+  await setOffline(true);
+  await expect(card).toContainText("仅离线模式");
+  await expect(lookup).toBeHidden();
+  await setOffline(false);
+  await expect(lookup).toBeVisible();
 });
 
 test("marking a review answer updates the card in place", async ({ page }) => {
@@ -386,4 +390,160 @@ test("the tab bar is one tab stop with arrow-key navigation", async ({
   await expect(page.getByRole("tab", { name: "生词本" })).toBeFocused();
   await expect(page.locator("#pg-wordbook")).toBeVisible();
   await expect(home).toHaveAttribute("tabindex", "-1");
+});
+
+for (const useFallback of [false, true]) {
+  test(`preserves simultaneous wordbook edits with ${useFallback ? "IndexedDB" : "Web Locks"}`, async ({
+    page,
+    context,
+  }) => {
+    if (useFallback) {
+      await context.addInitScript(() =>
+        Object.defineProperty(navigator, "locks", { value: undefined }),
+      );
+    }
+    const other = await context.newPage();
+    async function prepare(tab, word) {
+      await tab.goto("/");
+      await tab.locator("#sentence-input").fill(word);
+      await tab.locator("#go-btn").click();
+      await expect(tab.locator("#word-list .btn-star")).toBeVisible();
+    }
+    await Promise.all([prepare(page, "apple"), prepare(other, "pear")]);
+    await Promise.all([
+      page.locator("#word-list .btn-star").click(),
+      other.locator("#word-list .btn-star").click(),
+    ]);
+    await page.getByRole("tab", { name: "生词本" }).click();
+    await expect(page.locator("#wb-list .word-card")).toHaveCount(2);
+    await other.getByRole("tab", { name: "生词本" }).click();
+    await Promise.all(
+      [page, other].map((tab) =>
+        tab.locator('#wb-list [data-word="apple"] .review-btn.know').click(),
+      ),
+    );
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            JSON.parse(localStorage.getItem("lucia-wordbook")).find(
+              (entry) => entry.w === "apple",
+            ).correct,
+        ),
+      )
+      .toBe(2);
+    await other.getByRole("tab", { name: "首页" }).click();
+    await other.locator("#word-list .btn-star").click();
+    await expect(page.locator("#wb-list .word-card")).toHaveCount(1);
+    await expect(page.locator("#wb-list .word-en")).toHaveText("apple");
+  });
+}
+
+test("accepts only one answer to a quiz question", async ({ page }) => {
+  await page.addInitScript(() => {
+    Math.random = () => 0.25;
+    localStorage.setItem(
+      "lucia-wordbook",
+      JSON.stringify([
+        { w: "read", m: "读" },
+        { w: "write", m: "写" },
+        { w: "draw", m: "画" },
+        { w: "swim", m: "游泳" },
+      ]),
+    );
+  });
+  await page.goto("/");
+  await page.getByRole("tab", { name: "测验" }).click();
+  const meaning = await page.locator(".quiz-q strong").textContent();
+  const answer = await page.evaluate(
+    (m) =>
+      JSON.parse(localStorage.getItem("lucia-wordbook")).find((i) => i.m === m)
+        .w,
+    meaning,
+  );
+  await page.locator('.quiz-opt[data-word="' + answer + '"]').dblclick();
+  await expect(page.locator(".quiz-score")).toContainText("1 / 1");
+  expect(
+    await page.evaluate(
+      (w) =>
+        JSON.parse(localStorage.getItem("lucia-wordbook")).find(
+          (i) => i.w === w,
+        ).reviewHistory.length,
+      answer,
+    ),
+  ).toBe(1);
+});
+
+test("allows IME confirmation before submitting the completed sentence", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const input = page.locator("#sentence-input");
+  await input.fill("pai");
+  expect(
+    await input.evaluate((el) =>
+      el.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Enter",
+          isComposing: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      ),
+    ),
+  ).toBe(true);
+  await expect(page.locator("#word-list .word-card")).toHaveCount(0);
+  await input.fill("在门口排队。");
+  await input.press("Enter");
+  await expect(page.locator("#sentence-text")).toHaveText(
+    "Line up at the door.",
+  );
+});
+
+test("keeps a previously visited guide available on offline reload", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  await page.goto("/guide/");
+  const title = await page.title();
+  await expect
+    .poll(() =>
+      page.evaluate(async () => Boolean(await caches.match("/guide/"))),
+    )
+    .toBe(true);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page).toHaveTitle(title);
+});
+
+test("revokes an OCR upload while its photo is being compressed", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const encode = HTMLCanvasElement.prototype.toBlob;
+    HTMLCanvasElement.prototype.toBlob = function (callback, ...options) {
+      window.finishOcrCompression = () =>
+        encode.call(this, callback, ...options);
+    };
+  });
+  const uploads = [];
+  await page.route("**/api/ocr", (route) => {
+    uploads.push(route.request().url());
+    return route.fulfill({ json: { text: "Read." } });
+  });
+  await page.goto("/");
+  await page.locator("#image-input").setInputFiles("public/favicon.png");
+  await page.waitForFunction(
+    () => typeof window.finishOcrCompression === "function",
+  );
+  await page.getByRole("tab", { name: "设置" }).click();
+  await page
+    .locator('#offline-only-options [data-offline-only="true"]')
+    .click();
+  await page.evaluate(() => window.finishOcrCompression());
+  await page.getByRole("tab", { name: "首页" }).click();
+  await expect(page.locator("#ocr-status")).toContainText("仅离线模式");
+  expect(uploads).toEqual([]);
 });

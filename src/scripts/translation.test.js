@@ -1,10 +1,11 @@
+import { setSetting } from "./storage.js";
 import { describe, expect, it, vi } from "vitest";
 import {
+  createTranslationService,
   findPhrasebookMatch,
   matchPhrasebook,
   normalizePhrasebookEntry,
   normalizeText,
-  phraseMatchCoverage,
   translateOnDevice,
 } from "./translation.js";
 
@@ -95,10 +96,10 @@ describe("phrasebook match safety", () => {
     expect(best?.coverage).toBe(1);
   });
 
-  it("scores coverage as the shared share of the longer string", () => {
-    expect(phraseMatchCoverage("abcd", "abcd")).toBe(1);
-    expect(phraseMatchCoverage("ab", "abcd")).toBe(0.5);
-    expect(phraseMatchCoverage("xy", "abcd")).toBe(0);
+  it("keeps negation and other meaning-changing words", () => {
+    const entries = [{ en: "Line up at the door.", cn: "在门口排队。" }];
+    expect(findPhrasebookMatch("别在门口排队。", entries)).toBeNull();
+    expect(findPhrasebookMatch("在门口排队两次。", entries)).toBeNull();
   });
 });
 
@@ -139,4 +140,31 @@ describe("on-device translation guard", () => {
       translateOnDevice("hi", "en", "zh-CN", { api: undefined }),
     ).resolves.toBe("");
   });
+});
+
+it("does not dispatch a queued translation after permission is revoked", async () => {
+  const values = new Map();
+  vi.stubGlobal("localStorage", {
+    getItem: (k) => values.get(k) ?? null,
+    setItem: (k, v) => values.set(k, v),
+  });
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  try {
+    const service = createTranslationService({
+      phrasebook: [],
+      dictService: {},
+      enqueueNetwork: async (job) => {
+        setSetting("offlineOnly", true);
+        setSetting("offlineOnly", false);
+        return job();
+      },
+    });
+    await expect(
+      service.translateText("测试句子", "zh-CN", "en"),
+    ).rejects.toMatchObject({ code: "offline_only" });
+    expect(fetch).not.toHaveBeenCalled();
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

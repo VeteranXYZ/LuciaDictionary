@@ -5,7 +5,7 @@ Lucia's Dictionary is a mobile-first, local-first English classroom learning too
 ## Learning loop
 
 1. Enter or photograph a classroom sentence.
-2. Translate Chinese input locally when a stored classroom phrase covers it almost entirely, with a bounded same-origin fallback when needed. The English shown always states where it came from.
+2. Translate Chinese input locally when a stored classroom phrase matches the normalized text, with a bounded same-origin fallback when needed. The English shown always states where it came from.
 3. Split the English sentence into child-friendly word cards with meanings, phonetics, learning bands, and speech.
 4. Turn the real classroom sentence into a short Classroom Relay mission that explains which words deserve attention and why.
 5. Practice selected words through listening, meaning recall, and a cloze inside the original sentence.
@@ -91,7 +91,7 @@ Dictionary, translation, and OCR requests share bounded timeout, abort, and retr
 - Web Speech API for pronunciation and follow-along reading
 - Vitest, Cloudflare Workers Vitest pool, and Playwright
 
-Node.js 22.12 or newer is required; `.node-version` records the CI baseline.
+Node.js 22.23.4 or newer is required; `.node-version` records the CI baseline.
 
 ## Project structure
 
@@ -192,8 +192,8 @@ npm run cf:build
 
 ## Privacy boundaries
 
-- Local input analysis, word cards, speech, saved words, review schedules, settings, and cached lookups stay in the browser.
-- **Offline-only mode** in Settings stops every optional network call — online lookup, translation, and OCR — and the UI stops offering them.
+- Local input analysis, word cards, saved words, review schedules, settings, and cached lookups stay in the browser. Browser speech may use a remote voice when networking is enabled.
+- **Offline-only mode** in Settings stops every optional network call — online lookup, server translation, OCR, and remote speech. It revokes queued requests and allows playback only with an installed English voice.
 - Translation never leaves the origin from the browser: text goes to the same-origin `POST /api/translate`, which calls Cloudflare Workers AI server-side. Chrome's on-device `Translator` is tried first and is bounded by a timeout so a model download can never stall the flow.
 - A missing English word may be sent to `dictionaryapi.dev`; an English definition may then use the translation proxy.
 - A photo is sent only after the user selects it, through the same-origin Cloudflare endpoint to OCR.Space.

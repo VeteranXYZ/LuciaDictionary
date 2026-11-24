@@ -1,3 +1,4 @@
+import { WORDBOOK_SAVE_ERROR } from "./wordbook.js";
 import { cleanPhonetic } from "./phonetic.js";
 import { isNetworkAllowed } from "./storage.js";
 import { emptyMascotPath } from "../config/site.js";
@@ -167,6 +168,8 @@ export function showCelebration() {
 export function setCardMeaning(card, word, meaning, updateStarredMeaning) {
   if (!meaning) return;
   card.dataset.meaning = meaning;
+  const lookup = card.querySelector(".btn-online-lookup");
+  if (lookup) lookup.hidden = true;
   updateStarredMeaning(word, meaning);
   const star = card.querySelector(".btn-star");
   if (star) {
@@ -180,6 +183,20 @@ export function setCardMeaning(card, word, meaning, updateStarredMeaning) {
 
 export function getCardMeaning(card) {
   return card.dataset.meaning || "";
+}
+
+export function refreshLookupControls(networkAllowed) {
+  for (const button of document.querySelectorAll(
+    "#word-list .btn-online-lookup",
+  )) {
+    const card = button.closest(".word-card");
+    if (getCardMeaning(card)) continue;
+    button.hidden = !networkAllowed;
+    setMutedText(
+      card.querySelector(".word-cn"),
+      getLookupFallbackMessage({ networkAllowed }),
+    );
+  }
 }
 
 export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
@@ -231,7 +248,11 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
       if (fillMeaning)
         setMutedText(
           cnEl,
-          getLookupFallbackMessage({ explicitLookup, failed: explicitLookup }),
+          getLookupFallbackMessage({
+            explicitLookup,
+            failed: explicitLookup,
+            networkAllowed: isNetworkAllowed(),
+          }),
         );
       if (phoneticEl && phoneticEl.textContent === "音标查询中…")
         phoneticEl.textContent = "暂无音标";
@@ -248,7 +269,11 @@ export async function hydrateOnlineWord(word, cnEl, phoneticEl, card, options) {
     if (fillMeaning)
       setMutedText(
         cnEl,
-        getLookupFallbackMessage({ explicitLookup, failed: explicitLookup }),
+        getLookupFallbackMessage({
+          explicitLookup,
+          failed: explicitLookup,
+          networkAllowed: isNetworkAllowed(),
+        }),
       );
     if (phoneticEl && phoneticEl.textContent === "音标查询中…")
       phoneticEl.textContent = "暂无音标";
@@ -284,14 +309,21 @@ export function buildWordCard(word, index, meaning, container, options) {
     star.disabled = true;
     star.setAttribute("aria-label", "找到释义后可以收藏");
   }
-  star.addEventListener("click", (event) => {
+  star.addEventListener("click", async (event) => {
     event.stopPropagation();
     if (star.disabled) return;
-    const added = options.toggleStar(
+    star.disabled = true;
+    const added = await options.toggleStar(
       key,
       getCardMeaning(card),
       options.sourceSentence(),
+      !star.classList.contains("active"),
     );
+    star.disabled = false;
+    if (added == null) {
+      alert(WORDBOOK_SAVE_ERROR);
+      return;
+    }
     star.className = "btn-star" + (added ? " active" : "");
     setIcon(star, added ? STAR_SVG : STAR_OUTLINE);
     star.setAttribute("aria-label", added ? "移出生词本" : "收藏到生词本");
@@ -307,9 +339,10 @@ export function buildWordCard(word, index, meaning, container, options) {
   });
 
   actions.append(star, speakBtn);
-  if (!displayMeaning && !skipOnlineLookup && isNetworkAllowed()) {
+  if (!displayMeaning && !skipOnlineLookup) {
     const onlineBtn = document.createElement("button");
     onlineBtn.className = "btn-online-lookup";
+    onlineBtn.hidden = !isNetworkAllowed();
     onlineBtn.textContent = ONLINE_LOOKUP_BUTTON_LABEL;
     onlineBtn.setAttribute("aria-label", "联网查词");
     onlineBtn.addEventListener("click", async (event) => {

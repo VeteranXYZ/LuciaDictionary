@@ -23,6 +23,7 @@ export function getAppState() {
 }
 
 function scopeForStorageKey(key) {
+  if (key === null) return "all";
   if (key === WORDBOOK_KEY) return "wordbook";
   if (SETTING_KEYS.has(key)) return "settings";
   return "other";
@@ -32,9 +33,9 @@ export function subscribeAppState(subscriber, options = {}) {
   if (options.immediate !== false) {
     subscriber(getAppState(), { scope: "all", key: "" });
   }
-  return subscribeStorage(({ key }) => {
+  return subscribeStorage(({ key, external }) => {
     const scope = scopeForStorageKey(key);
     if (scope === "other") return;
-    subscriber(getAppState(), { scope, key });
+    subscriber(getAppState(), { scope, key, external });
   });
 }

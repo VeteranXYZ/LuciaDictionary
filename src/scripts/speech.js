@@ -1,8 +1,12 @@
-import { getSetting } from "./storage.js";
+import {
+  getSetting,
+  isNetworkAllowed,
+  subscribeStorage,
+  getSettingStorageKey,
+} from "./storage.js";
 import { qsa } from "./ui.js";
 
 let speakTimer = null;
-let bestVoice = null;
 let sentenceState = "idle";
 let sentenceTextEl = null;
 let sentenceTokens = [];
@@ -23,8 +27,10 @@ export function getRate() {
 }
 
 export function pickVoice() {
-  if (bestVoice) return bestVoice;
-  const voices = speechSynthesis.getVoices();
+  const allowRemote = isNetworkAllowed();
+  const voices = speechSynthesis
+    .getVoices()
+    .filter((voice) => allowRemote || voice.localService === true);
   if (!voices.length) return null;
   const blacklist =
     "Zarvox,Bad,Whisper,Boing,Bells,Trinoids,Cellos,Pipe,Organ,Deranged,Hysterical,Superstar,Wobble,Bubbles,Good News,Jester,Junior,Ralph,Kathy,Fred,Princess,Albert,Bruce,Bahh,Eddy,Flo,Grandma,Grandpa,Reed,Rocko,Sandy,Shelley,Snoop".split(
@@ -62,31 +68,54 @@ export function pickVoice() {
       (item) => item.name === pref || item.name.indexOf(pref) >= 0,
     );
     if (voice && voice.lang.startsWith("en")) {
-      bestVoice = voice;
       return voice;
     }
   }
 
-  bestVoice =
+  return (
     voices.find(
       (item) =>
         item.lang === "en-US" && !item.localService && !isBad(item.name),
     ) ||
     voices.find((item) => item.lang === "en-US" && !isBad(item.name)) ||
-    voices.find((item) => item.lang.startsWith("en") && !isBad(item.name));
-  return bestVoice;
+    voices.find((item) => item.lang.startsWith("en") && !isBad(item.name)) ||
+    null
+  );
 }
 
-export function speak(text, onEnd) {
-  speechSynthesis.cancel();
+function createUtterance(
+  text,
+  onUnavailable = (message) => globalThis.alert?.(message),
+) {
+  if (
+    typeof speechSynthesis === "undefined" ||
+    typeof SpeechSynthesisUtterance === "undefined"
+  ) {
+    onUnavailable("当前浏览器不支持朗读。");
+    return null;
+  }
+  const voice = pickVoice();
+  if (!voice && !isNetworkAllowed()) {
+    onUnavailable(
+      "仅离线模式需要本机英语语音。请在设备设置中安装英语语音后重试。",
+    );
+    return null;
+  }
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "en-US";
   utterance.rate = getRate();
   utterance.pitch = 1.0;
-  const voice = pickVoice();
   if (voice) utterance.voice = voice;
+  return utterance;
+}
+
+export function speak(text, onEnd) {
+  const utterance = createUtterance(text);
+  if (!utterance) return false;
+  speechSynthesis.cancel();
   if (onEnd) utterance.onend = onEnd;
   speechSynthesis.speak(utterance);
+  return true;
 }
 
 export function speakWordN(word, el) {
@@ -94,7 +123,7 @@ export function speakWordN(word, el) {
     clearTimeout(speakTimer);
     speakTimer = null;
   }
-  speechSynthesis.cancel();
+  globalThis.speechSynthesis?.cancel();
   qsa(".word-card.speaking").forEach((card) =>
     card.classList.remove("speaking"),
   );
@@ -107,9 +136,10 @@ export function speakWordN(word, el) {
       return;
     }
     count++;
-    speak(word, () => {
+    const spoken = speak(word, () => {
       speakTimer = setTimeout(go, 380);
     });
+    if (!spoken) el?.classList.remove("speaking");
   };
   go();
 }
@@ -131,7 +161,7 @@ export function renderSpeakableText(el, text) {
   el.replaceChildren();
   const source = String(text || "");
   const tokens = [];
-  const re = /[a-zA-Z]+(?:'[a-zA-Z]+)?/g;
+  const re = /[a-zA-Z]+(?:['’][a-zA-Z]+)?/g;
   let last = 0;
   let match;
   while ((match = re.exec(source))) {
@@ -191,13 +221,8 @@ export function toggleSentenceSpeech(text, options = {}) {
 }
 
 export function startSentenceSpeech(text, options = {}) {
-  if (
-    typeof speechSynthesis === "undefined" ||
-    typeof SpeechSynthesisUtterance === "undefined"
-  ) {
-    options.onUnavailable?.();
-    return;
-  }
+  const utterance = createUtterance(text, options.onUnavailable);
+  if (!utterance) return;
   clearSentenceTimers();
   sentenceStateHandler = options.onStateChange || sentenceStateHandler;
   sentenceTextEl = options.textEl || sentenceTextEl;
@@ -212,13 +237,6 @@ export function startSentenceSpeech(text, options = {}) {
     card.classList.remove("sentence-active"),
   );
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
-  utterance.rate = getRate();
-  utterance.pitch = 1.0;
-  const voice = pickVoice();
-  if (voice) utterance.voice = voice;
-
   const cards = qsa("#word-list .word-card");
   const cardByWord = {};
   cards.forEach((card) => {
@@ -228,8 +246,8 @@ export function startSentenceSpeech(text, options = {}) {
       if (!cardByWord[key]) cardByWord[key] = card;
     }
   });
-  const tokens = (text.match(/[a-zA-Z']+/g) || []).map((token) =>
-    token.toLowerCase(),
+  const tokens = (text.match(/[a-z]+(?:['’][a-z]+)*/gi) || []).map((token) =>
+    token.toLowerCase().replaceAll("’", "'"),
   );
   let lastCard = null;
 
@@ -240,7 +258,8 @@ export function startSentenceSpeech(text, options = {}) {
     const tokenIndex = getSentenceTokenIndex(event.charIndex);
     if (tokenIndex >= 0) highlightSentenceToken(tokenIndex);
     const word =
-      sentenceTokens[tokenIndex]?.text.toLowerCase() || tokens[tokenIndex];
+      sentenceTokens[tokenIndex]?.text.toLowerCase().replaceAll("’", "'") ||
+      tokens[tokenIndex];
     if (!word) return;
     const card = cardByWord[word];
     if (lastCard && lastCard !== card)
@@ -347,11 +366,17 @@ function setSentenceState(state) {
 
 export function setupVoices() {
   if (typeof speechSynthesis === "undefined") return;
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = pickVoice;
-  }
-  setTimeout(() => {
-    speechSynthesis.getVoices();
-    pickVoice();
-  }, 100);
+  speechSynthesis.getVoices();
+  subscribeStorage(({ key, value }) => {
+    if (
+      key === getSettingStorageKey("offlineOnly") &&
+      (value === true || !isNetworkAllowed())
+    ) {
+      clearTimeout(speakTimer);
+      resetSentenceSpeech();
+      qsa(".word-card.speaking").forEach((card) =>
+        card.classList.remove("speaking"),
+      );
+    }
+  });
 }

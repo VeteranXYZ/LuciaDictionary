@@ -20,8 +20,8 @@ function installStorage() {
 describe("app state", () => {
   beforeEach(installStorage);
 
-  it("returns one snapshot for wordbook and settings", () => {
-    toggleStar("read", "阅读");
+  it("returns one snapshot for wordbook and settings", async () => {
+    await toggleStar("read", "阅读");
     setSetting("speed", "slow");
 
     expect(getAppState()).toMatchObject({
@@ -31,13 +31,13 @@ describe("app state", () => {
     });
   });
 
-  it("publishes scoped updates for every supported mutation", () => {
+  it("publishes scoped updates for every supported mutation", async () => {
     const subscriber = vi.fn();
     const unsubscribe = subscribeAppState(subscriber);
 
-    toggleStar("write", "写");
+    await toggleStar("write", "写");
     setSetting("repeat", 5);
-    clearWordbookItems();
+    await clearWordbookItems();
     unsubscribe();
     setSetting("repeat", 1);
 
@@ -50,7 +50,7 @@ describe("app state", () => {
     expect(subscriber.mock.calls[3][0].wordbook).toEqual([]);
   });
 
-  it("keeps storage writes successful when a subscriber fails", () => {
+  it("keeps storage writes successful when a subscriber fails", async () => {
     const unsubscribe = subscribeAppState(
       () => {
         throw new Error("render failed");
@@ -58,7 +58,7 @@ describe("app state", () => {
       { immediate: false },
     );
 
-    expect(() => toggleStar("draw", "画")).not.toThrow();
+    expect(await toggleStar("draw", "画")).toBe(true);
     expect(getAppState().wordbook).toHaveLength(1);
     unsubscribe();
   });

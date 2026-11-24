@@ -1,4 +1,5 @@
 import {
+  WORDBOOK_SAVE_ERROR,
   clearWordbookItems,
   exportWordbookJson,
   getDueWords,
@@ -195,9 +196,9 @@ export function createWordbookController({
       star.className = "btn-star active";
       star.innerHTML = STAR_SVG;
       star.setAttribute("aria-label", "移出生词本");
-      star.addEventListener("click", (event) => {
+      star.addEventListener("click", async (event) => {
         event.stopPropagation();
-        removeWord(entry.w);
+        if ((await removeWord(entry.w)) == null) alert(WORDBOOK_SAVE_ERROR);
       });
 
       const speakButton = document.createElement("button");
@@ -226,9 +227,12 @@ export function createWordbookController({
           "aria-pressed",
           String(entry.lastResult === result),
         );
-        button.addEventListener("click", (event) => {
+        button.addEventListener("click", async (event) => {
           event.stopPropagation();
-          recordReviewFeedback(entry.w, result);
+          if (!(await recordReviewFeedback(entry.w, result))) {
+            alert(WORDBOOK_SAVE_ERROR);
+            return;
+          }
           announce(`${entry.w} 已记录为${text}`);
         });
         feedback.appendChild(button);
@@ -268,18 +272,22 @@ export function createWordbookController({
       const card = findCard(wordbook[index].w);
       card?.classList.add("speaking");
       card?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      speak(wordbook[index].w, () => {
+      const spoken = speak(wordbook[index].w, () => {
         card?.classList.remove("speaking");
         index++;
         setTimeout(next, 320);
       });
+      if (!spoken) card?.classList.remove("speaking");
     };
     next();
   }
 
-  function clear() {
+  async function clear() {
     if (confirm("确定要清空生词本中的全部单词吗？此操作无法撤销。")) {
-      clearWordbookItems();
+      if (!(await clearWordbookItems())) {
+        alert(WORDBOOK_SAVE_ERROR);
+        return;
+      }
       announce("生词本已清空");
     }
   }
@@ -309,6 +317,8 @@ export function createWordbookController({
       const result = await importWordbookFile(file);
       if (!result.ok) {
         alert(result.error || "备份导入失败");
+      } else {
+        render();
       }
     } catch {
       alert("导入失败，请选择此前备份的生词本文件。");
@@ -338,7 +348,7 @@ export function createWordbookController({
     if (!page || page.hidden || !getDictionaryService()) return;
     // Marking 会 / 不确定 / 忘记 leaves the list itself unchanged. Rebuilding it
     // threw away the tapped button's focus and the reader's scroll position.
-    if (patchReviewState(state.wordbook)) return;
+    if (!change.external && patchReviewState(state.wordbook)) return;
     render(state.wordbook);
   }
 

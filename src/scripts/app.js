@@ -3,6 +3,7 @@
 import {
   ONLINE_DICT_CACHE,
   TIP_DISMISSED_KEY,
+  getSettingStorageKey,
   loadJsonAsset,
   readCache,
   writeCache,
@@ -22,17 +23,16 @@ import {
   speakWordN,
   toggleSentenceSpeech,
 } from "./speech.js";
-import {
-  getWordbook,
-  isStarred,
-  saveWordbook,
-  toggleStar,
-  updateStarredMeaning,
-} from "./wordbook.js";
+import { isStarred, toggleStar, updateStarredMeaning } from "./wordbook.js";
 import { getOcrErrorMessage, recognizeImageText } from "./ocr.js";
 import { registerServiceWorker } from "./offline.js";
 import { extendedLexiconPath } from "../config/site.js";
-import { buildWordCard, createEmptyState, setCardMeaning } from "./ui.js";
+import {
+  buildWordCard,
+  createEmptyState,
+  refreshLookupControls,
+  setCardMeaning,
+} from "./ui.js";
 import { getAppState, subscribeAppState } from "./app-state.js";
 import { createMissionController } from "./controllers/mission-controller.js";
 import { createNavigationController } from "./controllers/navigation-controller.js";
@@ -69,9 +69,17 @@ const COPY_ICON =
   '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2h9a2 2 0 0 1 2 2v1"></path>';
 const COPIED_ICON = '<path d="m5 12 4 4L19 6"></path>';
 
-function enqueueNetwork(task) {
+function enqueueNetwork(task, signal) {
   return new Promise((resolve, reject) => {
-    networkQueue.push({ task, resolve, reject });
+    signal?.throwIfAborted();
+    const item = { task, resolve, reject, signal };
+    item.abort = () => {
+      const index = networkQueue.indexOf(item);
+      if (index >= 0) networkQueue.splice(index, 1);
+      reject(signal.reason);
+    };
+    signal?.addEventListener("abort", item.abort, { once: true });
+    networkQueue.push(item);
     runNetworkQueue();
   });
 }
@@ -79,6 +87,7 @@ function enqueueNetwork(task) {
 function runNetworkQueue() {
   while (activeNetworkRequests < NETWORK_CONCURRENCY && networkQueue.length) {
     const item = networkQueue.shift();
+    item.signal?.removeEventListener("abort", item.abort);
     activeNetworkRequests++;
     Promise.resolve()
       .then(item.task)
@@ -91,7 +100,10 @@ function runNetworkQueue() {
 }
 
 function getCachedOnlineWord(word) {
-  return readCache(ONLINE_DICT_CACHE)[word.toLowerCase()] || null;
+  const cached = readCache(ONLINE_DICT_CACHE)[word.toLowerCase()];
+  if (!cached?.meaning || cached.meaning.includes("中文释义暂时不可用"))
+    return null;
+  return cached;
 }
 
 function setCachedOnlineWord(word, value) {
@@ -629,7 +641,6 @@ function setupLearningTip() {
 }
 
 function init() {
-  saveWordbook(getWordbook());
   settingsController = createSettingsController({
     getDictionaryCount: () => dictService?.countLoadedWords() || 0,
   });
@@ -660,6 +671,12 @@ function init() {
   navigationController.setup();
   subscribeAppState((state, change) => {
     wordbookController.onStateChange(state, change);
+    if (
+      change.scope === "all" ||
+      change.key === getSettingStorageKey("offlineOnly")
+    ) {
+      refreshLookupControls(!state.settings.offlineOnly);
+    }
     if (["all", "settings", "wordbook"].includes(change.scope)) {
       settingsController.render(state);
     }
@@ -675,7 +692,7 @@ function init() {
         displayText: curSentenceDisplay || curSentence,
         onStateChange: (state) =>
           setSentenceSpeakLabel(getSentenceSpeechLabel(state)),
-        onUnavailable: () => setOcrStatus("当前浏览器不支持朗读。", "warning"),
+        onUnavailable: (message) => setOcrStatus(message, "warning"),
       });
     });
   document
@@ -694,7 +711,12 @@ function init() {
   document
     .getElementById("sentence-input")
     ?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey &&
+        !event.isComposing &&
+        event.keyCode !== 229
+      ) {
         event.preventDefault();
         analyzeSentence();
       }

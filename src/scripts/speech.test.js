@@ -3,6 +3,7 @@ import {
   getSentenceSpeechLabel,
   renderSpeakableText,
   resetSentenceSpeech,
+  speak,
   startSentenceSpeech,
   toggleSentenceSpeech,
 } from "./speech.js";
@@ -176,4 +177,37 @@ describe("sentence read aloud", () => {
 
     expect(textEl.textContent).toBe(text);
   });
+});
+
+it("restricts both word and sentence playback to local voices in offline-only mode", () => {
+  const getUtterance = installSpeech();
+  const remote = {
+    name: "Microsoft Aria Online",
+    lang: "en-US",
+    localService: false,
+  };
+  const local = { name: "Device English", lang: "en-US", localService: true };
+  let offline = false;
+  vi.stubGlobal("localStorage", {
+    getItem: (key) => (key === "lucia-offlineOnly" ? String(offline) : null),
+  });
+  try {
+    speechSynthesis.getVoices = () => [remote, local];
+    speak("read");
+    expect(getUtterance().voice).toBe(remote);
+    offline = true;
+    speak("read");
+    expect(getUtterance().voice).toBe(local);
+    startSentenceSpeech("Read it.");
+    expect(getUtterance().voice).toBe(local);
+    speechSynthesis.getVoices = () => [remote];
+    const warn = vi.fn();
+    vi.stubGlobal("alert", warn);
+    expect(speak("private")).toBe(false);
+    startSentenceSpeech("Private sentence.", { onUnavailable: warn });
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(speechSynthesis.speak).toHaveBeenCalledTimes(3);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

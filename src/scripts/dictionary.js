@@ -1,6 +1,11 @@
+import { contractions } from "../data/contractions.js";
 import { cleanDisplayTranslation } from "./meaningCleaner.js";
-import { isNetworkAllowed } from "./storage.js";
-import { fetchWithPolicy } from "./network.js";
+import {
+  isNetworkAllowed,
+  getNetworkSignal,
+  assertNetworkAllowed,
+} from "./storage.js";
+import { fetchJsonWithPolicy } from "./network.js";
 import { cleanPhonetic } from "./phonetic.js";
 import { siteOwner } from "../config/site.js";
 
@@ -266,6 +271,10 @@ export function lookupLayered(
   { phraseLexicon = {}, coreLexicon = {}, formIndex = {}, dict = {} },
   term,
 ) {
+  const contraction = contractions.get(
+    String(term).toLowerCase().replaceAll("’", "'"),
+  );
+  if (contraction) return contraction;
   const reserved = getReservedProjectName(term);
   if (reserved) return reserved.cn;
 
@@ -285,31 +294,19 @@ export function lookupLayered(
   return cleanMeaningForDisplay(lookup(dict, term), term);
 }
 
-export function lookupLocalPhonetic(
-  dict,
-  phonetics,
-  word,
-  coreLexicon = {},
-  formIndex = {},
-) {
-  const w = normalizeLookupTerm(word);
+export function lookupLocalPhonetic(dict, phonetics, word, coreLexicon = {}) {
+  const w = String(word || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("’", "'");
   const reserved = getReservedProjectName(word);
   if (reserved) return reserved.ph || "";
-  const coreResolved = lookupCoreBase(coreLexicon, formIndex, w);
-  if (coreResolved) {
-    return (
-      getPhoneticValue(coreLexicon[coreResolved.base]) ||
-      cleanPhonetic(phonetics[coreResolved.base]) ||
-      ""
-    );
-  }
-  if (w.includes(" ")) return "";
-  if (dict[w]) return getPhoneticValue(dict[w]);
-  if (phonetics[w]) return cleanPhonetic(phonetics[w]);
-  const resolved = lookupBaseWord(dict, w);
-  if (resolved?.base && phonetics[resolved.base])
-    return cleanPhonetic(phonetics[resolved.base]);
-  return "";
+  if (!w || w.includes(" ")) return "";
+  return (
+    getPhoneticValue(coreLexicon[w]) ||
+    getPhoneticValue(dict[w]) ||
+    cleanPhonetic(phonetics[w])
+  );
 }
 
 export function reverseLookupChineseWords(dict, text) {
@@ -342,9 +339,8 @@ export function findPhraseMatches(phraseLexicon, text) {
     const escaped = phrase
       .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
       .replace(/\s+/g, "\\s+");
-    const re = new RegExp(`\\b${escaped}\\b`, "i");
-    const match = source.match(re);
-    if (match?.index != null) {
+    const re = new RegExp(`\\b${escaped}\\b`, "gi");
+    for (const match of source.matchAll(re)) {
       matches.push({
         term: phrase,
         index: match.index,
@@ -373,8 +369,9 @@ export function extractLookupTerms(text, phraseLexicon = {}) {
       (range) =>
         Math.max(range[0], match.index) < Math.min(range[1], match.end),
     );
-    if (overlaps || seen.has(match.term)) continue;
+    if (overlaps) continue;
     occupied.push([match.index, match.end]);
+    if (seen.has(match.term)) continue;
     seen.add(match.term);
     terms.push({ term: match.term, index: match.index });
   }
@@ -384,40 +381,31 @@ export function extractLookupTerms(text, phraseLexicon = {}) {
     for (let i = start; i < end; i++) chars[i] = " ";
   }
 
-  let cursor = 0;
-  const remainder = chars.join("");
-  for (const word of extractWordTerms(remainder)) {
-    if (seen.has(word.toLowerCase())) continue;
-    const at = remainder.toLowerCase().indexOf(word.toLowerCase(), cursor);
-    seen.add(word.toLowerCase());
-    terms.push({ term: word, index: at < 0 ? Number.MAX_SAFE_INTEGER : at });
-    if (at >= 0) cursor = at;
+  for (const token of wordTokens(chars.join(""))) {
+    if (seen.has(token.term.toLowerCase())) continue;
+    seen.add(token.term.toLowerCase());
+    terms.push(token);
   }
-
-  // Reading order keeps the word cards lined up with the sentence above them.
   return terms.sort((a, b) => a.index - b.index).map((item) => item.term);
 }
 
-export function extractWordTerms(text) {
-  const terms = [];
-  const seen = new Set();
-  for (const raw of String(text || "").match(
-    /[a-zA-Z]+(?:&[a-zA-Z]+)?(?:'[a-zA-Z]+)?/g,
-  ) || []) {
-    for (const part of raw.split("'")) {
-      const reservedKey = normalizeReservedNameTerm(part);
-      if (getReservedProjectName(reservedKey) && !seen.has(reservedKey)) {
-        seen.add(reservedKey);
-        terms.push(reservedKey);
-        continue;
-      }
-      const key = normalizeLookupTerm(part);
-      if (!isVisibleWordToken(key) || seen.has(key)) continue;
-      seen.add(key);
-      terms.push(key === "i" ? "I" : key);
+function* wordTokens(text) {
+  const pattern = /[a-z]+(?:&[a-z]+)?(?:['’][a-z]+)?/gi;
+  for (const match of String(text || "").matchAll(pattern)) {
+    const word = match[0].toLowerCase().replaceAll("’", "'");
+    if (contractions.has(word)) {
+      yield { term: word, index: match.index };
+      continue;
+    }
+    const base = word.split("'")[0];
+    if (getReservedProjectName(base) || isVisibleWordToken(base)) {
+      yield { term: base === "i" ? "I" : base, index: match.index };
     }
   }
-  return terms;
+}
+
+export function extractWordTerms(text) {
+  return [...new Set(Array.from(wordTokens(text), (token) => token.term))];
 }
 
 export function isVisibleWordToken(token) {
@@ -473,15 +461,18 @@ export function createDictionaryService({
     if (cached) return cached;
     if (!isNetworkAllowed()) return null;
 
-    const res = await enqueueNetwork(() =>
-      fetchWithPolicy(
-        "https://api.dictionaryapi.dev/api/v2/entries/en/" +
-          encodeURIComponent(w),
-        {},
-        { timeoutMs: 8000, retries: 1 },
-      ),
+    const signal = getNetworkSignal();
+    const res = await enqueueNetwork(
+      () =>
+        fetchJsonWithPolicy(
+          "https://api.dictionaryapi.dev/api/v2/entries/en/" +
+            encodeURIComponent(w),
+          { signal },
+          { timeoutMs: 8000, retries: 1, checkAccess: assertNetworkAllowed },
+        ),
+      signal,
     );
-    const data = await res.json();
+    const data = res.data;
     if (!res.ok || !Array.isArray(data) || data.title) return null;
 
     const entry = data[0];
@@ -500,15 +491,10 @@ export function createDictionaryService({
 
     const translated = [];
     for (const item of definitions) {
-      try {
-        translated.push({
-          pos: item.pos,
-          cn: await translateText(item.en, "en", "zh-CN"),
-        });
-      } catch (e) {
-        translated.push({ pos: item.pos, cn: "中文释义暂时不可用" });
-      }
+      const cn = await translateText(item.en, "en", "zh-CN", signal);
+      if (cn?.trim()) translated.push({ pos: item.pos, cn });
     }
+    if (!translated.length) return null;
 
     const result = {
       phonetic,
@@ -531,7 +517,7 @@ export function createDictionaryService({
         : "";
     },
     lookupLocalPhonetic: (word) =>
-      lookupLocalPhonetic(dict, phonetics, word, coreLexicon, formIndex),
+      lookupLocalPhonetic(dict, phonetics, word, coreLexicon),
     reverseLookupChineseWords: (text) =>
       reverseLookupChineseWords({ ...dict, ...coreLexicon }, text),
     extractLookupTerms: (text) => extractLookupTerms(text, phraseLexicon),

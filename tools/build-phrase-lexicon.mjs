@@ -9,9 +9,7 @@ const OUTPUT = "public/assets/lexicon/phrase-lexicon.json";
 // would swallow an entire input if they were matched as a single word card.
 const LEXICAL_PHRASE_RE = /^[a-z]+(?: [a-z]+)+$/;
 
-// The source still carries auto-generated stubs like "activity page（常用短语）".
-// Publishing those would show the English back to the child as if it were the
-// meaning, which is worse than letting the words split normally.
+// Reject unfinished translations before publishing the offline dictionary.
 const PLACEHOLDER_MEANING_RE = /（常用短语）|\(常用短语\)/;
 
 const source = JSON.parse(fs.readFileSync(SOURCE, "utf8"));
@@ -21,12 +19,17 @@ const untranslated = [];
 for (const [phrase, entry] of Object.entries(source)) {
   if (!LEXICAL_PHRASE_RE.test(phrase)) continue;
   const cn = String(entry?.cn || "").trim();
-  if (!cn) continue;
   if (PLACEHOLDER_MEANING_RE.test(cn) || !/[㐀-鿿]/.test(cn)) {
     untranslated.push(phrase);
     continue;
   }
   runtime[phrase] = { cn };
+}
+
+if (untranslated.length) {
+  throw new Error(
+    `Missing Chinese phrase meanings: ${untranslated.join(", ")}`,
+  );
 }
 
 const phrases = Object.keys(runtime).sort();
@@ -43,11 +46,3 @@ fs.writeFileSync(OUTPUT, JSON.stringify(ordered) + "\n");
 console.log(
   `phrase lexicon build: ${phrases.length} entries, ${fs.statSync(OUTPUT).size} bytes`,
 );
-if (untranslated.length) {
-  console.log(
-    `phrase lexicon: ${untranslated.length} source phrases still lack a Chinese meaning and were skipped`,
-  );
-  console.log(
-    `  ${untranslated.slice(0, 10).join(", ")}${untranslated.length > 10 ? ", …" : ""}`,
-  );
-}

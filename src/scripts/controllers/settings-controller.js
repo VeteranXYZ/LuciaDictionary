@@ -61,9 +61,10 @@ export function createSettingsController({ getDictionaryCount }) {
           button.dataset.offlineOnly = String(value);
           button.textContent = label;
           button.setAttribute("aria-pressed", String(active));
-          button.addEventListener("click", () =>
-            setSetting("offlineOnly", value),
-          );
+          button.addEventListener("click", () => {
+            if (!setSetting("offlineOnly", value))
+              alert("无法保存离线设置。请检查网站的存储权限或设备空间后重试。");
+          });
           return button;
         }),
       );

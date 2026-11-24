@@ -11,7 +11,7 @@ describe("main analysis flow source", () => {
     expect(source).not.toContain("renderSentenceExplanation(");
     expect(source).toContain("buildWordCard(");
     expect(source).toContain("missionController.renderPreview(");
-    expect(mission).toContain("recordWordEncounter(");
+    expect(mission).toContain("recordMissionEncounters(");
   });
 
   it("uses separate native camera and photo-library inputs", () => {

@@ -59,10 +59,9 @@ async function networkFirst(request, event) {
   try {
     const response = await fetch(request);
     if (response.ok) {
+      const copy = response.clone();
       event.waitUntil(
-        caches
-          .open(CACHE_NAME)
-          .then((cache) => cache.put(request, response.clone())),
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)),
       );
     }
     return response;

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   createQuizQuestion,
-  getQuizOptionLabel,
   handleQuizAnswer,
   quizState,
   resetQuizSession,
@@ -30,14 +29,14 @@ describe("quiz answer handling", () => {
     saveWordbook([{ w: "write", m: "写", t: 1 }]);
   });
 
-  it("increments score and wordbook stats for correct answers", () => {
-    expect(handleQuizAnswer("write", "write")).toBe(true);
+  it("increments score and wordbook stats for correct answers", async () => {
+    expect(await handleQuizAnswer("write", "write")).toBe(true);
     expect(quizState).toMatchObject({ score: 1, total: 1 });
     expect(getWordbook()[0]).toMatchObject({ correct: 1, wrong: 0, level: 1 });
   });
 
-  it("increments wrong count for incorrect answers", () => {
-    expect(handleQuizAnswer("read", "write")).toBe(false);
+  it("increments wrong count for incorrect answers", async () => {
+    expect(await handleQuizAnswer("read", "write")).toBe(false);
     expect(quizState).toMatchObject({ score: 0, total: 1 });
     expect(getWordbook()[0]).toMatchObject({ correct: 0, wrong: 1, level: 0 });
   });
@@ -68,9 +67,7 @@ describe("quiz option quality", () => {
     for (let seed = 0; seed < 40; seed++) {
       const random = () => (seed % 7) / 7 + 0.01;
       const question = createQuizQuestion(wb, random);
-      const labels = question.options.map((option) =>
-        getQuizOptionLabel(option, question.flipped),
-      );
+      const labels = question.options.map((option) => option.w);
       expect(new Set(labels).size).toBe(labels.length);
     }
   });

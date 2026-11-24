@@ -1,4 +1,4 @@
-import { readStoredJson, writeStoredJson } from "./storage.js";
+import { readStoredJson, writeStoredJson, withStorageLock } from "./storage.js";
 import { shuffle } from "./random.js";
 
 export const MISSION_HISTORY_KEY = "lucia-classroom-missions-v1";
@@ -119,7 +119,8 @@ function escapeRegExp(value) {
 }
 
 export function createClozeText(sentence, word) {
-  const pattern = new RegExp(`\\b${escapeRegExp(word)}\\b`, "i");
+  const term = escapeRegExp(word).replaceAll("'", "['’]");
+  const pattern = new RegExp(`\\b${term}\\b(?!['’][a-z])`, "i");
   return String(sentence || "").replace(pattern, "_____");
 }
 
@@ -218,7 +219,6 @@ export function summarizeMission(mission, results = []) {
 }
 
 export function saveMissionResult(mission, results, completedAt = Date.now()) {
-  const history = readStoredJson(MISSION_HISTORY_KEY, []);
   const entry = {
     id: mission.id,
     sentence: mission.sentence,
@@ -230,16 +230,20 @@ export function saveMissionResult(mission, results, completedAt = Date.now()) {
       correct: Boolean(result.correct),
     })),
   };
-  writeStoredJson(
-    MISSION_HISTORY_KEY,
-    [entry, ...(Array.isArray(history) ? history : [])]
-      .filter(
-        (item, index, items) =>
-          items.findIndex((candidate) => candidate.id === item.id) === index,
-      )
-      .slice(0, MAX_MISSION_HISTORY),
-  );
-  return entry;
+  return withStorageLock(MISSION_HISTORY_KEY, () => {
+    const history = readStoredJson(MISSION_HISTORY_KEY, []);
+    return writeStoredJson(
+      MISSION_HISTORY_KEY,
+      [entry, ...(Array.isArray(history) ? history : [])]
+        .filter(
+          (item, index, items) =>
+            items.findIndex((candidate) => candidate.id === item.id) === index,
+        )
+        .slice(0, MAX_MISSION_HISTORY),
+    )
+      ? entry
+      : null;
+  }).catch(() => null);
 }
 
 export function getMissionHistory() {

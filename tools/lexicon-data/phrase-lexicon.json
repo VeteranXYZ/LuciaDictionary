@@ -3753,7 +3753,7 @@
   },
   "school office": {
     "phrase": "school office",
-    "cn": "school office（常用短语）",
+    "cn": "学校办公室",
     "simple": "",
     "tags": [
       "school"
@@ -3767,7 +3767,7 @@
   },
   "reading log": {
     "phrase": "reading log",
-    "cn": "reading log（常用短语）",
+    "cn": "阅读记录",
     "simple": "",
     "tags": [
       "reading"
@@ -3781,7 +3781,7 @@
   },
   "classroom rules": {
     "phrase": "classroom rules",
-    "cn": "classroom rules（常用短语）",
+    "cn": "课堂规则",
     "simple": "",
     "tags": [
       "school"
@@ -3795,7 +3795,7 @@
   },
   "quiet voice": {
     "phrase": "quiet voice",
-    "cn": "quiet voice（常用短语）",
+    "cn": "轻声说话的声音",
     "simple": "",
     "tags": [
       "daily"
@@ -3809,7 +3809,7 @@
   },
   "kind words": {
     "phrase": "kind words",
-    "cn": "kind words（常用短语）",
+    "cn": "友善的话",
     "simple": "",
     "tags": [
       "social"
@@ -3823,7 +3823,7 @@
   },
   "learning goal": {
     "phrase": "learning goal",
-    "cn": "learning goal（常用短语）",
+    "cn": "学习目标",
     "simple": "",
     "tags": [
       "daily"
@@ -3837,7 +3837,7 @@
   },
   "story map": {
     "phrase": "story map",
-    "cn": "story map（常用短语）",
+    "cn": "故事结构图",
     "simple": "",
     "tags": [
       "reading"
@@ -3851,7 +3851,7 @@
   },
   "topic sentence": {
     "phrase": "topic sentence",
-    "cn": "topic sentence（常用短语）",
+    "cn": "点明段落主旨的句子",
     "simple": "",
     "tags": [
       "writing"
@@ -3865,7 +3865,7 @@
   },
   "first draft": {
     "phrase": "first draft",
-    "cn": "first draft（常用短语）",
+    "cn": "初稿",
     "simple": "",
     "tags": [
       "writing"
@@ -3879,7 +3879,7 @@
   },
   "final copy": {
     "phrase": "final copy",
-    "cn": "final copy（常用短语）",
+    "cn": "定稿",
     "simple": "",
     "tags": [
       "daily"
@@ -3893,7 +3893,7 @@
   },
   "math problem": {
     "phrase": "math problem",
-    "cn": "math problem（常用短语）",
+    "cn": "数学题",
     "simple": "",
     "tags": [
       "math"
@@ -3907,7 +3907,7 @@
   },
   "science journal": {
     "phrase": "science journal",
-    "cn": "science journal（常用短语）",
+    "cn": "科学观察记录本",
     "simple": "",
     "tags": [
       "science"
@@ -3921,7 +3921,7 @@
   },
   "library book": {
     "phrase": "library book",
-    "cn": "library book（常用短语）",
+    "cn": "图书馆的书",
     "simple": "",
     "tags": [
       "daily"
@@ -3935,7 +3935,7 @@
   },
   "lunch money": {
     "phrase": "lunch money",
-    "cn": "lunch money（常用短语）",
+    "cn": "午餐费",
     "simple": "",
     "tags": [
       "daily"
@@ -3949,7 +3949,7 @@
   },
   "water bottle": {
     "phrase": "water bottle",
-    "cn": "water bottle（常用短语）",
+    "cn": "水壶",
     "simple": "",
     "tags": [
       "daily"
@@ -3963,7 +3963,7 @@
   },
   "school notice": {
     "phrase": "school notice",
-    "cn": "school notice（常用短语）",
+    "cn": "学校通知",
     "simple": "",
     "tags": [
       "school"
@@ -3977,7 +3977,7 @@
   },
   "emergency card": {
     "phrase": "emergency card",
-    "cn": "emergency card（常用短语）",
+    "cn": "紧急联系卡",
     "simple": "",
     "tags": [
       "daily"
@@ -3991,7 +3991,7 @@
   },
   "home folder": {
     "phrase": "home folder",
-    "cn": "home folder（常用短语）",
+    "cn": "带回家的家校联系文件夹",
     "simple": "",
     "tags": [
       "school"
@@ -4005,7 +4005,7 @@
   },
   "answer box": {
     "phrase": "answer box",
-    "cn": "answer box（常用短语）",
+    "cn": "答题框",
     "simple": "",
     "tags": [
       "school"
@@ -4019,7 +4019,7 @@
   },
   "spelling words": {
     "phrase": "spelling words",
-    "cn": "spelling words（常用短语）",
+    "cn": "要练习拼写的单词",
     "simple": "",
     "tags": [
       "daily"
@@ -4033,7 +4033,7 @@
   },
   "vocabulary list": {
     "phrase": "vocabulary list",
-    "cn": "vocabulary list（常用短语）",
+    "cn": "词汇表",
     "simple": "",
     "tags": [
       "daily"
@@ -4047,7 +4047,7 @@
   },
   "reading passage": {
     "phrase": "reading passage",
-    "cn": "reading passage（常用短语）",
+    "cn": "阅读短文",
     "simple": "",
     "tags": [
       "reading"
@@ -4061,7 +4061,7 @@
   },
   "text evidence": {
     "phrase": "text evidence",
-    "cn": "text evidence（常用短语）",
+    "cn": "文中支持答案的依据",
     "simple": "",
     "tags": [
       "reading"
@@ -4075,7 +4075,7 @@
   },
   "story setting": {
     "phrase": "story setting",
-    "cn": "story setting（常用短语）",
+    "cn": "故事发生的时间和地点",
     "simple": "",
     "tags": [
       "reading"
@@ -4089,7 +4089,7 @@
   },
   "character trait": {
     "phrase": "character trait",
-    "cn": "character trait（常用短语）",
+    "cn": "人物的性格特点",
     "simple": "",
     "tags": [
       "reading"
@@ -4103,7 +4103,7 @@
   },
   "problem and solution": {
     "phrase": "problem and solution",
-    "cn": "problem and solution（常用短语）",
+    "cn": "问题和解决办法",
     "simple": "",
     "tags": [
       "daily"
@@ -4117,7 +4117,7 @@
   },
   "compare and contrast": {
     "phrase": "compare and contrast",
-    "cn": "compare and contrast（常用短语）",
+    "cn": "比较相同点和不同点",
     "simple": "",
     "tags": [
       "daily"
@@ -4131,7 +4131,7 @@
   },
   "summary sentence": {
     "phrase": "summary sentence",
-    "cn": "summary sentence（常用短语）",
+    "cn": "概括主要内容的句子",
     "simple": "",
     "tags": [
       "math",
@@ -4147,7 +4147,7 @@
   },
   "activity page": {
     "phrase": "activity page",
-    "cn": "activity page（常用短语）",
+    "cn": "活动练习页",
     "simple": "",
     "tags": [
       "school"
@@ -4161,7 +4161,7 @@
   },
   "online account": {
     "phrase": "online account",
-    "cn": "online account（常用短语）",
+    "cn": "网上账号",
     "simple": "",
     "tags": [
       "website"
@@ -4175,7 +4175,7 @@
   },
   "contact information": {
     "phrase": "contact information",
-    "cn": "contact information（常用短语）",
+    "cn": "联系方式",
     "simple": "",
     "tags": [
       "website",
@@ -4190,7 +4190,7 @@
   },
   "birthday party": {
     "phrase": "birthday party",
-    "cn": "birthday party（常用短语）",
+    "cn": "生日聚会",
     "simple": "",
     "tags": [
       "daily"
@@ -4204,7 +4204,7 @@
   },
   "class party": {
     "phrase": "class party",
-    "cn": "class party（常用短语）",
+    "cn": "班级聚会",
     "simple": "",
     "tags": [
       "school"
@@ -4218,7 +4218,7 @@
   },
   "dismissal time": {
     "phrase": "dismissal time",
-    "cn": "dismissal time（常用短语）",
+    "cn": "放学时间",
     "simple": "",
     "tags": [
       "school_notice"
@@ -4232,7 +4232,7 @@
   },
   "bus note": {
     "phrase": "bus note",
-    "cn": "bus note（常用短语）",
+    "cn": "给学校说明校车乘坐安排的便条",
     "simple": "",
     "tags": [
       "daily"
@@ -4246,7 +4246,7 @@
   },
   "home address": {
     "phrase": "home address",
-    "cn": "home address（常用短语）",
+    "cn": "家庭住址",
     "simple": "",
     "tags": [
       "math",
@@ -4261,7 +4261,7 @@
   },
   "phone number": {
     "phrase": "phone number",
-    "cn": "phone number（常用短语）",
+    "cn": "电话号码",
     "simple": "",
     "tags": [
       "math"
@@ -4275,7 +4275,7 @@
   },
   "website link": {
     "phrase": "website link",
-    "cn": "website link（常用短语）",
+    "cn": "网站链接",
     "simple": "",
     "tags": [
       "website"
@@ -4289,7 +4289,7 @@
   },
   "parent email": {
     "phrase": "parent email",
-    "cn": "parent email（常用短语）",
+    "cn": "家长的电子邮箱或邮件",
     "simple": "",
     "tags": [
       "website",
@@ -4304,7 +4304,7 @@
   },
   "teacher note": {
     "phrase": "teacher note",
-    "cn": "teacher note（常用短语）",
+    "cn": "老师的便条",
     "simple": "",
     "tags": [
       "school"
@@ -4318,7 +4318,7 @@
   },
   "safety rule": {
     "phrase": "safety rule",
-    "cn": "safety rule（常用短语）",
+    "cn": "安全规则",
     "simple": "",
     "tags": [
       "daily"
@@ -4332,7 +4332,7 @@
   },
   "group work": {
     "phrase": "group work",
-    "cn": "group work（常用短语）",
+    "cn": "小组合作",
     "simple": "",
     "tags": [
       "daily"
@@ -4346,7 +4346,7 @@
   },
   "partner talk": {
     "phrase": "partner talk",
-    "cn": "partner talk（常用短语）",
+    "cn": "与同伴交谈",
     "simple": "",
     "tags": [
       "daily"
@@ -4360,7 +4360,7 @@
   },
   "turn and talk": {
     "phrase": "turn and talk",
-    "cn": "turn and talk（常用短语）",
+    "cn": "转向身边的同学讨论",
     "simple": "",
     "tags": [
       "daily"
@@ -4374,7 +4374,7 @@
   },
   "share ideas": {
     "phrase": "share ideas",
-    "cn": "share ideas（常用短语）",
+    "cn": "分享想法",
     "simple": "",
     "tags": [
       "reading"
@@ -4388,7 +4388,7 @@
   },
   "ask for help": {
     "phrase": "ask for help",
-    "cn": "ask for help（常用短语）",
+    "cn": "寻求帮助",
     "simple": "",
     "tags": [
       "daily"
@@ -4402,7 +4402,7 @@
   },
   "try again": {
     "phrase": "try again",
-    "cn": "try again（常用短语）",
+    "cn": "再试一次",
     "simple": "",
     "tags": [
       "daily"
@@ -4416,7 +4416,7 @@
   },
   "do your best": {
     "phrase": "do your best",
-    "cn": "do your best（常用短语）",
+    "cn": "尽自己最大的努力",
     "simple": "",
     "tags": [
       "daily"
@@ -4430,7 +4430,7 @@
   },
   "stay safe": {
     "phrase": "stay safe",
-    "cn": "stay safe（常用短语）",
+    "cn": "注意安全",
     "simple": "",
     "tags": [
       "daily"
@@ -4444,7 +4444,7 @@
   },
   "school supplies": {
     "phrase": "school supplies",
-    "cn": "school supplies（常用短语）",
+    "cn": "学习用品",
     "simple": "",
     "tags": [
       "school"
@@ -4458,7 +4458,7 @@
   },
   "art project": {
     "phrase": "art project",
-    "cn": "art project（常用短语）",
+    "cn": "美术创作任务",
     "simple": "",
     "tags": [
       "daily"
@@ -4472,7 +4472,7 @@
   },
   "field day": {
     "phrase": "field day",
-    "cn": "field day（常用短语）",
+    "cn": "学校户外运动日",
     "simple": "",
     "tags": [
       "school_notice"
@@ -4486,7 +4486,7 @@
   },
   "picture day": {
     "phrase": "picture day",
-    "cn": "picture day（常用短语）",
+    "cn": "学校拍照日",
     "simple": "",
     "tags": [
       "daily"
@@ -4500,7 +4500,7 @@
   },
   "book report": {
     "phrase": "book report",
-    "cn": "book report（常用短语）",
+    "cn": "读书报告",
     "simple": "",
     "tags": [
       "daily"
@@ -4514,7 +4514,7 @@
   },
   "word problem": {
     "phrase": "word problem",
-    "cn": "word problem（常用短语）",
+    "cn": "数学应用题",
     "simple": "",
     "tags": [
       "daily"
@@ -4528,7 +4528,7 @@
   },
   "number sentence": {
     "phrase": "number sentence",
-    "cn": "number sentence（常用短语）",
+    "cn": "用数字和符号写成的算式",
     "simple": "",
     "tags": [
       "math",
@@ -4543,7 +4543,7 @@
   },
   "place value": {
     "phrase": "place value",
-    "cn": "place value（常用短语）",
+    "cn": "数位值（数字所在位置表示的值）",
     "simple": "",
     "tags": [
       "daily"
@@ -4557,7 +4557,7 @@
   },
   "reading group": {
     "phrase": "reading group",
-    "cn": "reading group（常用短语）",
+    "cn": "阅读小组",
     "simple": "",
     "tags": [
       "reading"
@@ -4571,7 +4571,7 @@
   },
   "science activity": {
     "phrase": "science activity",
-    "cn": "science activity（常用短语）",
+    "cn": "科学活动",
     "simple": "",
     "tags": [
       "science"
@@ -4585,7 +4585,7 @@
   },
   "writing prompt": {
     "phrase": "writing prompt",
-    "cn": "writing prompt（常用短语）",
+    "cn": "写作题目或提示",
     "simple": "",
     "tags": [
       "daily"
@@ -4599,7 +4599,7 @@
   },
   "worksheet page": {
     "phrase": "worksheet page",
-    "cn": "worksheet page（常用短语）",
+    "cn": "练习单上的一页",
     "simple": "",
     "tags": [
       "school"
@@ -4613,7 +4613,7 @@
   },
   "permission form": {
     "phrase": "permission form",
-    "cn": "permission form（常用短语）",
+    "cn": "同意书",
     "simple": "",
     "tags": [
       "school_notice"
@@ -4627,7 +4627,7 @@
   },
   "signed paper": {
     "phrase": "signed paper",
-    "cn": "signed paper（常用短语）",
+    "cn": "已签字的文件",
     "simple": "",
     "tags": [
       "daily"
@@ -4641,7 +4641,7 @@
   },
   "take turns": {
     "phrase": "take turns",
-    "cn": "take turns（常用短语）",
+    "cn": "轮流",
     "simple": "",
     "tags": [
       "daily"
@@ -4655,7 +4655,7 @@
   },
   "clean up": {
     "phrase": "clean up",
-    "cn": "clean up（常用短语）",
+    "cn": "收拾干净",
     "simple": "",
     "tags": [
       "daily"
@@ -4669,7 +4669,7 @@
   },
   "line leader": {
     "phrase": "line leader",
-    "cn": "line leader（常用短语）",
+    "cn": "排在队首带队的同学",
     "simple": "",
     "tags": [
       "daily"
@@ -4683,7 +4683,7 @@
   },
   "class helper": {
     "phrase": "class helper",
-    "cn": "class helper（常用短语）",
+    "cn": "班级小帮手",
     "simple": "",
     "tags": [
       "school"
@@ -4697,7 +4697,7 @@
   },
   "lost and found": {
     "phrase": "lost and found",
-    "cn": "lost and found（常用短语）",
+    "cn": "失物招领处",
     "simple": "",
     "tags": [
       "daily"
@@ -4711,7 +4711,7 @@
   },
   "nurse office": {
     "phrase": "nurse office",
-    "cn": "nurse office（常用短语）",
+    "cn": "学校医务室",
     "simple": "",
     "tags": [
       "daily"
