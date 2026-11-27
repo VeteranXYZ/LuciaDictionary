@@ -1,0 +1,171 @@
+Lucia's Dictionary
+Copyright 2026 VeteranXYZ
+
+This product includes software and data developed for Lucia's Dictionary,
+licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It also bundles and redistributes data derived from the third-party sources
+listed below. Each source keeps its own license; the Apache License 2.0 in
+LICENSE does not replace them. Both sources are MIT-licensed, which permits
+this redistribution provided their copyright and permission notices travel
+with the data. Those notices are reproduced in full at the end of this file.
+
+--------------------------------------------------------------------------------
+1. ECDICT -- English-Chinese dictionary database
+--------------------------------------------------------------------------------
+
+   Upstream:  https://github.com/skywind3000/ECDICT
+   License:   MIT
+   Holder:    Copyright (c) 2025 Linwei
+
+   Chinese meanings, phonetic transcriptions, part-of-speech labels and
+   inflected forms in the bundled runtime lexicon are derived from ECDICT's
+   `translation`, `phonetic`, `pos` and `exchange` columns. The project
+   filters the word set down to a primary-school classroom scope and
+   reformats the text (stripping part-of-speech prefixes and bracketed
+   notes, normalizing separators to the full-width semicolon), but the
+   meanings and phonetics themselves originate upstream.
+
+   Affected files:
+     tools/lexicon-data/core-lexicon.source.json
+     public/assets/lexicon/core-lexicon.json
+     public/assets/lexicon/core-lexicon-extended.json
+
+   Build step: tools/build-hfv-ecdict-core.mjs, then
+               tools/build-runtime-lexicon.mjs
+
+   Upstream chain: that repository's README states its database grew over
+   years from assorted reference materials and contributed word lists, that
+   it incorporated the open-source cdict dictionary data, and that it was
+   proofread against the British National Corpus word list. ECDICT names no
+   separate license for those portions; the repository-level MIT grant above
+   is the one this project relies on.
+
+--------------------------------------------------------------------------------
+2. high-frequency-vocabulary -- ranked English word list
+--------------------------------------------------------------------------------
+
+   Upstream:  https://github.com/arstgit/high-frequency-vocabulary
+   License:   MIT
+   Holder:    Copyright (c) 2018 Derek H
+
+   The word list and its frequency ordering determine which entries the
+   runtime lexicon includes and which learning band each word receives. Only
+   `30k.txt` is read, and only the word and its rank are taken; the
+   Chinese explanations in that repository's `30k-explained.txt` are not
+   used and are not redistributed here.
+
+   The `rank` field in tools/lexicon-data/core-lexicon.source.json carries
+   this ordering. The raw upstream file is not committed.
+
+   Upstream chain: that repository's README states its word list is derived
+   from Peter Norvig's compilation of the 1/3 million most frequent English
+   words (http://norvig.com/ngrams/), itself built from the Google Web
+   Trillion Word Corpus. That compilation carries no license statement of
+   its own; the MIT grant above is the one this project relies on.
+
+--------------------------------------------------------------------------------
+3. Runtime-only third-party services (not redistributed)
+--------------------------------------------------------------------------------
+
+   These are called on demand at runtime. No content from them is stored in
+   this repository or shipped with the application.
+
+   dictionaryapi.dev -- supplies English definitions when a word is missing
+     from the bundled data. Its English definitions come largely from
+     Wiktionary and are licensed CC BY-SA 3.0
+     (https://creativecommons.org/licenses/by-sa/3.0/). Results are cached
+     in the end user's browser only. Because nothing from this source is
+     bundled or redistributed, CC BY-SA's share-alike terms do not reach
+     this repository's own code or data.
+
+   Cloudflare Workers AI -- performs server-side translation behind
+     /api/translate.
+
+   OCR.Space -- performs image text recognition behind /api/ocr.
+
+--------------------------------------------------------------------------------
+4. This project's own content
+--------------------------------------------------------------------------------
+
+   The following are original to this project and are covered by the Apache
+   License 2.0 in LICENSE:
+
+   - Application code: src/, worker/, tools/, tests/
+   - Classroom phrasebook and multi-word phrase layer, including their
+     Chinese meanings, plain-English glosses and example sentences:
+     tools/lexicon-data/phrase-lexicon.json,
+     public/assets/lexicon/phrase-lexicon.json,
+     public/assets/phrasebook.json (authored inline in
+     tools/generate-phrasebook.mjs)
+   - Curated phonetic hints: public/assets/phonetics.json
+   - Curated classroom word entries authored directly in
+     tools/build-core-lexicon.mjs and tools/required-core-words.json
+   - Learning bands (foundation / developing / expanding). These are this
+     project's own ordering for teaching purposes and are not a school
+     grade standard or any examination certification.
+   - Images and icons: public/favicon.ico, public/favicon.png,
+     public/assets/logo.png, public/assets/logo-64.webp,
+     public/assets/logo-128.webp, public/assets/lucia-160.webp,
+     public/assets/lucia-320.webp, public/assets/monkey-80.webp,
+     public/assets/monkey-160.webp
+   - Fonts: none are bundled. The interface uses system font stacks only.
+
+   public/assets/dict.json is a small legacy fallback glossary that predates
+   the build pipeline above. Its entries are short child-level single
+   glosses and carry none of ECDICT's phonetic markers; no third-party
+   source for it is recorded in this repository's history.
+
+--------------------------------------------------------------------------------
+Full license texts for the redistributed sources
+--------------------------------------------------------------------------------
+
+ECDICT (https://github.com/skywind3000/ECDICT)
+
+MIT License
+
+Copyright (c) 2025 Linwei
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+high-frequency-vocabulary (https://github.com/arstgit/high-frequency-vocabulary)
+
+MIT License
+
+Copyright (c) 2018 Derek H
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
